@@ -28,6 +28,7 @@ Docker
 git clone <repo>
 cd estudia
 
+node --version # debe ser v22.22.2 (usar nvm use si está disponible)
 pnpm install
 
 docker compose up -d postgres
@@ -35,7 +36,19 @@ docker compose up -d postgres
 pnpm dev
 ```
 
-Los comandos reales se ajustarán a la estructura generada.
+Servicios locales:
+
+- Web: `http://localhost:3000`
+- API: `http://localhost:3001/api/v1/health`
+- OpenAPI: `http://localhost:3001/api/docs`
+
+Validación antes de un commit:
+
+```bash
+pnpm lint
+pnpm typecheck
+pnpm test
+```
 
 ## Variables de entorno
 

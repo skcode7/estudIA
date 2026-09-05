@@ -1,0 +1,24 @@
+{
+  "name": "estudia",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@12.3.4",
+  "engines": {
+    "node": ">=22.22.2 <23",
+    "pnpm": ">=12.3.4 <13"
+  },
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test",
+    "test:e2e": "pnpm --filter @estudia/web test:e2e",
+    "db:generate": "pnpm --filter @estudia/api prisma generate",
+    "db:migrate": "pnpm --filter @estudia/api prisma migrate dev",
+    "db:studio": "pnpm --filter @estudia/api prisma studio"
+  },
+  "devDependencies": {
+    "turbo": "2.10.12"
+  }
+}

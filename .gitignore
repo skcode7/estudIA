@@ -1,0 +1,18 @@
+# Dependencies and build artifacts
+node_modules/
+.next/
+dist/
+coverage/
+playwright-report/
+test-results/
+
+# Environment files and local data
+.env
+.env.local
+.env.*.local
+!.env.example
+postgres-data/
+
+# Tooling
+.turbo/
+*.tsbuildinfo
