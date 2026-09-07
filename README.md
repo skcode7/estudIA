@@ -6,6 +6,36 @@ estudIA convierte materiales y temas aprendidos en la escuela en una experiencia
 ## Estado actual
 MVP individual, sin autenticación y sin restricciones de uso.
 
+## Ejecutar y verificar el proyecto inicial
+
+Requisitos: Node.js `22.22.2`, pnpm `12.3.4` y Docker con Compose. Si utilizas nvm, activa la versión fijada con `nvm use`.
+
+```bash
+pnpm install
+docker compose up -d postgres
+pnpm dev
+```
+
+Con `pnpm dev` en ejecución, verifica en otra terminal:
+
+```bash
+curl http://localhost:3001/api/v1/health
+```
+
+La respuesta esperada es:
+
+```json
+{"status":"ok"}
+```
+
+También puedes abrir `http://localhost:3000` para comprobar la página inicial de Next.js y `http://localhost:3001/api/docs` para ver el contrato OpenAPI de la API.
+
+Para detener PostgreSQL al terminar:
+
+```bash
+docker compose down
+```
+
 ## Arquitectura
 Modular Monolith:
 - `apps/web`: frontend Next.js.
