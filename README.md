@@ -13,6 +13,8 @@ Requisitos: Node.js `22.22.2`, pnpm `12.3.4` y Docker con Compose. Si utilizas n
 ```bash
 pnpm install
 docker compose up -d postgres
+cp .env.example apps/api/.env
+pnpm db:deploy
 pnpm dev
 ```
 

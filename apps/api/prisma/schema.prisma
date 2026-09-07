@@ -6,3 +6,166 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum MaterialType {
+  TEXT
+  FILE
+  LINK
+}
+
+enum MaterialProcessingStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  OPEN_ANSWER
+}
+
+model Subject {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  topics Topic[]
+}
+
+model Topic {
+  id          String   @id @default(uuid())
+  subjectId   String
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  subject  Subject       @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  materials Material[]
+  questions Question[]
+  quizzes   Quiz[]
+  progress  TopicProgress?
+
+  @@index([subjectId])
+}
+
+model Material {
+  id                String                   @id @default(uuid())
+  topicId           String
+  type              MaterialType
+  title             String
+  content           String?                  @db.Text
+  storageKey        String?
+  processingStatus  MaterialProcessingStatus @default(PENDING)
+  processingError   String?                  @db.Text
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+
+  topic           Topic      @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  sourceQuestions Question[] @relation("SourceMaterial")
+
+  @@index([topicId])
+}
+
+model Question {
+  id               String       @id @default(uuid())
+  topicId          String
+  type             QuestionType @default(MULTIPLE_CHOICE)
+  statement        String       @db.Text
+  explanation      String?      @db.Text
+  difficulty       String       @default("medium")
+  sourceMaterialId String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  topic          Topic            @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  sourceMaterial Material?        @relation("SourceMaterial", fields: [sourceMaterialId], references: [id], onDelete: SetNull)
+  options        QuestionOption[]
+  quizQuestions  QuizQuestion[]
+  answers        Answer[]
+
+  @@index([topicId])
+  @@index([sourceMaterialId])
+}
+
+model QuestionOption {
+  id         String   @id @default(uuid())
+  questionId String
+  text       String   @db.Text
+  isCorrect  Boolean  @default(false)
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+}
+
+model Quiz {
+  id        String   @id @default(uuid())
+  topicId   String
+  title     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  topic     Topic          @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  questions QuizQuestion[]
+  attempts  QuizAttempt[]
+
+  @@index([topicId])
+}
+
+model QuizQuestion {
+  quizId     String
+  questionId String
+  order      Int
+
+  quiz     Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@id([quizId, questionId])
+  @@unique([quizId, order])
+  @@index([questionId])
+}
+
+model QuizAttempt {
+  id          String    @id @default(uuid())
+  quizId      String
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  score       Float?
+
+  quiz    Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  answers Answer[]
+
+  @@index([quizId])
+}
+
+model Answer {
+  id               String   @id @default(uuid())
+  attemptId        String
+  questionId       String
+  selectedOptionId String?
+  answerText       String?  @db.Text
+  isCorrect        Boolean
+  answeredAt       DateTime @default(now())
+
+  attempt  QuizAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([attemptId, questionId])
+  @@index([questionId])
+}
+
+model TopicProgress {
+  id             String   @id @default(uuid())
+  topicId        String   @unique
+  attempts       Int      @default(0)
+  correctAnswers Int      @default(0)
+  totalAnswers   Int      @default(0)
+  masteryScore   Float    @default(0)
+  updatedAt      DateTime @updatedAt
+
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+}

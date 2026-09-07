@@ -16,6 +16,7 @@
     "test:e2e": "pnpm --filter @estudia/web test:e2e",
     "db:generate": "pnpm --filter @estudia/api prisma generate",
     "db:migrate": "pnpm --filter @estudia/api prisma migrate dev",
+    "db:deploy": "pnpm --filter @estudia/api prisma migrate deploy",
     "db:studio": "pnpm --filter @estudia/api prisma studio"
   },
   "devDependencies": {
