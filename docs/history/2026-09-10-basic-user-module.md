@@ -53,6 +53,7 @@ El nombre del usuario en el home ("Alex") estaba hardcodeado. Se necesitaba una 
 | `4e297e3` | feat(backend): add users module with list and create endpoints |
 | `0928bf0` | feat(frontend): add user onboarding modal and dynamic greeting |
 | `20100b8` | docs: add User entity to data model documentation |
+| `b26dbad` | docs: add session history for basic user module |
 
 ## Pendientes / próximos pasos
 
