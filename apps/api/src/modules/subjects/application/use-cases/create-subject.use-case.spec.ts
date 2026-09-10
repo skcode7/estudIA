@@ -6,7 +6,10 @@ import { CreateSubjectUseCase } from "./create-subject.use-case";
 function subjectRepositoryMock(): SubjectRepository {
   return {
     create: vi.fn(),
-    findAll: vi.fn()
+    findAll: vi.fn(),
+    findById: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn()
   };
 }
 

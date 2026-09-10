@@ -4,7 +4,8 @@ import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import {
   CreateSubjectInput,
   SubjectRecord,
-  SubjectRepository
+  SubjectRepository,
+  UpdateSubjectInput
 } from "../application/ports/subject.repository";
 
 @Injectable()
@@ -22,7 +23,25 @@ export class PrismaSubjectRepository implements SubjectRepository {
 
   findAll(): Promise<SubjectRecord[]> {
     return this.prisma.subject.findMany({
-      orderBy: { createdAt: "asc" }
+      orderBy: { name: "asc" }
     });
+  }
+
+  findById(id: string): Promise<SubjectRecord | null> {
+    return this.prisma.subject.findUnique({ where: { id } });
+  }
+
+  update(id: string, input: UpdateSubjectInput): Promise<SubjectRecord> {
+    return this.prisma.subject.update({
+      where: { id },
+      data: {
+        ...(input.name !== undefined && { name: input.name }),
+        ...(input.description !== undefined && { description: input.description ?? null })
+      }
+    });
+  }
+
+  delete(id: string): Promise<void> {
+    return this.prisma.subject.delete({ where: { id } }).then(() => undefined);
   }
 }
