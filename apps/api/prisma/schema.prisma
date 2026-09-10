@@ -169,3 +169,10 @@ model TopicProgress {
 
   topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
 }
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
