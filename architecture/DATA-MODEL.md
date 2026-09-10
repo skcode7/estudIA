@@ -24,6 +24,13 @@ Topic
 
 ## Entidades
 
+### User
+- id
+- name
+- timestamps
+
+> MVP de un solo registro. Preparada para asociar `userId` a entidades del dominio cuando se implemente multiusuario. La integración con Authentico (ver ADR-0003) definirá si se requiere más información (email, identidad externa, etc.).
+
 ### Subject
 - id
 - name
