@@ -16,6 +16,43 @@ export interface UpdateSubjectInput {
   description?: string;
 }
 
+export interface ApiTopic {
+  id: string;
+  subjectId: string;
+  name: string;
+  description: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateTopicInput {
+  subjectId: string;
+  name: string;
+  description?: string;
+}
+
+export type MaterialType = "TEXT" | "FILE" | "LINK";
+export type MaterialProcessingStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+
+export interface ApiMaterial {
+  id: string;
+  topicId: string;
+  type: MaterialType;
+  title: string;
+  content: string | null;
+  storageKey: string | null;
+  processingStatus: MaterialProcessingStatus;
+  processingError: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateMaterialInput {
+  topicId: string;
+  title: string;
+  content: string;
+}
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api/v1";
 
 async function readError(response: Response): Promise<string> {
@@ -29,12 +66,14 @@ async function readError(response: Response): Promise<string> {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers = new Headers(init?.headers);
+  if (init?.body !== undefined && !(init.body instanceof FormData)) {
+    headers.set("Content-Type", "application/json");
+  }
+
   const response = await fetch(`${API_URL}${path}`, {
     ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...init?.headers
-    }
+    headers
   });
 
   if (!response.ok) {
@@ -70,6 +109,45 @@ export function deleteSubject(id: string): Promise<void> {
   return request<void>(`/subjects/${id}`, {
     method: "DELETE"
   });
+}
+
+export function listTopics(subjectId?: string): Promise<ApiTopic[]> {
+  const query = subjectId ? `?subjectId=${encodeURIComponent(subjectId)}` : "";
+  return request<ApiTopic[]>(`/topics${query}`);
+}
+
+export function createTopic(input: CreateTopicInput): Promise<ApiTopic> {
+  return request<ApiTopic>("/topics", {
+    method: "POST",
+    body: JSON.stringify(input)
+  });
+}
+
+export function createMaterial(input: CreateMaterialInput): Promise<ApiMaterial> {
+  return request<ApiMaterial>("/materials", {
+    method: "POST",
+    body: JSON.stringify(input)
+  });
+}
+
+export function uploadMaterial(input: {
+  topicId: string;
+  file: File;
+  title?: string;
+}): Promise<ApiMaterial> {
+  const form = new FormData();
+  form.set("topicId", input.topicId);
+  form.set("file", input.file);
+  if (input.title) form.set("title", input.title);
+
+  return request<ApiMaterial>("/materials/upload", {
+    method: "POST",
+    body: form
+  });
+}
+
+export function listMaterials(topicId: string): Promise<ApiMaterial[]> {
+  return request<ApiMaterial[]>(`/materials?topicId=${encodeURIComponent(topicId)}`);
 }
 
 export interface ApiUser {
