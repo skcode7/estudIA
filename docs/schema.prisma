@@ -1,0 +1,195 @@
+// schema.prisma
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 👤 Usuarios del sistema
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  courses                Course[]
+  topicProgress          UserTopicProgress[]
+  questionProgress       UserQuestionProgress[]
+  quizAttempts           QuizAttempt[]
+  studySessions          StudySession[]
+  settings               UserSettings?
+  aiGenerations          AiGeneration[]
+}
+
+// ⚙️ Configuración personalizada del usuario (Tutor)
+model UserSettings {
+  id           String @id @default(uuid())
+  userId       String @unique
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  aiTone       String @default("encouraging") // Ej: "strict", "socratic", "encouraging"
+  targetStudyTimeMinutes Int @default(30)
+}
+
+// 📚 Cursos que el usuario crea o estudia
+model Course {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  topics      Topic[]
+}
+
+// 📌 Temas o unidades dentro de un curso
+model Topic {
+  id          String   @id @default(uuid())
+  title       String
+  order       Int
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  materials   Material[]
+  questions   Question[]
+  quizzes     Quiz[]
+  userProgress UserTopicProgress[]
+}
+
+// 📄 Materiales cargados por el usuario (PDFs, notas, links)
+model Material {
+  id          String   @id @default(uuid())
+  title       String
+  fileUrl     String?  // URL en S3 / Cloud Storage si sube un PDF
+  rawContent  String?  @db.Text // Texto extraído para alimentar a la IA
+  topicId     String
+  topic       Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+}
+
+// ❓ Preguntas generadas o creadas para el tema
+model Question {
+  id            String           @id @default(uuid())
+  topicId       String
+  topic         Topic            @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  statement     String           // La pregunta
+  explanation   String?          // Explicación de la respuesta dada por la IA
+  difficulty    String           @default("medium") // easy, medium, hard
+
+  options       QuestionOption[]
+  quizQuestions QuizQuestion[]
+  progress      UserQuestionProgress[]
+  attempts      QuestionAttempt[]
+}
+
+// 🔘 Opciones de respuesta para cada pregunta
+model QuestionOption {
+  id         String   @id @default(uuid())
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  text       String
+  isCorrect  Boolean  @default(false)
+}
+
+// 📝 Quizzes (Cuestionarios organizados por tema)
+model Quiz {
+  id          String         @id @default(uuid())
+  title       String
+  topicId     String
+  topic       Topic          @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  
+  questions   QuizQuestion[]
+  attempts    QuizAttempt[]
+}
+
+// Tabla intermedia: Relación Muchos a Muchos entre Quiz y Preguntas
+model QuizQuestion {
+  quizId     String
+  questionId String
+  quiz       Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@id([quizId, questionId])
+}
+
+// 📊 Progreso del usuario en un Tema
+model UserTopicProgress {
+  id               String   @id @default(uuid())
+  userId           String
+  topicId          String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic            Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  
+  completionStatus String   @default("NOT_STARTED") // NOT_STARTED, IN_PROGRESS, COMPLETED
+  masteryScore     Float    @default(0.0) // 0% a 100% de dominio según respuestas
+
+  @@unique([userId, topicId])
+}
+
+// 📈 Progreso individual por Pregunta (para repetición espaciada)
+model UserQuestionProgress {
+  id          String    @id @default(uuid())
+  userId      String
+  questionId  String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question    Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  timesAnswered Int      @default(0)
+  timesCorrect  Int      @default(0)
+  lastReviewedAt DateTime @default(now())
+
+  @@unique([userId, questionId])
+}
+
+// 🎯 Intentos de Quizzes realizados por el usuario
+model QuizAttempt {
+  id        String   @id @default(uuid())
+  userId    String
+  quizId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quiz      Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  score     Float
+  startedAt DateTime @default(now())
+  endedAt   DateTime?
+
+  answers   QuestionAttempt[]
+}
+
+// ✏️ Respuestas dadas en un intento específico
+model QuestionAttempt {
+  id            String      @id @default(uuid())
+  quizAttemptId String
+  questionId    String
+  quizAttempt   QuizAttempt @relation(fields: [quizAttemptId], references: [id], onDelete: Cascade)
+  question      Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  selectedOptionId String?
+  isCorrect        Boolean
+}
+
+// ⏱️ Sesiones de estudio (Cronómetro / Pomodoro / Tiempo activo)
+model StudySession {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  durationMinutes Int
+  createdAt      DateTime @default(now())
+}
+
+// 🤖 Registro de generaciones por IA (Auditoría, costos y prompts)
+model AiGeneration {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  promptTokens  Int
+  outputTokens Int
+  type         String   // "SUMMARY", "QUESTION_GEN", "CHAT_TUTOR"
+  createdAt    DateTime @default(now())
+}
