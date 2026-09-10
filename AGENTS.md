@@ -65,9 +65,9 @@ La implementación DeepSeek vive en infrastructure.
 El sistema debe permitir añadir posteriormente otros proveedores compatibles sin modificar los casos de uso.
 
 ## Storage
-No incorporar MinIO.
+Usar una abstracción ObjectStorage compatible con S3. El proveedor concreto será configurable por entorno.
+Para desarrollo local se usa MinIO como implementación S3-compatible (endpoint/key por env); en producción el proveedor real (Backblaze B2, Contabo u otro S3) se configura solo con variables de entorno, sin tocar los casos de uso.
 No incorporar Redis.
-Cuando se implemente almacenamiento de archivos, usar una abstracción ObjectStorage compatible con S3. El proveedor concreto será configurable.
 
 ## Procesamiento
 En el MVP usar operaciones on-demand. Si una operación se vuelve lenta o requiere ejecución asíncrona, diseñar primero la interfaz de aplicación y posteriormente introducir una cola/worker sin modificar el dominio.

@@ -12,8 +12,10 @@
 | IAM futuro | Authentico |
 | IA inicial | DeepSeek |
 | IA arquitectura | AIProvider + adapters |
-| Storage | S3-compatible futuro |
-| Proveedores storage | Backblaze B2 / Contabo |
+| Storage | Abstracción ObjectStorage S3-compatible |
+| Storage local (dev) | MinIO vía adapter S3 (endpoint/keys por env) |
+| Proveedores storage | Backblaze B2 / Contabo (cambio solo por env) |
+| Carga de material MVP | Texto pegado + foto de apuntes (multipart) |
 | Redis | Fuera del MVP |
 | Workers | Fuera del MVP |
 | Jobs | On-demand |
