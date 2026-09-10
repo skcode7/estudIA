@@ -71,3 +71,21 @@ export function deleteSubject(id: string): Promise<void> {
     method: "DELETE"
   });
 }
+
+export interface ApiUser {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export function listUsers(): Promise<ApiUser[]> {
+  return request<ApiUser[]>("/users");
+}
+
+export function createUser(input: { name: string }): Promise<ApiUser> {
+  return request<ApiUser>("/users", {
+    method: "POST",
+    body: JSON.stringify(input)
+  });
+}

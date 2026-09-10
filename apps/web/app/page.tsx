@@ -3,11 +3,14 @@
 import { type ChangeEvent, type FormEvent, type ReactNode, useEffect, useMemo, useState } from "react";
 
 import {
+  createUser,
   createSubject,
   deleteSubject,
   listSubjects,
+  listUsers,
   updateSubject,
-  type ApiSubject
+  type ApiSubject,
+  type ApiUser
 } from "../lib/api";
 
 type Subject = ApiSubject & {
@@ -79,6 +82,13 @@ export default function HomePage() {
 
   const [subjectsFilter, setSubjectsFilter] = useState("");
 
+  const [user, setUser] = useState<ApiUser | null>(null);
+  const [isUserLoading, setIsUserLoading] = useState(true);
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [userName, setUserName] = useState("");
+  const [isSavingUser, setIsSavingUser] = useState(false);
+  const [userError, setUserError] = useState("");
+
   const filteredSubjects = useMemo(() => {
     const q = subjectsFilter.trim().toLowerCase();
     if (!q) return subjects;
@@ -111,6 +121,49 @@ export default function HomePage() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadUser(): Promise<void> {
+      try {
+        const users = await listUsers();
+        if (cancelled) return;
+        if (users.length > 0) {
+          setUser(users[0]);
+        } else {
+          setIsUserModalOpen(true);
+        }
+      } catch {
+        if (cancelled) return;
+        setIsUserModalOpen(true);
+      } finally {
+        if (!cancelled) setIsUserLoading(false);
+      }
+    }
+
+    void loadUser();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function saveUser(event: FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
+    const name = userName.trim();
+    if (!name) return;
+    setIsSavingUser(true);
+    setUserError("");
+    try {
+      const created = await createUser({ name });
+      setUser(created);
+      setIsUserModalOpen(false);
+    } catch (error) {
+      setUserError(error instanceof Error ? error.message : "No se pudo guardar el nombre.");
+    } finally {
+      setIsSavingUser(false);
+    }
+  }
 
   function openSubjects(): void {
     setActiveView("subjects");
@@ -291,7 +344,7 @@ export default function HomePage() {
                 🧑‍🎓
               </span>
               <div>
-                <p className="text-sm font-bold">Alex</p>
+                <p className="text-sm font-bold">{user?.name ?? ""}</p>
                 <p className="text-xs text-[#6d4aff]">Nivel 8</p>
               </div>
             </div>
@@ -309,6 +362,7 @@ export default function HomePage() {
               subjects={subjects}
               isLoading={isLoading}
               loadError={loadError}
+              userName={user?.name ?? ""}
               openSubjects={openSubjects}
               openSubjectDialog={openSubjectDialog}
               openMaterialDialog={() => setIsMaterialDialogOpen(true)}
@@ -542,6 +596,50 @@ export default function HomePage() {
           </form>
         </Dialog>
       )}
+
+      {(isUserLoading || isUserModalOpen) && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-[#f8f7fc] p-6">
+          {isUserLoading ? (
+            <div className="text-center">
+              <div className="mx-auto size-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#6d4aff]" />
+              <p className="mt-4 text-sm text-slate-500">Cargando tu espacio…</p>
+            </div>
+          ) : (
+            <div className="w-full max-w-md rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+              <h2 className="text-xl font-bold tracking-tight">¡Hola! 👋</h2>
+              <p className="mt-2 text-sm text-slate-500">
+                Cuéntanos tu nombre para personalizar tu experiencia de estudio.
+              </p>
+              <form className="mt-5 space-y-4" onSubmit={saveUser}>
+                <label className="block text-sm font-semibold" htmlFor="user-name">
+                  ¿Cómo te llamas?
+                  <input
+                    autoFocus
+                    className="mt-2 min-h-12 w-full rounded-xl border border-slate-200 px-3 text-base outline-none focus:border-[#6d4aff] focus:ring-2 focus:ring-[#f1eeff]"
+                    id="user-name"
+                    onChange={(event) => setUserName(event.target.value)}
+                    placeholder="Ej. Alex"
+                    required
+                    value={userName}
+                  />
+                </label>
+                {userError && (
+                  <p className="rounded-xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700" role="alert">
+                    {userError}
+                  </p>
+                )}
+                <button
+                  className="min-h-12 w-full rounded-xl bg-[#6d4aff] px-4 text-sm font-semibold text-white hover:bg-[#5b3fe0] disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={isSavingUser}
+                  type="submit"
+                >
+                  {isSavingUser ? "Guardando…" : "Comenzar"}
+                </button>
+              </form>
+            </div>
+          )}
+        </div>
+      )}
     </main>
   );
 }
@@ -551,6 +649,7 @@ function HomeView({
   subjects,
   isLoading,
   loadError,
+  userName,
   openSubjects,
   openSubjectDialog,
   openMaterialDialog
@@ -559,6 +658,7 @@ function HomeView({
   subjects: Subject[];
   isLoading: boolean;
   loadError: string;
+  userName: string;
   openSubjects: () => void;
   openSubjectDialog: () => void;
   openMaterialDialog: () => void;
@@ -568,7 +668,7 @@ function HomeView({
       <header className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
         <div>
           <p className="text-2xl font-bold tracking-tight sm:text-3xl">
-            ¡Hola, Alex! <span aria-hidden="true">👋</span>
+            ¡Hola, {userName}! <span aria-hidden="true">👋</span>
           </p>
           <p className="mt-1 text-sm text-slate-500 sm:text-base">
             Listo para aprender con tus propios materiales.
@@ -706,24 +806,6 @@ function HomeView({
                 ))}
               </div>
             )}
-          </section>
-
-          <section className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 className="text-lg font-bold">Agrega material para estudiar</h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  Notas, texto o archivos para preparar tu próximo quiz.
-                </p>
-              </div>
-              <button
-                className="min-h-12 rounded-xl bg-[#6d4aff] px-5 text-sm font-semibold text-white shadow-sm hover:bg-[#5b3fe0]"
-                onClick={openMaterialDialog}
-                type="button"
-              >
-                + Agregar material
-              </button>
-            </div>
           </section>
         </div>
 
