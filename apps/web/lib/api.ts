@@ -11,6 +11,11 @@ export interface CreateSubjectInput {
   description?: string;
 }
 
+export interface UpdateSubjectInput {
+  name?: string;
+  description?: string;
+}
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api/v1";
 
 async function readError(response: Response): Promise<string> {
@@ -47,5 +52,22 @@ export function createSubject(input: CreateSubjectInput): Promise<ApiSubject> {
   return request<ApiSubject>("/subjects", {
     method: "POST",
     body: JSON.stringify(input)
+  });
+}
+
+export function getSubject(id: string): Promise<ApiSubject> {
+  return request<ApiSubject>(`/subjects/${id}`);
+}
+
+export function updateSubject(id: string, input: UpdateSubjectInput): Promise<ApiSubject> {
+  return request<ApiSubject>(`/subjects/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(input)
+  });
+}
+
+export function deleteSubject(id: string): Promise<void> {
+  return request<void>(`/subjects/${id}`, {
+    method: "DELETE"
   });
 }
