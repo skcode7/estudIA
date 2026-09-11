@@ -7,6 +7,7 @@ import {
   createTopic,
   listTopics,
   uploadMaterial,
+  type ApiMaterial,
   type ApiTopic
 } from "../../lib/api";
 import { type Subject } from "../../lib/subjects";
@@ -17,6 +18,12 @@ type MaterialMode = "text" | "file";
 
 const FILE_ACCEPT = "image/*,.pdf,.txt,.doc,.docx";
 
+export interface MaterialCreated {
+  subjectId: string;
+  subjectName: string;
+  material: ApiMaterial;
+}
+
 export function MaterialDialog({
   subjects,
   preselectedSubjectId,
@@ -26,7 +33,7 @@ export function MaterialDialog({
   subjects: Subject[];
   preselectedSubjectId: string | null;
   onClose: () => void;
-  onCreated: (subjectId: string, subjectName: string) => Promise<void>;
+  onCreated: (created: MaterialCreated, useAi: boolean) => Promise<void>;
 }) {
   const availableSubject = preselectedSubjectId ?? subjects[0]?.id ?? "";
 
@@ -40,6 +47,7 @@ const [subjectId, setSubjectId] = useState(availableSubject);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [useAi, setUseAi] = useState(true);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -137,12 +145,16 @@ const [subjectId, setSubjectId] = useState(availableSubject);
 
     setIsSubmitting(true);
     try {
+      let created: ApiMaterial;
       if (mode === "text") {
-        await createMaterial({ topicId, title: finalTitle, content: content.trim() });
+        created = await createMaterial({ topicId, title: finalTitle, content: content.trim() });
       } else {
-        await uploadMaterial({ topicId, title: finalTitle, file: selectedFile! });
+        created = await uploadMaterial({ topicId, title: finalTitle, file: selectedFile! });
       }
-      await onCreated(subjectId, selectedSubject?.name ?? "la materia");
+      await onCreated(
+        { subjectId, subjectName: selectedSubject?.name ?? "la materia", material: created },
+        useAi
+      );
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "No se pudo agregar el material.");
     } finally {
@@ -309,6 +321,21 @@ const [subjectId, setSubjectId] = useState(availableSubject);
           )}
 
           {submitError && <FieldError>{submitError}</FieldError>}
+
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3">
+            <input
+              checked={useAi}
+              className="mt-0.5 size-4 accent-[#6d4aff]"
+              onChange={(event) => setUseAi(event.target.checked)}
+              type="checkbox"
+            />
+            <span className="text-sm">
+              <span className="font-semibold">✨ Procesar con IA mode</span>
+              <span className="block text-xs text-slate-500">
+                Analiza el contenido, extrae el texto y genera preguntas de opción múltiple.
+              </span>
+            </span>
+          </label>
 
           <DialogActions
             disabled={isSubmitting}

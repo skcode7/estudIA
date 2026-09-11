@@ -1,6 +1,7 @@
 export const navItems = [
   ["home", "⌂", "Inicio"],
   ["subjects", "▤", "Mis materias"],
+  ["materials", "📄", "Materiales"],
   ["quiz", "?", "Quiz"],
   ["review", "↻", "Repaso"],
   ["progress", "▥", "Progreso"],

@@ -43,8 +43,14 @@ export interface ApiMaterial {
   storageKey: string | null;
   processingStatus: MaterialProcessingStatus;
   processingError: string | null;
+  questionCount: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ApiMaterialEditInput {
+  title?: string;
+  content?: string;
 }
 
 export interface CreateMaterialInput {
@@ -148,6 +154,19 @@ export function uploadMaterial(input: {
 
 export function listMaterials(topicId: string): Promise<ApiMaterial[]> {
   return request<ApiMaterial[]>(`/materials?topicId=${encodeURIComponent(topicId)}`);
+}
+
+export function processMaterial(id: string): Promise<ApiMaterial> {
+  return request<ApiMaterial>(`/materials/${encodeURIComponent(id)}/process`, {
+    method: "POST"
+  });
+}
+
+export function updateMaterial(id: string, input: ApiMaterialEditInput): Promise<ApiMaterial> {
+  return request<ApiMaterial>(`/materials/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify(input)
+  });
 }
 
 export interface ApiUser {
