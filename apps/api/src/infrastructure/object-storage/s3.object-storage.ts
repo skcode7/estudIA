@@ -47,6 +47,14 @@ export class S3ObjectStorage implements ObjectStorage {
     );
   }
 
+  async getObject(key: string): Promise<Buffer> {
+    const response = await this.client.send(
+      new GetObjectCommand({ Bucket: this.bucket, Key: key })
+    );
+    const bytes = await response.Body?.transformToByteArray();
+    return Buffer.from(bytes ?? []);
+  }
+
   getSignedUrl(key: string, expiresInSeconds = 3600): Promise<string> {
     return getSignedUrl(
       this.client,

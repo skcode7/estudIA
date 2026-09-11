@@ -5,7 +5,8 @@ import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import {
   CreateMaterialInput,
   MaterialRecord,
-  MaterialRepository
+  MaterialRepository,
+  UpdateMaterialFieldsInput
 } from "../application/ports/material.repository";
 
 @Injectable()
@@ -34,6 +35,27 @@ export class PrismaMaterialRepository implements MaterialRepository {
 
   findById(id: string): Promise<MaterialRecord | null> {
     return this.prisma.material.findUnique({ where: { id } });
+  }
+
+  updateProcessingStatus(
+    id: string,
+    status: MaterialProcessingStatus,
+    processingError: string | null = null
+  ): Promise<MaterialRecord> {
+    return this.prisma.material.update({
+      where: { id },
+      data: { processingStatus: status, processingError }
+    });
+  }
+
+  updateFields(id: string, fields: UpdateMaterialFieldsInput): Promise<MaterialRecord> {
+    return this.prisma.material.update({
+      where: { id },
+      data: {
+        ...(fields.title !== undefined ? { title: fields.title } : {}),
+        ...(fields.content !== undefined ? { content: fields.content } : {})
+      }
+    });
   }
 
   delete(id: string): Promise<void> {

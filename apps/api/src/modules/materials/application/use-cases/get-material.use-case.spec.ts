@@ -8,6 +8,8 @@ function materialRepositoryMock(): MaterialRepository {
     create: vi.fn(),
     findByTopic: vi.fn(),
     findById: vi.fn(),
+    updateProcessingStatus: vi.fn(),
+    updateFields: vi.fn(),
     delete: vi.fn()
   };
 }

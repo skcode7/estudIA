@@ -23,9 +23,20 @@ export interface CreateMaterialInput {
   storageKey?: string | null;
 }
 
+export interface UpdateMaterialFieldsInput {
+  title?: string;
+  content?: string | null;
+}
+
 export abstract class MaterialRepository {
   abstract create(input: CreateMaterialInput): Promise<MaterialRecord>;
   abstract findByTopic(topicId: string): Promise<MaterialRecord[]>;
   abstract findById(id: string): Promise<MaterialRecord | null>;
+  abstract updateProcessingStatus(
+    id: string,
+    status: MaterialProcessingStatus,
+    processingError?: string | null
+  ): Promise<MaterialRecord>;
+  abstract updateFields(id: string, fields: UpdateMaterialFieldsInput): Promise<MaterialRecord>;
   abstract delete(id: string): Promise<void>;
 }

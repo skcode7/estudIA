@@ -10,6 +10,8 @@ function materialRepositoryMock(): MaterialRepository {
     create: vi.fn(),
     findByTopic: vi.fn(),
     findById: vi.fn(),
+    updateProcessingStatus: vi.fn(),
+    updateFields: vi.fn(),
     delete: vi.fn()
   };
 }
@@ -28,6 +30,7 @@ function objectStorageMock(): ObjectStorage {
   return {
     upload: vi.fn(),
     delete: vi.fn(),
+    getObject: vi.fn(),
     getSignedUrl: vi.fn()
   };
 }

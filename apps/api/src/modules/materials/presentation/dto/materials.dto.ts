@@ -76,6 +76,9 @@ export class MaterialDto {
   @IsString()
   processingError!: string | null;
 
+  @ApiProperty({ example: 3, description: "Cantidad de preguntas generadas (0 si no hay procesamiento completado)" })
+  questionCount!: number;
+
   @ApiProperty({ example: "2026-09-10T12:00:00.000Z", description: "Fecha de creación" })
   @IsDateString()
   createdAt!: string;
@@ -83,4 +86,19 @@ export class MaterialDto {
   @ApiProperty({ example: "2026-09-10T12:00:00.000Z", description: "Fecha de última actualización" })
   @IsDateString()
   updatedAt!: string;
+}
+
+export class UpdateMaterialDto {
+  @ApiPropertyOptional({ example: "Apuntes de la unidad 1", description: "Título del material", minLength: 1, maxLength: 200 })
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(200)
+  title?: string;
+
+  @ApiPropertyOptional({ example: "Contenido revisado del material…", description: "Contenido en texto del material", minLength: 1 })
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  content?: string;
 }
