@@ -169,6 +169,78 @@ export function updateMaterial(id: string, input: ApiMaterialEditInput): Promise
   });
 }
 
+export interface ApiQuizOption {
+  id: string;
+  text: string;
+}
+
+export interface ApiQuizQuestion {
+  id: string;
+  statement: string;
+  options: ApiQuizOption[];
+}
+
+export interface ApiQuiz {
+  id: string;
+  title: string;
+  subjectId: string;
+  subjectName: string;
+  topicId: string | null;
+  topicName: string | null;
+  questions: ApiQuizQuestion[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GenerateQuizInput {
+  subjectId: string;
+  topicId?: string;
+}
+
+export interface ApiQuizAnswerFeedback {
+  questionId: string;
+  statement: string;
+  selectedOptionId: string;
+  correctOptionId: string;
+  isCorrect: boolean;
+  explanation: string | null;
+}
+
+export interface ApiQuizAttemptResult {
+  attemptId: string;
+  quizId: string;
+  score: number;
+  startedAt: string;
+  completedAt: string;
+  answers: ApiQuizAnswerFeedback[];
+}
+
+export interface SubmitQuizAnswerInput {
+  questionId: string;
+  selectedOptionId: string;
+}
+
+export function generateQuiz(input: GenerateQuizInput): Promise<ApiQuiz> {
+  return request<ApiQuiz>("/quizzes/generate", {
+    method: "POST",
+    body: JSON.stringify({
+      subjectId: input.subjectId,
+      ...(input.topicId ? { topicId: input.topicId } : {})
+    })
+  });
+}
+
+export function submitQuizAnswers(
+  quizId: string,
+  startedAt: string,
+  answers: SubmitQuizAnswerInput[]
+): Promise<ApiQuizAttemptResult> {
+  return request<ApiQuizAttemptResult>(`/quizzes/${encodeURIComponent(quizId)}/attempts`, {
+    method: "POST",
+    body: JSON.stringify({ startedAt, answers })
+  });
+}
+
 export interface ApiUser {
   id: string;
   name: string;

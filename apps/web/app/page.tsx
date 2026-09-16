@@ -10,6 +10,7 @@ import { UserOnboardingDialog } from "../components/dialogs/user-onboarding-dial
 import { HomeView } from "../components/views/home-view";
 import { MaterialsView } from "../components/views/materials-view";
 import { PlaceholderView } from "../components/views/placeholder-view";
+import { QuizView } from "../components/views/quiz-view";
 import { SubjectsView } from "../components/views/subjects-view";
 import { useMaterials } from "../hooks/use-materials";
 import { useSubjects } from "../hooks/use-subjects";
@@ -114,6 +115,8 @@ export default function HomePage() {
             }
             subjects={subjects.subjects}
           />
+        ) : activeView === "quiz" ? (
+          <QuizView subjects={subjects.subjects} />
         ) : (
           <PlaceholderView title={navLabel(activeView)} />
         )}
