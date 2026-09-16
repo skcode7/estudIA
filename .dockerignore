@@ -1,0 +1,27 @@
+# Dependencies and build artifacts
+node_modules
+**/node_modules
+.next
+**/.next
+dist
+**/dist
+coverage
+**/coverage
+playwright-report
+test-results
+
+# Environment files
+.env
+**/.env
+.env.*
+**/.env.*
+!.env.example
+
+# Git and tooling
+.git
+.gitignore
+.dockerignore
+.turbo
+**/.turbo
+*.tsbuildinfo
+**/*.tsbuildinfo
