@@ -33,6 +33,7 @@ model Subject {
   updatedAt   DateTime @updatedAt
 
   topics Topic[]
+  quizzes Quiz[]
 }
 
 model Topic {
@@ -104,15 +105,18 @@ model QuestionOption {
 
 model Quiz {
   id        String   @id @default(uuid())
-  topicId   String
+  subjectId String
+  topicId   String?
   title     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  topic     Topic          @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  subject   Subject         @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  topic     Topic?          @relation(fields: [topicId], references: [id], onDelete: Cascade)
   questions QuizQuestion[]
   attempts  QuizAttempt[]
 
+  @@index([subjectId])
   @@index([topicId])
 }
 

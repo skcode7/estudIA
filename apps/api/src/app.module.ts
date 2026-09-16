@@ -5,6 +5,7 @@ import { ObjectStorageModule } from "./infrastructure/object-storage/object-stor
 import { AIModule } from "./modules/ai/ai.module";
 import { HealthModule } from "./modules/health/health.module";
 import { MaterialsModule } from "./modules/materials/materials.module";
+import { QuizzesModule } from "./modules/quizzes/quizzes.module";
 import { SubjectsModule } from "./modules/subjects/subjects.module";
 import { TopicsModule } from "./modules/topics/topics.module";
 import { UsersModule } from "./modules/users/users.module";
@@ -18,6 +19,7 @@ import { UsersModule } from "./modules/users/users.module";
     SubjectsModule,
     TopicsModule,
     MaterialsModule,
+    QuizzesModule,
     UsersModule
   ]
 })
