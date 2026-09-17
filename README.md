@@ -67,7 +67,7 @@ Coolify es la plataforma prevista para producción. El MVP se despliega en un ú
 | Servicio | Origen | Puerto | Detalle |
 | --- | --- | --- | --- |
 | web | `apps/web` | 3000 | Frontend Next.js |
-| api | `apps/api` | 3001 | Backend NestJS, no expuesto públicamente |
+| api | `apps/api` | 3001 | Backend NestJS, expuesto públicamente en `https://estudia-api.server.encaladadiaz.com` |
 | postgres | Service de Coolify | 5432 | Base de datos PostgreSQL |
 | storage | Service de Coolify (MinIO) o S3 externo | 9000 | Object Storage S3-compatible |
 
@@ -85,13 +85,13 @@ Al ser un monorepo, cada recurso Coolify debe apuntar al repositorio completo: d
 
 1. **Web standalone**
    - Recurso Application apuntando al mismo repositorio, con Dockerfile Location `apps/web/Dockerfile`.
-   - Variables de entorno (build-time): `NEXT_PUBLIC_API_URL`, apuntando a la URL interna de la API. Se incrusta en el bundle durante `next build`; cambiarla requiere un nuevo build.
+   - Variables de entorno (build-time): `NEXT_PUBLIC_API_URL`, apuntando a la URL pública de la API: `https://estudia-api.server.encaladadiaz.com/api/v1` (sin trailing slash). Se incrusta en el bundle durante `next build`; cambiarla requiere un nuevo build.
    - Dominio público con HTTPS automático (Traefik es el proxy inverso de Coolify).
 
 2. **API**
    - Recurso Application con Dockerfile Location `apps/api/Dockerfile`.
    - Variables de entorno: `DATABASE_URL`, `API_PORT`, `WEB_URL` (origen CORS), `AI_*` y `S3_*` según el proveedor.
-   - Sin dominio público; enrutada internamente (p. ej. `http://estudia-api:3001`).
+   - Dominio público: `https://estudia-api.server.encaladadiaz.com`. El navegador llama a la API directamente (client-side fetch). CORS configurado mediante la variable `WEB_URL`.
 
 Nota sobre `NEXT_PUBLIC_API_URL`: en el `.env.example` raíz está definida, pero el frontend no lee variables de la raíz: Next.js solo carga `.env` desde `apps/web/`, que no existe en desarrollo. Por eso localmente la web usa el valor por defecto `http://localhost:3001/api/v1` de `apps/web/lib/api.ts:62`. No hay que definirla en `apps/api/.env`; es responsabilidad del recurso web en Coolify.
 
@@ -109,7 +109,7 @@ Nota sobre `NEXT_PUBLIC_API_URL`: en el `.env.example` raíz está definida, per
 2. Coolify construye la imagen desde el Dockerfile y publica el puerto.
 3. Antes de arrancar la API, se ejecuta `prisma migrate deploy` para aplicar migraciones.
 4. Coolify emite el certificado HTTPS automáticamente para `apps/web`.
-5. El frontend consume la API por la red interna del servidor, no vía internet.
+5. El frontend consume la API desde el navegador mediante el FQDN público (`https://estudia-api.server.encaladadiaz.com/api/v1`). Es un fetch client-side; `app/page.tsx` usa `"use client"`.
 
 ### Notas
 
