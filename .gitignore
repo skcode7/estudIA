@@ -16,3 +16,4 @@ postgres-data/
 # Tooling
 .turbo/
 *.tsbuildinfo
+.sisyphus
