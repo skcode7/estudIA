@@ -1,14 +1,18 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 
 import { SubjectRepository } from "../../../subjects/application/ports/subject.repository";
 import { TopicRepository } from "../../../topics/application/ports/topic.repository";
 import { QuizRecord, QuizRepository } from "../ports/quiz.repository";
 
-const DEFAULT_QUESTION_COUNT = 3;
-
 export interface GenerateQuizInput {
   subjectId: string;
   topicId?: string | null;
+}
+
+export const GENERATE_QUIZ_CONFIG = "GENERATE_QUIZ_CONFIG";
+
+export interface GenerateQuizConfig {
+  questionsCount: number;
 }
 
 @Injectable()
@@ -16,7 +20,8 @@ export class GenerateQuizUseCase {
   constructor(
     private readonly subjectRepository: SubjectRepository,
     private readonly topicRepository: TopicRepository,
-    private readonly quizRepository: QuizRepository
+    private readonly quizRepository: QuizRepository,
+    @Inject(GENERATE_QUIZ_CONFIG) private readonly config: GenerateQuizConfig
   ) {}
 
   async execute(input: GenerateQuizInput): Promise<QuizRecord> {
@@ -56,19 +61,13 @@ export class GenerateQuizUseCase {
       );
     }
 
-    const selectedIds = pickRandom(questionIds, this.resolveQuestionCount());
+    const selectedIds = pickRandom(questionIds, this.config.questionsCount);
     return this.quizRepository.createQuiz({
       title,
       subjectId: subject.id,
       topicId: input.topicId ?? null,
       questionIds: selectedIds
     });
-  }
-
-  private resolveQuestionCount(): number {
-    const raw = process.env.QUIZ_QUESTIONS_COUNT ?? String(DEFAULT_QUESTION_COUNT);
-    const parsed = Number.parseInt(raw, 10);
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_QUESTION_COUNT;
   }
 }
 

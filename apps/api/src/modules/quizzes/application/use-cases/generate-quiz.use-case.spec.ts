@@ -1,5 +1,5 @@
 import { BadRequestException } from "@nestjs/common";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   SubjectRecord,
@@ -86,10 +86,6 @@ function baseQuiz(overrides: Partial<QuizRecord> = {}): QuizRecord {
 }
 
 describe("GenerateQuizUseCase", () => {
-  beforeEach(() => {
-    delete process.env.QUIZ_QUESTIONS_COUNT;
-  });
-
   it("generates a quiz scoped to a topic of the subject", async () => {
     const subjects = subjectRepositoryMock();
     const topics = topicRepositoryMock();
@@ -105,7 +101,7 @@ describe("GenerateQuizUseCase", () => {
     const quiz = baseQuiz();
     vi.mocked(quizzes.createQuiz).mockResolvedValue(quiz);
 
-    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes);
+    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes, { questionsCount: 3 });
     const result = await useCase.execute({ subjectId: "subject-1", topicId: "topic-1" });
 
     expect(result).toEqual(quiz);
@@ -136,7 +132,7 @@ describe("GenerateQuizUseCase", () => {
     vi.mocked(quizzes.findQuestionIdsByTopics).mockResolvedValue(["question-1", "question-2"]);
     vi.mocked(quizzes.createQuiz).mockResolvedValue(baseQuiz({ topicId: null, topicName: null }));
 
-    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes);
+    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes, { questionsCount: 3 });
     const result = await useCase.execute({ subjectId: "subject-1" });
 
     expect(result.topicId).toBeNull();
@@ -153,7 +149,7 @@ describe("GenerateQuizUseCase", () => {
     const quizzes = quizRepositoryMock();
     vi.mocked(subjects.findById).mockResolvedValue(null);
 
-    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes);
+    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes, { questionsCount: 3 });
 
     await expect(useCase.execute({ subjectId: "missing" })).rejects.toThrow(
       'Materia con id "missing" no encontrada.'
@@ -168,7 +164,7 @@ describe("GenerateQuizUseCase", () => {
     vi.mocked(subjects.findById).mockResolvedValue(baseSubject());
     vi.mocked(topics.findById).mockResolvedValue(null);
 
-    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes);
+    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes, { questionsCount: 3 });
 
     await expect(useCase.execute({ subjectId: "subject-1", topicId: "missing" })).rejects.toThrow(
       'Tema con id "missing" no encontrado.'
@@ -182,7 +178,7 @@ describe("GenerateQuizUseCase", () => {
     vi.mocked(subjects.findById).mockResolvedValue(baseSubject());
     vi.mocked(topics.findById).mockResolvedValue(baseTopic({ subjectId: "subject-9" }));
 
-    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes);
+    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes, { questionsCount: 3 });
 
     await expect(
       useCase.execute({ subjectId: "subject-1", topicId: "topic-1" })
@@ -196,7 +192,7 @@ describe("GenerateQuizUseCase", () => {
     vi.mocked(subjects.findById).mockResolvedValue(baseSubject());
     vi.mocked(topics.findAll).mockResolvedValue([]);
 
-    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes);
+    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes, { questionsCount: 3 });
 
     await expect(useCase.execute({ subjectId: "subject-1" })).rejects.toThrow(
       "no tiene temas"
@@ -211,7 +207,7 @@ describe("GenerateQuizUseCase", () => {
     vi.mocked(topics.findById).mockResolvedValue(baseTopic());
     vi.mocked(quizzes.findQuestionIdsByTopics).mockResolvedValue([]);
 
-    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes);
+    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes, { questionsCount: 3 });
 
     await expect(
       useCase.execute({ subjectId: "subject-1", topicId: "topic-1" })
@@ -219,8 +215,7 @@ describe("GenerateQuizUseCase", () => {
     expect(quizzes.createQuiz).not.toHaveBeenCalled();
   });
 
-  it("respects QUIZ_QUESTIONS_COUNT env for the number of selected questions", async () => {
-    process.env.QUIZ_QUESTIONS_COUNT = "2";
+  it("respects the configured question count for the number of selected questions", async () => {
     const subjects = subjectRepositoryMock();
     const topics = topicRepositoryMock();
     const quizzes = quizRepositoryMock();
@@ -229,7 +224,7 @@ describe("GenerateQuizUseCase", () => {
     vi.mocked(quizzes.findQuestionIdsByTopics).mockResolvedValue(["q1", "q2", "q3"]);
     vi.mocked(quizzes.createQuiz).mockResolvedValue(baseQuiz());
 
-    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes);
+    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes, { questionsCount: 2 });
     await useCase.execute({ subjectId: "subject-1", topicId: "topic-1" });
 
     const questionIds = vi.mocked(quizzes.createQuiz).mock.calls[0]![0].questionIds;
@@ -239,7 +234,6 @@ describe("GenerateQuizUseCase", () => {
   });
 
   it("uses at most the available questions when there are fewer than the configured count", async () => {
-    process.env.QUIZ_QUESTIONS_COUNT = "2";
     const subjects = subjectRepositoryMock();
     const topics = topicRepositoryMock();
     const quizzes = quizRepositoryMock();
@@ -248,7 +242,7 @@ describe("GenerateQuizUseCase", () => {
     vi.mocked(quizzes.findQuestionIdsByTopics).mockResolvedValue(["q1"]);
     vi.mocked(quizzes.createQuiz).mockResolvedValue(baseQuiz());
 
-    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes);
+    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes, { questionsCount: 2 });
     await useCase.execute({ subjectId: "subject-1", topicId: "topic-1" });
 
     const questionIds = vi.mocked(quizzes.createQuiz).mock.calls[0]![0].questionIds;

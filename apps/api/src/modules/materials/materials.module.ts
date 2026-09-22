@@ -9,11 +9,12 @@ import { CreateTextMaterialUseCase } from "./application/use-cases/create-text-m
 import { DeleteMaterialUseCase } from "./application/use-cases/delete-material.use-case";
 import { GetMaterialUseCase } from "./application/use-cases/get-material.use-case";
 import { ListMaterialsUseCase } from "./application/use-cases/list-materials.use-case";
-import { ProcessMaterialUseCase } from "./application/use-cases/process-material.use-case";
+import { ProcessMaterialUseCase, PROCESS_MATERIAL_CONFIG } from "./application/use-cases/process-material.use-case";
 import { UpdateMaterialUseCase } from "./application/use-cases/update-material.use-case";
 import { PrismaMaterialQuestionRepository } from "./infrastructure/prisma-material-question.repository";
 import { PrismaMaterialRepository } from "./infrastructure/prisma-material.repository";
 import { MaterialsController } from "./presentation/controllers/materials.controller";
+import { parsePositiveInt } from "../../shared/env.utils";
 
 @Module({
   controllers: [MaterialsController],
@@ -27,7 +28,13 @@ import { MaterialsController } from "./presentation/controllers/materials.contro
     UpdateMaterialUseCase,
     { provide: MaterialRepository, useClass: PrismaMaterialRepository },
     { provide: MaterialQuestionRepository, useClass: PrismaMaterialQuestionRepository },
-    { provide: TopicRepository, useClass: PrismaTopicRepository }
+    { provide: TopicRepository, useClass: PrismaTopicRepository },
+    {
+      provide: PROCESS_MATERIAL_CONFIG,
+      useFactory: () => ({
+        questionsCount: parsePositiveInt(process.env.AI_QUESTIONS_PER_MATERIAL, 3)
+      })
+    }
   ]
 })
 export class MaterialsModule {}

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { AIProvider, MaterialAnalysis } from "../../../ai/application/ports/ai-provider";
 import { ObjectStorage } from "../../../storage/application/ports/object-storage";
@@ -91,10 +91,6 @@ function setupProcessingStatus(repository: MaterialRepository) {
 }
 
 describe("ProcessMaterialUseCase", () => {
-  beforeEach(() => {
-    delete process.env.AI_QUESTIONS_PER_MATERIAL;
-  });
-
   it("processes a TEXT material to COMPLETED and replaces questions", async () => {
     const repository = materialRepositoryMock();
     const questionRepository = questionRepositoryMock();
@@ -111,7 +107,7 @@ describe("ProcessMaterialUseCase", () => {
     vi.mocked(questionRepository.replaceForMaterial).mockResolvedValue(1);
     vi.mocked(storage.upload).mockResolvedValue({ key: "analysis.json", contentType: "application/json" });
 
-    const useCase = new ProcessMaterialUseCase(repository, questionRepository, ai, storage);
+    const useCase = new ProcessMaterialUseCase(repository, questionRepository, ai, storage, { questionsCount: 3 });
     const result = await useCase.execute("uuid-1");
 
     expect(result.material.processingStatus).toBe("COMPLETED");
@@ -156,7 +152,7 @@ describe("ProcessMaterialUseCase", () => {
     vi.mocked(ai.generateQuestions).mockResolvedValue(generatedQuestionPayload());
     vi.mocked(questionRepository.replaceForMaterial).mockResolvedValue(1);
 
-    const useCase = new ProcessMaterialUseCase(repository, questionRepository, ai, storage);
+    const useCase = new ProcessMaterialUseCase(repository, questionRepository, ai, storage, { questionsCount: 3 });
     const result = await useCase.execute("uuid-1");
 
     expect(storage.getObject).toHaveBeenCalledWith("topics/topic-1/materials/foto.jpg");
@@ -182,7 +178,7 @@ describe("ProcessMaterialUseCase", () => {
     vi.mocked(repository.findById).mockResolvedValue(material);
     vi.mocked(storage.getObject).mockResolvedValue(Buffer.from("pdf"));
 
-    const useCase = new ProcessMaterialUseCase(repository, questionRepository, ai, storage);
+    const useCase = new ProcessMaterialUseCase(repository, questionRepository, ai, storage, { questionsCount: 3 });
     const result = await useCase.execute("uuid-1");
 
     expect(storage.getObject).toHaveBeenCalled();
@@ -202,7 +198,7 @@ describe("ProcessMaterialUseCase", () => {
     setupProcessingStatus(repository);
     vi.mocked(repository.findById).mockResolvedValue(material);
 
-    const useCase = new ProcessMaterialUseCase(repository, questionRepository, ai, storage);
+    const useCase = new ProcessMaterialUseCase(repository, questionRepository, ai, storage, { questionsCount: 3 });
     const result = await useCase.execute("uuid-1");
 
     expect(result.material.processingStatus).toBe("FAILED");
@@ -220,7 +216,7 @@ describe("ProcessMaterialUseCase", () => {
     vi.mocked(repository.findById).mockResolvedValue(material);
     vi.mocked(ai.analyzeMaterial).mockRejectedValue(new Error("connection reset"));
 
-    const useCase = new ProcessMaterialUseCase(repository, questionRepository, ai, storage);
+    const useCase = new ProcessMaterialUseCase(repository, questionRepository, ai, storage, { questionsCount: 3 });
     const result = await useCase.execute("uuid-1");
 
     expect(result.material.processingStatus).toBe("FAILED");
@@ -236,7 +232,7 @@ describe("ProcessMaterialUseCase", () => {
     const storage = objectStorageMock();
     vi.mocked(repository.findById).mockResolvedValue(null);
 
-    const useCase = new ProcessMaterialUseCase(repository, questionRepository, ai, storage);
+    const useCase = new ProcessMaterialUseCase(repository, questionRepository, ai, storage, { questionsCount: 3 });
 
     await expect(useCase.execute("missing")).rejects.toThrow(
       'Material con id "missing" no encontrado.'

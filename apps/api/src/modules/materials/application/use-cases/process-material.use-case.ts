@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
 
 import { AIProvider } from "../../../ai/application/ports/ai-provider";
 import { ObjectStorage } from "../../../storage/application/ports/object-storage";
@@ -18,6 +18,12 @@ export interface ProcessMaterialResult {
   questionCount: number;
 }
 
+export const PROCESS_MATERIAL_CONFIG = "PROCESS_MATERIAL_CONFIG";
+
+export interface ProcessMaterialConfig {
+  questionsCount: number;
+}
+
 @Injectable()
 export class ProcessMaterialUseCase {
   private readonly logger = new Logger(ProcessMaterialUseCase.name);
@@ -26,7 +32,8 @@ export class ProcessMaterialUseCase {
     private readonly repository: MaterialRepository,
     private readonly questionRepository: MaterialQuestionRepository,
     private readonly aiProvider: AIProvider,
-    private readonly objectStorage: ObjectStorage
+    private readonly objectStorage: ObjectStorage,
+    @Inject(PROCESS_MATERIAL_CONFIG) private readonly config: ProcessMaterialConfig
   ) {}
 
   async execute(materialId: string): Promise<ProcessMaterialResult> {
@@ -82,7 +89,7 @@ export class ProcessMaterialUseCase {
 
     let questionsCount: number;
     try {
-      questionsCount = this.resolveQuestionsCount();
+      questionsCount = this.config.questionsCount;
       const questions = await this.aiProvider.generateQuestions({
         title: updatedFields.title ?? material.title,
         content: extractedContent ?? "",
@@ -150,12 +157,6 @@ export class ProcessMaterialUseCase {
   private providerError(step: string, error: unknown): string {
     const message = error instanceof Error ? error.message : String(error);
     return `Error del proveedor de IA al ${step}: ${message}`;
-  }
-
-  private resolveQuestionsCount(): number {
-    const raw = process.env.AI_QUESTIONS_PER_MATERIAL ?? "3";
-    const parsed = Number.parseInt(raw, 10);
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : 3;
   }
 }
 
