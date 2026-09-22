@@ -101,9 +101,12 @@ La abstracción debe permitir posteriormente `openai`, `anthropic`, `ollama` u o
 interface ObjectStorage {
   upload(input: UploadInput): Promise<StoredObject>;
   delete(key: string): Promise<void>;
+  getObject(key: string): Promise<Buffer>;
   getSignedUrl(key: string): Promise<string>;
 }
 ```
+
+El port `ObjectStorage` vive en `application` (`modules/storage/application/ports/`) y la implementación S3 (`S3ObjectStorage`) en `infrastructure/`. Los casos de uso dependen del port, nunca de la implementación.
 
 Implementación local (dev): **MinIO** como proveedor S3-compatible, levantado con el docker compose y configurado por variables de entorno (`S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_BUCKET`).
 

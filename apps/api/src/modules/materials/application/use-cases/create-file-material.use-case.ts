@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, ServiceUnavailableException } from "@nes
 import { randomUUID } from "node:crypto";
 import { extname } from "node:path";
 
-import { ObjectStorage } from "../../../../infrastructure/object-storage/object-storage";
+import { ObjectStorage } from "../../../storage/application/ports/object-storage";
 import { TopicRepository } from "../../../topics/application/ports/topic.repository";
 import {
   CreateMaterialInput,

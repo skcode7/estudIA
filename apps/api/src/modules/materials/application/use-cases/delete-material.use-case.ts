@@ -1,6 +1,6 @@
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 
-import { ObjectStorage } from "../../../../infrastructure/object-storage/object-storage";
+import { ObjectStorage } from "../../../storage/application/ports/object-storage";
 import { MaterialRepository } from "../ports/material.repository";
 
 @Injectable()

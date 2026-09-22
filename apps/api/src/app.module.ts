@@ -1,7 +1,7 @@
 import { Module } from "@nestjs/common";
 
 import { PrismaModule } from "./infrastructure/database/prisma.module";
-import { ObjectStorageModule } from "./infrastructure/object-storage/object-storage.module";
+import { ObjectStorageModule } from "./modules/storage/object-storage.module";
 import { AIModule } from "./modules/ai/ai.module";
 import { HealthModule } from "./modules/health/health.module";
 import { MaterialsModule } from "./modules/materials/materials.module";

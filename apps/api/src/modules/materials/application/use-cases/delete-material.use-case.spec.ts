@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { MaterialRecord, MaterialRepository } from "../ports/material.repository";
 import { DeleteMaterialUseCase } from "./delete-material.use-case";
-import { ObjectStorage } from "../../../../infrastructure/object-storage/object-storage";
+import { ObjectStorage } from "../../../storage/application/ports/object-storage";
 
 function materialRepositoryMock(): MaterialRepository {
   return {

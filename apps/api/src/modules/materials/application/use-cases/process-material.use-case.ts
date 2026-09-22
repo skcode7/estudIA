@@ -1,7 +1,7 @@
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 
 import { AIProvider } from "../../../ai/application/ports/ai-provider";
-import { ObjectStorage } from "../../../../infrastructure/object-storage/object-storage";
+import { ObjectStorage } from "../../../storage/application/ports/object-storage";
 import { MaterialRecord, MaterialRepository } from "../ports/material.repository";
 import { MaterialQuestionRepository } from "../ports/material-question.repository";
 

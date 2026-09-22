@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { TopicRepository } from "../../../topics/application/ports/topic.repository";
-import { ObjectStorage } from "../../../../infrastructure/object-storage/object-storage";
+import { ObjectStorage } from "../../../storage/application/ports/object-storage";
 import { MaterialRecord, MaterialRepository } from "../ports/material.repository";
 import { CreateFileMaterialUseCase } from "./create-file-material.use-case";
 
