@@ -18,7 +18,7 @@ estudIA es una aplicación mobile-first que ayuda al estudiante a estudiar únic
 - Backend: NestJS + TypeScript.
 - Database: PostgreSQL + Prisma.
 - UI: Tailwind CSS + shadcn/ui.
-- Validación: Zod.
+- Validación: class-validator (DTOs de la API) + Zod (salida de IA).
 - Tests: Vitest + Playwright.
 - Desarrollo: Docker + Codex.
 - Producción futura: Coolify.
