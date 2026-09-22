@@ -20,8 +20,7 @@ import { GetMaterialUseCase } from "../../application/use-cases/get-material.use
 import { ListMaterialsUseCase } from "../../application/use-cases/list-materials.use-case";
 import { ProcessMaterialUseCase } from "../../application/use-cases/process-material.use-case";
 import { UpdateMaterialUseCase } from "../../application/use-cases/update-material.use-case";
-import { MaterialRecord } from "../../application/ports/material.repository";
-import { MaterialQuestionRepository } from "../../application/ports/material-question.repository";
+import { MaterialWithQuestionCount } from "../../application/ports/material-question.repository";
 import {
   CreateTextMaterialDto,
   MaterialDto,
@@ -41,8 +40,7 @@ export class MaterialsController {
     private readonly getMaterialUseCase: GetMaterialUseCase,
     private readonly deleteMaterialUseCase: DeleteMaterialUseCase,
     private readonly processMaterialUseCase: ProcessMaterialUseCase,
-    private readonly updateMaterialUseCase: UpdateMaterialUseCase,
-    private readonly questionRepository: MaterialQuestionRepository
+    private readonly updateMaterialUseCase: UpdateMaterialUseCase
   ) {}
 
   @Post()
@@ -54,7 +52,7 @@ export class MaterialsController {
         title: dto.title,
         content: dto.content
       })
-      .then((material) => toMaterialDto(material, 0));
+      .then((material) => toMaterialDto({ material, questionCount: 0 }));
   }
 
   @Post("upload")
@@ -74,7 +72,7 @@ export class MaterialsController {
         contentType: file.mimetype,
         body: file.buffer
       })
-      .then((material) => toMaterialDto(material, 0));
+      .then((material) => toMaterialDto({ material, questionCount: 0 }));
   }
 
   @Get()
@@ -83,22 +81,19 @@ export class MaterialsController {
       throw new BadRequestException("El parámetro \"topicId\" es obligatorio.");
     }
     const materials = await this.listMaterialsUseCase.execute(topicId);
-    const counts = await this.questionRepository.countByMaterials(materials.map((m) => m.id));
-    return materials.map((material) => toMaterialDto(material, counts.get(material.id) ?? 0));
+    return materials.map(toMaterialDto);
   }
 
   @Get(":id")
   async findOne(@Param("id") id: string): Promise<MaterialDto> {
-    const material = await this.getMaterialUseCase.execute(id);
-    const counts = await this.questionRepository.countByMaterials([id]);
-    return toMaterialDto(material, counts.get(id) ?? 0);
+    return toMaterialDto(await this.getMaterialUseCase.execute(id));
   }
 
   @Post(":id/process")
   process(@Param("id") id: string): Promise<MaterialDto> {
     return this.processMaterialUseCase
       .execute(id)
-      .then(({ material, questionCount }) => toMaterialDto(material, questionCount));
+      .then(({ material, questionCount }) => toMaterialDto({ material, questionCount }));
   }
 
   @Patch(":id")
@@ -108,11 +103,7 @@ export class MaterialsController {
     }
     return this.updateMaterialUseCase
       .execute(id, { title: dto.title, content: dto.content })
-      .then((material) =>
-        this.questionRepository.countByMaterials([id]).then((counts) =>
-          toMaterialDto(material, counts.get(id) ?? 0)
-        )
-      );
+      .then(toMaterialDto);
   }
 
   @Delete(":id")
@@ -121,7 +112,7 @@ export class MaterialsController {
   }
 }
 
-function toMaterialDto(material: MaterialRecord, questionCount: number): MaterialDto {
+function toMaterialDto({ material, questionCount }: MaterialWithQuestionCount): MaterialDto {
   return {
     id: material.id,
     topicId: material.topicId,

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { MaterialRecord, MaterialRepository } from "../ports/material.repository";
+import { MaterialQuestionRepository } from "../ports/material-question.repository";
 import { UpdateMaterialUseCase } from "./update-material.use-case";
 
 function materialRepositoryMock(): MaterialRepository {
@@ -11,6 +12,13 @@ function materialRepositoryMock(): MaterialRepository {
     updateProcessingStatus: vi.fn(),
     updateFields: vi.fn(),
     delete: vi.fn()
+  };
+}
+
+function questionRepositoryMock(): MaterialQuestionRepository {
+  return {
+    countByMaterials: vi.fn(),
+    replaceForMaterial: vi.fn()
   };
 }
 
@@ -31,13 +39,17 @@ function baseMaterial(overrides: Partial<MaterialRecord> = {}): MaterialRecord {
 }
 
 describe("UpdateMaterialUseCase", () => {
-  it("updates title and content", async () => {
+  it("updates title and content and returns the question count", async () => {
     const repository = materialRepositoryMock();
+    const questionRepository = questionRepositoryMock();
     const updated = baseMaterial({ title: "Fotosíntesis", content: "Texto corregido" });
     vi.mocked(repository.findById).mockResolvedValue(baseMaterial());
     vi.mocked(repository.updateFields).mockResolvedValue(updated);
+    vi.mocked(questionRepository.countByMaterials).mockResolvedValue(
+      new Map([["uuid-1", 2]])
+    );
 
-    const useCase = new UpdateMaterialUseCase(repository);
+    const useCase = new UpdateMaterialUseCase(repository, questionRepository);
     const result = await useCase.execute("uuid-1", {
       title: "Fotosíntesis",
       content: "Texto corregido"
@@ -47,14 +59,15 @@ describe("UpdateMaterialUseCase", () => {
       title: "Fotosíntesis",
       content: "Texto corregido"
     });
-    expect(result).toEqual(updated);
+    expect(result).toEqual({ material: updated, questionCount: 2 });
   });
 
   it("throws NotFoundException when material does not exist", async () => {
     const repository = materialRepositoryMock();
+    const questionRepository = questionRepositoryMock();
     vi.mocked(repository.findById).mockResolvedValue(null);
 
-    const useCase = new UpdateMaterialUseCase(repository);
+    const useCase = new UpdateMaterialUseCase(repository, questionRepository);
 
     await expect(
       useCase.execute("missing", { title: "Nuevo título" })
