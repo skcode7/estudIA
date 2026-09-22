@@ -3,6 +3,7 @@ import { BadRequestException, Inject, Injectable, NotFoundException } from "@nes
 import { SubjectRepository } from "../../../subjects/application/ports/subject.repository";
 import { TopicRepository } from "../../../topics/application/ports/topic.repository";
 import { QuizRecord, QuizRepository } from "../ports/quiz.repository";
+import { shuffle } from "../../../../shared/random.utils";
 
 export interface GenerateQuizInput {
   subjectId: string;
@@ -61,7 +62,7 @@ export class GenerateQuizUseCase {
       );
     }
 
-    const selectedIds = pickRandom(questionIds, this.config.questionsCount);
+    const selectedIds = shuffle(questionIds).slice(0, this.config.questionsCount);
     return this.quizRepository.createQuiz({
       title,
       subjectId: subject.id,
@@ -69,13 +70,4 @@ export class GenerateQuizUseCase {
       questionIds: selectedIds
     });
   }
-}
-
-function pickRandom<T>(items: T[], count: number): T[] {
-  const shuffled = [...items];
-  for (let i = shuffled.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!];
-  }
-  return shuffled.slice(0, Math.min(count, shuffled.length));
 }

@@ -10,6 +10,7 @@ import {
   QuizDto,
   SubmitAttemptDto
 } from "../dto/quizzes.dto";
+import { shuffle } from "../../../../shared/random.utils";
 
 @Controller("quizzes")
 export class QuizzesController {
@@ -70,13 +71,4 @@ function toAttemptResultDto(result: {
     completedAt: result.attempt.completedAt.toISOString(),
     answers: result.answers
   };
-}
-
-function shuffle<T>(items: T[]): T[] {
-  const result = [...items];
-  for (let i = result.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [result[i], result[j]] = [result[j]!, result[i]!];
-  }
-  return result;
 }
