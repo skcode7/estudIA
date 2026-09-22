@@ -105,7 +105,9 @@ interface ObjectStorage {
 }
 ```
 
-Implementación futura: S3-compatible para Backblaze B2 o Contabo Object Storage.
+Implementación local (dev): **MinIO** como proveedor S3-compatible, levantado con el docker compose y configurado por variables de entorno (`S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_BUCKET`).
+
+Implementación futura (producción): S3-compatible para Backblaze B2 o Contabo Object Storage, configurable solo por variables de entorno sin modificar los casos de uso.
 
 ## 7. Autenticación futura
 
