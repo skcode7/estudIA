@@ -94,3 +94,20 @@ Antes de modificar código:
 8. Realizar commits atómicos.
 
 Nunca rehacer arquitectura existente sin justificarlo.
+
+## Documentación de sesiones (docs/history)
+Solo cuando el usuario lo pida explícitamente ("guarda un resumen de la sesión", "registra lo hecho hoy", similar):
+1. Revisar `docs/history/` para respetar el formato, estilo y numeración de archivos existentes.
+2. Crear `docs/history/YYYY-MM-DD-tema.md` (`tema` en kebab-case, p. ej. `crud-materias`).
+3. Escribir el resumen en español con la estructura establecida: Contexto, Cambios realizados (Backend / Frontend / Documentación, enumerando archivos por capa), Validaciones (tsc/lint/tests y resultado), tabla de Commits (hash abreviado de 7 chars + mensaje vía `git log`) y Pendientes/próximos pasos.
+4. Informar al usuario de la ruta creada.
+
+No crear resúmenes de sesión automáticamente al terminar tareas.
+
+## Requerimientos pendientes (docs/ToDo)
+Solo cuando el usuario lo pida explícitamente ("agrégalo en el ToDo", "guarda este requerimiento para después", similar):
+1. Revisar `docs/ToDo/` para respetar el formato y estilo de archivos existentes.
+2. Crear `docs/ToDo/<slug>.md` (`slug` en kebab-case, p. ej. `paginacion-materias`).
+3. Escribir el requerimiento en español con la estructura establecida: Contexto (citando rutas y comportamiento actual reales del repo), Objetivo, Alcance propuesto, Cambios implicados (Backend / Frontend), Fuera de alcance (por ahora) y Notas (decisiones, coherencia con AGENTS.md, referencias a requerimientos relacionados).
+4. Solo documentar: no implementar código asociado al requerimiento.
+5. Informar al usuario de la ruta creada.
