@@ -17,3 +17,4 @@ postgres-data/
 .turbo/
 *.tsbuildinfo
 .sisyphus
+.omo/
