@@ -1,10 +1,5 @@
-export type ChatMessage =
-  | { role: "system" | "assistant"; content: string }
-  | { role: "user"; content: string | UserContentBlock[] };
-
-export type UserContentBlock =
-  | { type: "text"; text: string }
-  | { type: "image_url"; image_url: { url: string } };
+export type { ChatMessage, UserContentBlock } from "../chat.types";
+import type { ChatMessage } from "../chat.types";
 
 export interface AnalyzePromptInput {
   title?: string;
@@ -29,6 +24,10 @@ export interface GenerateQuestionsPromptInput {
     objectives: string[];
   };
   count: number;
+  images?: {
+    index: number;
+    label: string;
+  }[];
 }
 
 export interface ExplainPromptInput {
@@ -52,13 +51,15 @@ Analiza el material proporcionado y responde ÚNICAMENTE con un objeto JSON vál
   "summary": "resumen breve de 1 a 3 oraciones",
   "concepts": ["concepto clave 1", "concepto clave 2"],
   "objectives": ["objetivo de aprendizaje 1"],
-  "extractedContent": "texto completo de los apuntes"
+  "extractedContent": "texto completo de los apuntes",
+  "embeddedFigureCount": 0
 }
 Reglas:
 - Usa el idioma del contenido.
 - "suggestedTitle": ideal para el título del material; vacío si el material ya tiene uno claro.
 - "suggestedSubjectId" y "suggestedTopicId": elige EXCLUSIVAMENTE ids de la lista de materias y temas incluida en el mensaje del usuario; si la lista no está, está vacía o ningún elemento encaja claramente con el contenido, responde null. Nunca inventes ids.
 - "extractedContent": si el material es una imagen, transcribe íntegramente su texto; si es texto, copia el contenido tal cual.
+- "embeddedFigureCount": cuántas figuras o imágenes propias aparecen DENTRO de los apuntes (banderas, mapas, dibujos, diagramas, esquemas visuales). El texto escrito a mano no cuenta. Usa 0 si no hay ninguna.
 - No añadas explicaciones fuera del JSON.`;
 
 const GENERATE_QUESTIONS_SYSTEM_PROMPT = `Eres un asistente que genera preguntas de opción múltiple a partir de apuntes escolares.
@@ -69,6 +70,7 @@ Responde ÚNICAMENTE con un objeto JSON válido con este formato:
       "statement": "enunciado de la pregunta",
       "explanation": "explicación breve de la respuesta correcta",
       "difficulty": "easy | medium | hard",
+      "imageIndex": 0,
       "options": [
         { "text": "opción 1", "isCorrect": true },
         { "text": "opción 2", "isCorrect": false },
@@ -84,6 +86,8 @@ Reglas:
 - Basa las preguntas solo en el material proporcionado, nunca en conocimiento externo.
 - Usa el idioma del material.
 - No repitas preguntas entre sí.
+- "imageIndex" es opcional: inclúyelo solo en preguntas del tipo "¿A qué corresponde esta imagen?" cuando el mensaje incluya una lista de imágenes, usando el número exacto ("index") de esa lista. Nunca inventes números de imagen.
+- Si el mensaje incluye imágenes, genera como máximo 2 preguntas sobre ellas; el resto sobre el texto.
 - No añadas explicaciones fuera del JSON.`;
 
 const EXPLAIN_SYSTEM_PROMPT = `Eres un tutor que explica la respuesta correcta de una pregunta de opción múltiple.
@@ -139,7 +143,12 @@ export function generateQuestionsMessages(input: GenerateQuestionsPromptInput): 
     `Resumen: ${input.analysis.summary}`,
     input.analysis.concepts.length > 0 ? `Conceptos: ${input.analysis.concepts.join(", ")}` : null,
     input.analysis.objectives.length > 0 ? `Objetivos: ${input.analysis.objectives.join(", ")}` : null,
-    `Contenido completo: ${input.content}`
+    `Contenido completo: ${input.content}`,
+    input.images && input.images.length > 0
+      ? `Imágenes disponibles para preguntas visuales:\n${input.images
+          .map((image) => `  - Imagen [index: ${image.index}]: "${image.label}"`)
+          .join("\n")}`
+      : null
   ]
     .filter(Boolean)
     .join("\n");

@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import { parseModelJson } from "../model-output";
 import { toGeneratedQuestions, toMaterialAnalysis } from "./deepseek.mapper";
-import { generatedQuestionsSchema, materialAnalysisSchema, parseModelJson } from "./deepseek.schemas";
+import { generatedQuestionsSchema, materialAnalysisSchema } from "./deepseek.schemas";
 
 const ANALYSIS_FIXTURE = {
   suggestedTitle: "Cloro y desinfección",
@@ -49,8 +50,17 @@ describe("deepseek.mapper", () => {
         summary: "El cloro se usa para desinfectar el agua.",
         concepts: ["cloro", "desinfección"],
         objectives: ["Entender el uso del cloro"],
-        extractedContent: "El cloro es un desinfectante común."
+        extractedContent: "El cloro es un desinfectante común.",
+        embeddedFigureCount: 0
       });
+    });
+
+    it("maps the count of embedded figures", () => {
+      const result = toMaterialAnalysis(
+        materialAnalysisSchema.parse({ ...ANALYSIS_FIXTURE, embeddedFigureCount: 2 })
+      );
+
+      expect(result.embeddedFigureCount).toBe(2);
     });
 
     it("maps suggested subject and topic ids", () => {
@@ -121,6 +131,34 @@ describe("deepseek.mapper", () => {
 
       expect(result).toHaveLength(1);
       expect(question?.statement).toBe("con correcta");
+    });
+
+    it("maps the image index of image-based questions", () => {
+      const payload = generatedQuestionsSchema.parse({
+        questions: [
+          {
+            statement: "¿A qué corresponde esta imagen?",
+            difficulty: "easy",
+            imageIndex: 1,
+            options: [
+              { text: "Mapa de España", isCorrect: true },
+              { text: "Bandera de Francia", isCorrect: false },
+              { text: "Mapa de Portugal", isCorrect: false },
+              { text: "Escudo de España", isCorrect: false }
+            ]
+          }
+        ]
+      });
+
+      const [question] = toGeneratedQuestions(payload);
+
+      expect(question?.imageIndex).toBe(1);
+    });
+
+    it("keeps imageIndex undefined for text-only questions", () => {
+      const result = toGeneratedQuestions(generatedQuestionsSchema.parse(QUESTIONS_FIXTURE));
+
+      expect(result[0]?.imageIndex).toBeUndefined();
     });
   });
 

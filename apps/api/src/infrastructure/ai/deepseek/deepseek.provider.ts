@@ -21,9 +21,9 @@ import {
 } from "./deepseek.prompts";
 import {
   generatedQuestionsSchema,
-  materialAnalysisSchema,
-  parseModelJson
+  materialAnalysisSchema
 } from "./deepseek.schemas";
+import { parseModelJson } from "../model-output";
 
 @Injectable()
 export class DeepSeekProvider implements AIProvider {
@@ -45,11 +45,15 @@ export class DeepSeekProvider implements AIProvider {
           concepts: input.analysis?.concepts ?? [],
           objectives: input.analysis?.objectives ?? []
         },
-        count: input.count
+        count: input.count,
+        images: input.images
       })
     );
     const validated = parseModelJson(generatedQuestionsSchema, raw);
-    const questions = toGeneratedQuestions(validated);
+    const validImageIndexes = new Set((input.images ?? []).map((image) => image.index));
+    const questions = toGeneratedQuestions(validated).filter(
+      (question) => question.imageIndex === undefined || validImageIndexes.has(question.imageIndex)
+    );
     if (questions.length === 0) {
       throw new Error("El modelo no devolvió preguntas válidas (ninguna con exactamente una respuesta correcta).");
     }

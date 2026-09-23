@@ -33,6 +33,18 @@ export interface MaterialAnalysis {
   concepts: string[];
   objectives: string[];
   extractedContent?: string | null;
+  /**
+   * Cantidad de figuras/imágenes propias (banderas, mapas, diagramas…) detectadas
+   * dentro de la imagen del material. 0 o undefined si no hay ninguna.
+   */
+  embeddedFigureCount?: number;
+}
+
+export interface MaterialImageHint {
+  /** Índice estable de la imagen; se usa para referenciarla en las preguntas. */
+  index: number;
+  /** Descripción breve de la figura (p. ej. "bandera de Francia"). */
+  label: string;
 }
 
 export interface GenerateQuestionsInput {
@@ -40,6 +52,11 @@ export interface GenerateQuestionsInput {
   content: string;
   analysis?: MaterialAnalysis;
   count: number;
+  /**
+   * Imágenes extraídas del material disponibles para preguntas del tipo
+   * "¿A qué corresponde esta imagen?".
+   */
+  images?: MaterialImageHint[];
 }
 
 export interface GeneratedQuestionOption {
@@ -51,6 +68,8 @@ export interface GeneratedQuestion {
   statement: string;
   explanation?: string;
   difficulty: "easy" | "medium" | "hard";
+  /** Índice de la imagen del enunciado (p. ej. "¿A qué corresponde esta imagen?"). */
+  imageIndex?: number;
   options: GeneratedQuestionOption[];
 }
 

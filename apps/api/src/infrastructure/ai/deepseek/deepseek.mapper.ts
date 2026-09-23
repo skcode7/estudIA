@@ -15,7 +15,8 @@ export function toMaterialAnalysis(payload: MaterialAnalysisPayload): MaterialAn
     summary: payload.summary,
     concepts: payload.concepts,
     objectives: payload.objectives,
-    extractedContent: payload.extractedContent ?? null
+    extractedContent: payload.extractedContent ?? null,
+    embeddedFigureCount: payload.embeddedFigureCount
   };
 }
 
@@ -31,6 +32,7 @@ export function toGeneratedQuestions(payload: GeneratedQuestionsPayload): Genera
       statement: question.statement,
       explanation: question.explanation,
       difficulty: question.difficulty,
+      imageIndex: question.imageIndex,
       options: question.options.map((option) => ({
         text: option.text,
         isCorrect: option.isCorrect

@@ -1,0 +1,7 @@
+export type ChatMessage =
+  | { role: "system" | "assistant"; content: string }
+  | { role: "user"; content: string | UserContentBlock[] };
+
+export type UserContentBlock =
+  | { type: "text"; text: string }
+  | { type: "image_url"; image_url: { url: string } };
