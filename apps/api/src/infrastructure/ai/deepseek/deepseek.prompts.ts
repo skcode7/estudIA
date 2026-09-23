@@ -13,6 +13,11 @@ export interface AnalyzePromptInput {
     mimeType: string;
     body: Buffer;
   } | null;
+  catalog?: {
+    id: string;
+    name: string;
+    topics: { id: string; name: string }[];
+  }[];
 }
 
 export interface GenerateQuestionsPromptInput {
@@ -42,6 +47,8 @@ const ANALYZE_SYSTEM_PROMPT = `Eres un asistente que ayuda a estudiantes a enten
 Analiza el material proporcionado y responde ÚNICAMENTE con un objeto JSON válido con este formato:
 {
   "suggestedTitle": "título corto y descriptivo, opcional",
+  "suggestedSubjectId": "id de la materia de la lista proporcionada, o null si no hay match claro",
+  "suggestedTopicId": "id del tema de la lista proporcionada, o null si no hay match claro",
   "summary": "resumen breve de 1 a 3 oraciones",
   "concepts": ["concepto clave 1", "concepto clave 2"],
   "objectives": ["objetivo de aprendizaje 1"],
@@ -50,6 +57,7 @@ Analiza el material proporcionado y responde ÚNICAMENTE con un objeto JSON vál
 Reglas:
 - Usa el idioma del contenido.
 - "suggestedTitle": ideal para el título del material; vacío si el material ya tiene uno claro.
+- "suggestedSubjectId" y "suggestedTopicId": elige EXCLUSIVAMENTE ids de la lista de materias y temas incluida en el mensaje del usuario; si la lista no está, está vacía o ningún elemento encaja claramente con el contenido, responde null. Nunca inventes ids.
 - "extractedContent": si el material es una imagen, transcribe íntegramente su texto; si es texto, copia el contenido tal cual.
 - No añadas explicaciones fuera del JSON.`;
 
@@ -88,7 +96,8 @@ Basate solo en la pregunta y sus opciones. Responde en el idioma de la pregunta.
 export function analyzeMessages(input: AnalyzePromptInput): ChatMessage[] {
   const userText = [
     input.title ? `Título del material: ${input.title}` : null,
-    input.content ? `Contenido: ${input.content}` : null
+    input.content ? `Contenido: ${input.content}` : null,
+    input.catalog && input.catalog.length > 0 ? `Materias y temas disponibles:\n${catalogLines(input.catalog)}` : null
   ]
     .filter(Boolean)
     .join("\n");
@@ -111,6 +120,17 @@ export function analyzeMessages(input: AnalyzePromptInput): ChatMessage[] {
   }
 
   return messages;
+}
+
+function catalogLines(catalog: NonNullable<AnalyzePromptInput["catalog"]>): string {
+  return catalog
+    .map((subject) => {
+      const topics = subject.topics
+        .map((topic) => `  - Tema: "${topic.name}" [id: ${topic.id}]`)
+        .join("\n");
+      return `- Materia: "${subject.name}" [id: ${subject.id}]${topics ? `\n${topics}` : ""}`;
+    })
+    .join("\n");
 }
 
 export function generateQuestionsMessages(input: GenerateQuestionsPromptInput): ChatMessage[] {

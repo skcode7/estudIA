@@ -44,11 +44,39 @@ describe("deepseek.mapper", () => {
 
       expect(result).toEqual({
         suggestedTitle: "Cloro y desinfección",
+        suggestedSubjectId: null,
+        suggestedTopicId: null,
         summary: "El cloro se usa para desinfectar el agua.",
         concepts: ["cloro", "desinfección"],
         objectives: ["Entender el uso del cloro"],
         extractedContent: "El cloro es un desinfectante común."
       });
+    });
+
+    it("maps suggested subject and topic ids", () => {
+      const result = toMaterialAnalysis(
+        materialAnalysisSchema.parse({
+          ...ANALYSIS_FIXTURE,
+          suggestedSubjectId: "subject-1",
+          suggestedTopicId: "topic-1"
+        })
+      );
+
+      expect(result.suggestedSubjectId).toBe("subject-1");
+      expect(result.suggestedTopicId).toBe("topic-1");
+    });
+
+    it("normalizes empty suggested ids to null", () => {
+      const result = toMaterialAnalysis(
+        materialAnalysisSchema.parse({
+          ...ANALYSIS_FIXTURE,
+          suggestedSubjectId: "",
+          suggestedTopicId: ""
+        })
+      );
+
+      expect(result.suggestedSubjectId).toBeNull();
+      expect(result.suggestedTopicId).toBeNull();
     });
 
     it("defaults missing arrays to empty lists and suggestedTitle to undefined", () => {

@@ -16,6 +16,8 @@ export interface CreateFileMaterialInput {
   originalName: string;
   contentType: string;
   body: Buffer;
+  /** Contenido en texto del material (transcripción extraída o editada por el usuario). */
+  content?: string | null;
 }
 
 @Injectable()
@@ -50,6 +52,7 @@ export class CreateFileMaterialUseCase {
       topicId: input.topicId,
       type: "FILE",
       title: input.title,
+      content: input.content?.trim() || null,
       storageKey: stored.key
     };
     return this.repository.create(createInput);

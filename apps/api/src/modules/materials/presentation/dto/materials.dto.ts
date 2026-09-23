@@ -34,6 +34,66 @@ export class UploadMaterialDto {
   @IsString()
   @MaxLength(200)
   title?: string;
+
+  @ApiPropertyOptional({
+    example: "Texto extraído de la foto de los apuntes…",
+    description: "Contenido en texto del material (transcripción extraída o editada por el usuario)",
+    maxLength: 200000
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(200000)
+  content?: string;
+}
+
+export class AnalyzeMaterialDraftDto {
+  @ApiPropertyOptional({
+    example: "Apuntes sobre la fotosíntesis…",
+    description: "Texto del material a analizar (alternativo al archivo \"file\")"
+  })
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(200000)
+  text?: string;
+}
+
+export class MaterialDraftDto {
+  @ApiPropertyOptional({
+    example: "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    description: "UUID sugerido de la materia (solo entre las existentes; null si no hay match)",
+    nullable: true
+  })
+  @IsOptional()
+  @IsString()
+  suggestedSubjectId!: string | null;
+
+  @ApiPropertyOptional({
+    example: "c3d4e5f6-a7b8-9012-cdef-234567890123",
+    description: "UUID sugerido del tema (solo entre los existentes; null si no hay match)",
+    nullable: true
+  })
+  @IsOptional()
+  @IsString()
+  suggestedTopicId!: string | null;
+
+  @ApiPropertyOptional({
+    example: "Apuntes de la unidad 1",
+    description: "Título sugerido para el material",
+    nullable: true
+  })
+  @IsOptional()
+  @IsString()
+  suggestedTitle!: string | null;
+
+  @ApiPropertyOptional({
+    example: "Texto completo transcrito de los apuntes…",
+    description: "Contenido en texto extraído del material",
+    nullable: true
+  })
+  @IsOptional()
+  @IsString()
+  extractedContent!: string | null;
 }
 
 export class MaterialDto {

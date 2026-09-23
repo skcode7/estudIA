@@ -1,5 +1,16 @@
 export type AIProviderId = "deepseek";
 
+export interface MaterialCatalogTopic {
+  id: string;
+  name: string;
+}
+
+export interface MaterialCatalogSubject {
+  id: string;
+  name: string;
+  topics: MaterialCatalogTopic[];
+}
+
 export interface AnalyzeMaterialInput {
   title?: string;
   content: string;
@@ -7,10 +18,17 @@ export interface AnalyzeMaterialInput {
     mimeType: string;
     body: Buffer;
   } | null;
+  /**
+   * Catálogo de materias y temas existentes. Si se envía, el proveedor puede
+   * sugerir a cuál de ellos pertenece el material.
+   */
+  catalog?: MaterialCatalogSubject[];
 }
 
 export interface MaterialAnalysis {
   suggestedTitle?: string;
+  suggestedSubjectId?: string | null;
+  suggestedTopicId?: string | null;
   summary: string;
   concepts: string[];
   objectives: string[];

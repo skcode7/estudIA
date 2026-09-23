@@ -7,6 +7,14 @@ export class DeepSeekOutputError extends Error {
   }
 }
 
+const optionalIdField = z
+  .string()
+  .trim()
+  .min(1)
+  .nullable()
+  .optional()
+  .or(z.literal("").transform(() => null));
+
 export const materialAnalysisSchema = z.object({
   suggestedTitle: z
     .string()
@@ -15,6 +23,8 @@ export const materialAnalysisSchema = z.object({
     .max(200)
     .optional()
     .or(z.literal("").transform(() => undefined)),
+  suggestedSubjectId: optionalIdField,
+  suggestedTopicId: optionalIdField,
   summary: z.string().trim().min(1),
   concepts: z.array(z.string().trim().min(1)).default([]),
   objectives: z.array(z.string().trim().min(1)).default([]),

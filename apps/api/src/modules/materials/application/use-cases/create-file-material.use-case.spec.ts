@@ -88,9 +88,33 @@ describe("CreateFileMaterialUseCase", () => {
       topicId: "topic-1",
       type: "FILE",
       title: "Foto apunte 1.jpg",
+      content: null,
       storageKey: "topics/topic-1/materials/abc.jpg"
     });
     expect(result).toEqual(created);
+  });
+
+  it("persists the extracted content when provided", async () => {
+    const repository = materialRepositoryMock();
+    const topicRepository = topicRepositoryMock();
+    const storage = objectStorageMock();
+    vi.mocked(topicRepository.findById).mockResolvedValue({
+      id: "topic-1",
+      subjectId: "subject-1",
+      name: "Álgebra",
+      description: null,
+      createdAt: new Date("2026-09-10T00:00:00.000Z"),
+      updatedAt: new Date("2026-09-10T00:00:00.000Z")
+    });
+    vi.mocked(storage.upload).mockResolvedValue({ key: "topics/topic-1/materials/abc.jpg", contentType: "image/jpeg" });
+    vi.mocked(repository.create).mockResolvedValue(baseMaterial());
+
+    const useCase = new CreateFileMaterialUseCase(repository, topicRepository, storage);
+    await useCase.execute({ ...baseInput, content: "Texto extraído de la foto." });
+
+    expect(repository.create).toHaveBeenCalledWith(
+      expect.objectContaining({ content: "Texto extraído de la foto." })
+    );
   });
 
   it("throws NotFoundException when topic does not exist and does not upload", async () => {

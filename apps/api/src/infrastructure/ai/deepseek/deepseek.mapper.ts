@@ -10,6 +10,8 @@ import {
 export function toMaterialAnalysis(payload: MaterialAnalysisPayload): MaterialAnalysis {
   return {
     suggestedTitle: payload.suggestedTitle,
+    suggestedSubjectId: payload.suggestedSubjectId ?? null,
+    suggestedTopicId: payload.suggestedTopicId ?? null,
     summary: payload.summary,
     concepts: payload.concepts,
     objectives: payload.objectives,
