@@ -65,10 +65,26 @@ model Material {
   createdAt         DateTime                 @default(now())
   updatedAt         DateTime                 @updatedAt
 
-  topic           Topic      @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  sourceQuestions Question[] @relation("SourceMaterial")
+  topic           Topic          @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  images          MaterialImage[]
+  sourceQuestions Question[]     @relation("SourceMaterial")
 
   @@index([topicId])
+}
+
+model MaterialImage {
+  id         String   @id @default(uuid())
+  materialId String
+  storageKey String
+  label      String
+  order      Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  material  Material   @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  questions Question[]
+
+  @@index([materialId])
 }
 
 model Question {
@@ -79,17 +95,20 @@ model Question {
   explanation      String?      @db.Text
   difficulty       String       @default("medium")
   sourceMaterialId String?
+  imageId          String?
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
 
   topic          Topic            @relation(fields: [topicId], references: [id], onDelete: Cascade)
   sourceMaterial Material?        @relation("SourceMaterial", fields: [sourceMaterialId], references: [id], onDelete: SetNull)
+  image          MaterialImage?   @relation(fields: [imageId], references: [id], onDelete: SetNull)
   options        QuestionOption[]
   quizQuestions  QuizQuestion[]
   answers        Answer[]
 
   @@index([topicId])
   @@index([sourceMaterialId])
+  @@index([imageId])
 }
 
 model QuestionOption {
