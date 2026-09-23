@@ -201,7 +201,13 @@ export interface ApiQuizOption {
 export interface ApiQuizQuestion {
   id: string;
   statement: string;
+  imageUrl: string | null;
   options: ApiQuizOption[];
+}
+
+/** Convierte una ruta relativa de asset de la API (p. ej. /materials/x/images/y) en URL absoluta. */
+export function assetUrl(path: string): string {
+  return `${API_URL}${path}`;
 }
 
 export interface ApiQuiz {

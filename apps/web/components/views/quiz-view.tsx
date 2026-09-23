@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
+  assetUrl,
   generateQuiz,
   listTopics,
   submitQuizAnswers,
@@ -226,6 +227,14 @@ export function QuizView({ subjects }: { subjects: Subject[] }) {
               <h3 className="text-sm font-bold">
                 {questionIndex + 1}. {question.statement}
               </h3>
+              {question.imageUrl && (
+                // eslint-disable-next-line @next/next/no-img-element -- Imagen servida por la API propia (MinIO/S3), sin optimizador
+                <img
+                  alt="Imagen de los apuntes usada en la pregunta"
+                  className="mt-3 max-h-72 w-full rounded-xl border border-slate-100 bg-white object-contain"
+                  src={assetUrl(question.imageUrl)}
+                />
+              )}
               <div className="mt-4 space-y-2">
                 {question.options.map((option) => {
                   const selected = answers[question.id] === option.id;
@@ -310,6 +319,14 @@ export function QuizView({ subjects }: { subjects: Subject[] }) {
                     {feedback?.isCorrect ? "Correcta" : "Incorrecta"}
                   </span>
                 </div>
+                {question.imageUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element -- Imagen servida por la API propia (MinIO/S3), sin optimizador
+                  <img
+                    alt="Imagen de los apuntes usada en la pregunta"
+                    className="mt-3 max-h-72 w-full rounded-xl border border-slate-100 bg-white object-contain"
+                    src={assetUrl(question.imageUrl)}
+                  />
+                )}
                 <div className="mt-3 space-y-2">
                   {question.options.map((option) => {
                     const isCorrect = option.id === feedback?.correctOptionId;
