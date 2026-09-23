@@ -12,6 +12,9 @@
 | IAM futuro | Authentico |
 | IA inicial | DeepSeek |
 | IA arquitectura | AIProvider + adapters |
+| IA especialista figuras | OpenRouter vía puerto MaterialImageExtractor (modelo por env, default qwen/qwen3-vl-32b-instruct) |
+| Preguntas con imagen | Imagen en enunciado + opciones de texto |
+| Recorte de figuras | Puerto ImageCropper + adapter sharp (WebP) |
 | Storage | Abstracción ObjectStorage S3-compatible |
 | Storage local (dev) | MinIO vía adapter S3 (endpoint/keys por env) |
 | Proveedores storage | Backblaze B2 / Contabo (cambio solo por env) |
