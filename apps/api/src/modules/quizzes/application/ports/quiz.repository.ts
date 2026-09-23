@@ -6,6 +6,10 @@ export interface QuizOptionPresentation {
 export interface QuizQuestionPresentation {
   id: string;
   statement: string;
+  /** Imagen del enunciado (null si la pregunta no tiene imagen). */
+  imageId: string | null;
+  /** Material del que se extrajo la imagen (null si la pregunta no tiene imagen). */
+  sourceMaterialId: string | null;
   options: QuizOptionPresentation[];
 }
 

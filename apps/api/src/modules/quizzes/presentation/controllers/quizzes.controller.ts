@@ -54,9 +54,20 @@ function toQuizDto(quiz: QuizRecord): QuizDto {
     questions: shuffle(quiz.questions).map((question) => ({
       id: question.id,
       statement: question.statement,
+      imageUrl: toQuestionImageUrl(question),
       options: shuffle(question.options)
     }))
   };
+}
+
+function toQuestionImageUrl(question: {
+  imageId: string | null;
+  sourceMaterialId: string | null;
+}): string | null {
+  if (!question.imageId || !question.sourceMaterialId) {
+    return null;
+  }
+  return `/materials/${question.sourceMaterialId}/images/${question.imageId}`;
 }
 
 function toAttemptResultDto(result: {

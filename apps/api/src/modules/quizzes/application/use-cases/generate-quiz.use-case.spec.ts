@@ -75,6 +75,8 @@ function baseQuiz(overrides: Partial<QuizRecord> = {}): QuizRecord {
       {
         id: "question-1",
         statement: "¿Qué convierte la luz en energía química?",
+        imageId: null,
+        sourceMaterialId: null,
         options: [
           { id: "option-1", text: "La fotosíntesis" },
           { id: "option-2", text: "La respiración" }

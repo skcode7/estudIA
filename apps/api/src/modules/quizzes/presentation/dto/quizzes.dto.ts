@@ -68,6 +68,15 @@ export class QuizQuestionDto {
   @IsString()
   statement!: string;
 
+  @ApiPropertyOptional({
+    example: "/materials/abc-123/images/def-456",
+    description: "Ruta de la imagen del enunciado (null si la pregunta no tiene imagen)",
+    nullable: true
+  })
+  @IsOptional()
+  @IsString()
+  imageUrl!: string | null;
+
   @ApiProperty({ type: () => [QuizOptionDto], description: "Opciones de respuesta (sin marcar la correcta)" })
   @IsArray()
   @ValidateNested({ each: true })

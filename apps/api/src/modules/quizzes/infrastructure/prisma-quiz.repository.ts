@@ -47,6 +47,8 @@ export class PrismaQuizRepository implements QuizRepository {
                 select: {
                   id: true,
                   statement: true,
+                  imageId: true,
+                  sourceMaterialId: true,
                   options: { select: { id: true, text: true } }
                 }
               }
@@ -67,6 +69,8 @@ export class PrismaQuizRepository implements QuizRepository {
         questions: quiz.questions.map((quizQuestion) => ({
           id: quizQuestion.question.id,
           statement: quizQuestion.question.statement,
+          imageId: quizQuestion.question.imageId,
+          sourceMaterialId: quizQuestion.question.sourceMaterialId,
           options: quizQuestion.question.options.map((option) => ({
             id: option.id,
             text: option.text
