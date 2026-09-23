@@ -1,19 +1,24 @@
 import { Module } from "@nestjs/common";
 
+import { SharpImageCropper } from "../../infrastructure/images/sharp.image-cropper";
 import { SubjectRepository } from "../subjects/application/ports/subject.repository";
 import { PrismaSubjectRepository } from "../subjects/infrastructure/prisma-subject.repository";
 import { TopicRepository } from "../topics/application/ports/topic.repository";
 import { PrismaTopicRepository } from "../topics/infrastructure/prisma-topic.repository";
+import { ImageCropper } from "./application/ports/image-cropper";
+import { MaterialImageRepository } from "./application/ports/material-image.repository";
 import { MaterialQuestionRepository } from "./application/ports/material-question.repository";
 import { MaterialRepository } from "./application/ports/material.repository";
 import { AnalyzeMaterialDraftUseCase } from "./application/use-cases/analyze-material-draft.use-case";
 import { CreateFileMaterialUseCase } from "./application/use-cases/create-file-material.use-case";
 import { CreateTextMaterialUseCase } from "./application/use-cases/create-text-material.use-case";
 import { DeleteMaterialUseCase } from "./application/use-cases/delete-material.use-case";
+import { GetMaterialImageUseCase } from "./application/use-cases/get-material-image.use-case";
 import { GetMaterialUseCase } from "./application/use-cases/get-material.use-case";
 import { ListMaterialsUseCase } from "./application/use-cases/list-materials.use-case";
 import { ProcessMaterialUseCase, PROCESS_MATERIAL_CONFIG } from "./application/use-cases/process-material.use-case";
 import { UpdateMaterialUseCase } from "./application/use-cases/update-material.use-case";
+import { PrismaMaterialImageRepository } from "./infrastructure/prisma-material-image.repository";
 import { PrismaMaterialQuestionRepository } from "./infrastructure/prisma-material-question.repository";
 import { PrismaMaterialRepository } from "./infrastructure/prisma-material.repository";
 import { MaterialsController } from "./presentation/controllers/materials.controller";
@@ -26,12 +31,15 @@ import { parsePositiveInt } from "../../shared/env.utils";
     CreateFileMaterialUseCase,
     ListMaterialsUseCase,
     GetMaterialUseCase,
+    GetMaterialImageUseCase,
     DeleteMaterialUseCase,
     ProcessMaterialUseCase,
     UpdateMaterialUseCase,
     AnalyzeMaterialDraftUseCase,
     { provide: MaterialRepository, useClass: PrismaMaterialRepository },
+    { provide: MaterialImageRepository, useClass: PrismaMaterialImageRepository },
     { provide: MaterialQuestionRepository, useClass: PrismaMaterialQuestionRepository },
+    { provide: ImageCropper, useClass: SharpImageCropper },
     { provide: TopicRepository, useClass: PrismaTopicRepository },
     { provide: SubjectRepository, useClass: PrismaSubjectRepository },
     {

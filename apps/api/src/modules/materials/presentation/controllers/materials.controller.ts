@@ -8,15 +8,19 @@ import {
   Patch,
   Post,
   Query,
+  Res,
+  StreamableFile,
   UploadedFile,
   UseInterceptors
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
+import type { Response } from "express";
 
 import { AnalyzeMaterialDraftUseCase } from "../../application/use-cases/analyze-material-draft.use-case";
 import { CreateFileMaterialUseCase } from "../../application/use-cases/create-file-material.use-case";
 import { CreateTextMaterialUseCase } from "../../application/use-cases/create-text-material.use-case";
 import { DeleteMaterialUseCase } from "../../application/use-cases/delete-material.use-case";
+import { GetMaterialImageUseCase } from "../../application/use-cases/get-material-image.use-case";
 import { GetMaterialUseCase } from "../../application/use-cases/get-material.use-case";
 import { ListMaterialsUseCase } from "../../application/use-cases/list-materials.use-case";
 import { ProcessMaterialUseCase } from "../../application/use-cases/process-material.use-case";
@@ -41,6 +45,7 @@ export class MaterialsController {
     private readonly createFileMaterialUseCase: CreateFileMaterialUseCase,
     private readonly listMaterialsUseCase: ListMaterialsUseCase,
     private readonly getMaterialUseCase: GetMaterialUseCase,
+    private readonly getMaterialImageUseCase: GetMaterialImageUseCase,
     private readonly deleteMaterialUseCase: DeleteMaterialUseCase,
     private readonly processMaterialUseCase: ProcessMaterialUseCase,
     private readonly updateMaterialUseCase: UpdateMaterialUseCase,
@@ -108,6 +113,20 @@ export class MaterialsController {
   @Get(":id")
   async findOne(@Param("id") id: string): Promise<MaterialDto> {
     return toMaterialDto(await this.getMaterialUseCase.execute(id));
+  }
+
+  @Get(":id/images/:imageId")
+  async findImage(
+    @Param("id") id: string,
+    @Param("imageId") imageId: string,
+    @Res({ passthrough: true }) response: Response
+  ): Promise<StreamableFile> {
+    const { body, mimeType } = await this.getMaterialImageUseCase.execute(id, imageId);
+    response.set({
+      "Content-Type": mimeType,
+      "Cache-Control": "private, max-age=86400"
+    });
+    return new StreamableFile(body);
   }
 
   @Post(":id/process")

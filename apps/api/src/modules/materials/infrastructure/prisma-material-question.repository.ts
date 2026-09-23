@@ -2,8 +2,10 @@ import { Injectable } from "@nestjs/common";
 import { QuestionType } from "@prisma/client";
 
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
-import { GeneratedQuestion } from "../../ai/application/ports/ai-provider";
-import { MaterialQuestionRepository } from "../application/ports/material-question.repository";
+import {
+  MaterialQuestionInput,
+  MaterialQuestionRepository
+} from "../application/ports/material-question.repository";
 
 @Injectable()
 export class PrismaMaterialQuestionRepository implements MaterialQuestionRepository {
@@ -29,7 +31,7 @@ export class PrismaMaterialQuestionRepository implements MaterialQuestionReposit
 
   async replaceForMaterial(
     sourceMaterialId: string,
-    questions: GeneratedQuestion[]
+    questions: MaterialQuestionInput[]
   ): Promise<number> {
     const material = await this.prisma.material.findUnique({
       where: { id: sourceMaterialId },
@@ -51,6 +53,7 @@ export class PrismaMaterialQuestionRepository implements MaterialQuestionReposit
             explanation: question.explanation ?? null,
             difficulty: question.difficulty,
             sourceMaterialId,
+            imageId: question.imageId,
             options: {
               create: question.options.map((option) => ({
                 text: option.text,

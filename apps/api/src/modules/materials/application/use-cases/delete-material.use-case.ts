@@ -1,6 +1,7 @@
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 
 import { ObjectStorage } from "../../../storage/application/ports/object-storage";
+import { MaterialImageRepository } from "../ports/material-image.repository";
 import { MaterialRepository } from "../ports/material.repository";
 
 @Injectable()
@@ -9,7 +10,8 @@ export class DeleteMaterialUseCase {
 
   constructor(
     private readonly repository: MaterialRepository,
-    private readonly objectStorage: ObjectStorage
+    private readonly objectStorage: ObjectStorage,
+    private readonly imageRepository: MaterialImageRepository
   ) {}
 
   async execute(id: string): Promise<void> {
@@ -18,14 +20,20 @@ export class DeleteMaterialUseCase {
       throw new NotFoundException(`Material con id "${id}" no encontrado.`);
     }
 
+    const images = await this.imageRepository.listByMaterial(id);
+
     await this.repository.delete(id);
 
-    if (material.storageKey) {
+    const keys = [
+      ...(material.storageKey ? [material.storageKey] : []),
+      ...images.map((image) => image.storageKey)
+    ];
+    for (const key of keys) {
       try {
-        await this.objectStorage.delete(material.storageKey);
+        await this.objectStorage.delete(key);
       } catch (error) {
         this.logger.warn(
-          `No se pudo eliminar el objeto "${material.storageKey}" del almacenamiento: ${String(error)}`
+          `No se pudo eliminar el objeto "${key}" del almacenamiento: ${String(error)}`
         );
       }
     }

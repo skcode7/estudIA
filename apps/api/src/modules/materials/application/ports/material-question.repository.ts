@@ -1,4 +1,3 @@
-import { GeneratedQuestion } from "../../../ai/application/ports/ai-provider";
 import { MaterialRecord } from "./material.repository";
 
 export interface MaterialWithQuestionCount {
@@ -6,10 +5,24 @@ export interface MaterialWithQuestionCount {
   questionCount: number;
 }
 
+export interface MaterialQuestionOptionInput {
+  text: string;
+  isCorrect: boolean;
+}
+
+export interface MaterialQuestionInput {
+  statement: string;
+  explanation?: string;
+  difficulty: "easy" | "medium" | "hard";
+  /** Imagen extraída del material que ilustra el enunciado (null si no tiene). */
+  imageId: string | null;
+  options: MaterialQuestionOptionInput[];
+}
+
 export abstract class MaterialQuestionRepository {
   abstract countByMaterials(sourceMaterialIds: string[]): Promise<Map<string, number>>;
   abstract replaceForMaterial(
     sourceMaterialId: string,
-    questions: GeneratedQuestion[]
+    questions: MaterialQuestionInput[]
   ): Promise<number>;
 }
