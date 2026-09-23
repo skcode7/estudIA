@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 
 import { AppShell } from "../components/layout/app-shell";
 import { DeleteSubjectDialog } from "../components/dialogs/delete-subject-dialog";
-import { MaterialDialog, type MaterialCreated } from "../components/dialogs/material-dialog";
+import { MaterialDialog } from "../components/dialogs/material-dialog";
 import { SubjectDialog } from "../components/dialogs/subject-dialog";
 import { UserOnboardingDialog } from "../components/dialogs/user-onboarding-dialog";
 import { HomeView } from "../components/views/home-view";
@@ -16,7 +16,6 @@ import { useMaterials } from "../hooks/use-materials";
 import { useSubjects } from "../hooks/use-subjects";
 import { useUser } from "../hooks/use-user";
 import { navLabel, type NavItemId } from "../lib/navigation";
-import { processMaterial } from "../lib/api";
 
 export default function HomePage() {
   const [notice, setNotice] = useState("");
@@ -35,30 +34,6 @@ export default function HomePage() {
     subjects.openCreateDialog();
     setNotice("");
   }, [subjects]);
-
-  const processMaterialWithAI = useCallback(
-    async (created: MaterialCreated): Promise<void> => {
-      const { subjectId, material } = created;
-      await materials.refreshSubjectMaterialCount(subjectId);
-      setNotice(`Procesando "${material.title}" con IA…`);
-      try {
-        const processed = await processMaterial(material.id);
-        setNotice(
-          processed.processingStatus === "COMPLETED"
-            ? `"${processed.title}" procesado: ${processed.questionCount} ${
-                processed.questionCount === 1 ? "pregunta" : "preguntas"
-              } generadas.`
-            : `La IA no pudo procesar "${material.title}". Revisa su estado en Materiales.`
-        );
-      } catch {
-        setNotice(
-          `El material se guardó en ${created.subjectName}, pero la IA falló. Reintenta desde Materiales.`
-        );
-      }
-      await materials.refreshSubjectMaterialCount(subjectId);
-    },
-    [materials]
-  );
 
   const handleCreateSubject = useCallback(
     async (values: { name: string; description: string }) => {
@@ -158,14 +133,10 @@ export default function HomePage() {
       {materials.isOpen && (
         <MaterialDialog
           onClose={materials.close}
-          onCreated={async (created, useAi) => {
+          onCreated={async (created) => {
             materials.close();
-            if (useAi) {
-              void processMaterialWithAI(created);
-            } else {
-              await materials.refreshSubjectMaterialCount(created.subjectId);
-              setNotice(`Material añadido a ${created.subjectName}.`);
-            }
+            await materials.refreshSubjectMaterialCount(created.subjectId);
+            setNotice(`Material añadido a ${created.subjectName}.`);
           }}
           preselectedSubjectId={materials.preselectedSubjectId}
           subjects={subjects.subjects}

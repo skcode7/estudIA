@@ -1,20 +1,20 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  analyzeMaterialDraft,
   createMaterial,
   createTopic,
   listTopics,
   uploadMaterial,
   type ApiMaterial,
+  type ApiMaterialDraft,
   type ApiTopic
 } from "../../lib/api";
 import { type Subject } from "../../lib/subjects";
 import { Dialog, DialogActions } from "./dialog";
 import { FieldError } from "../ui/feedback";
-
-type MaterialMode = "text" | "file";
 
 const FILE_ACCEPT = "image/*,.pdf,.txt,.doc,.docx";
 
@@ -23,6 +23,9 @@ export interface MaterialCreated {
   subjectName: string;
   material: ApiMaterial;
 }
+
+type ExtractSource = "file" | "text";
+type ExtractStatus = "idle" | "extracting" | "done" | "error";
 
 export function MaterialDialog({
   subjects,
@@ -33,21 +36,25 @@ export function MaterialDialog({
   subjects: Subject[];
   preselectedSubjectId: string | null;
   onClose: () => void;
-  onCreated: (created: MaterialCreated, useAi: boolean) => Promise<void>;
+  onCreated: (created: MaterialCreated) => Promise<void>;
 }) {
   const availableSubject = preselectedSubjectId ?? subjects[0]?.id ?? "";
 
-const [subjectId, setSubjectId] = useState(availableSubject);
+  const [subjectId, setSubjectId] = useState(availableSubject);
   const [topics, setTopics] = useState<ApiTopic[]>([]);
   const [areTopicsLoading, setAreTopicsLoading] = useState(true);
   const [topicsError, setTopicsError] = useState("");
   const [topicId, setTopicId] = useState("");
 
-  const [mode, setMode] = useState<MaterialMode>("text");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [useAi, setUseAi] = useState(true);
+
+  const [extractStatus, setExtractStatus] = useState<ExtractStatus>("idle");
+  const [extractError, setExtractError] = useState("");
+  const [extractSource, setExtractSource] = useState<ExtractSource | null>(null);
+  const pendingTopicSuggestionRef = useRef<string | null>(null);
+  const extractionSeqRef = useRef(0);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -57,6 +64,8 @@ const [subjectId, setSubjectId] = useState(availableSubject);
   const [isCreatingTopic, setIsCreatingTopic] = useState(false);
   const [topicCreateError, setTopicCreateError] = useState("");
 
+  const isExtracting = extractStatus === "extracting";
+
   useEffect(() => {
     if (!subjectId) return;
     let cancelled = false;
@@ -64,7 +73,10 @@ const [subjectId, setSubjectId] = useState(availableSubject);
       .then((fetched) => {
         if (cancelled) return;
         setTopics(fetched);
-        setTopicId(fetched[0]?.id ?? "");
+        const pending = pendingTopicSuggestionRef.current;
+        pendingTopicSuggestionRef.current = null;
+        const match = pending ? fetched.find((topic) => topic.id === pending) : undefined;
+        setTopicId(match?.id ?? fetched[0]?.id ?? "");
       })
       .catch((error: unknown) => {
         if (cancelled) return;
@@ -83,14 +95,15 @@ const [subjectId, setSubjectId] = useState(availableSubject);
     [subjects, subjectId]
   );
 
-  const handleSubjectChange = useCallback((value: string) => {
+  function handleSubjectChange(value: string): void {
+    pendingTopicSuggestionRef.current = null;
     setSubjectId(value);
     setTopicId("");
     setTopics([]);
     setTopicsError("");
     setAreTopicsLoading(true);
     setSubmitError("");
-  }, []);
+  }
 
   async function handleCreateTopic(): Promise<void> {
     const name = newTopicName.trim();
@@ -112,13 +125,84 @@ const [subjectId, setSubjectId] = useState(availableSubject);
     }
   }
 
+  function applyDraft(draft: ApiMaterialDraft, source: ExtractSource): void {
+    if (draft.suggestedTitle) {
+      setTitle(draft.suggestedTitle);
+    }
+    if (source === "file" && draft.extractedContent) {
+      setContent(draft.extractedContent);
+    }
+
+    const suggestedSubjectId =
+      draft.suggestedSubjectId && subjects.some((subject) => subject.id === draft.suggestedSubjectId)
+        ? draft.suggestedSubjectId
+        : null;
+
+    if (suggestedSubjectId && suggestedSubjectId !== subjectId) {
+      pendingTopicSuggestionRef.current = draft.suggestedTopicId;
+      setSubjectId(suggestedSubjectId);
+      setTopicId("");
+      setTopics([]);
+      setTopicsError("");
+      setAreTopicsLoading(true);
+      return;
+    }
+
+    if (draft.suggestedTopicId) {
+      const match = topics.find((topic) => topic.id === draft.suggestedTopicId);
+      if (match) {
+        setTopicId(match.id);
+      } else if (areTopicsLoading) {
+        pendingTopicSuggestionRef.current = draft.suggestedTopicId;
+      }
+    }
+  }
+
+  async function runExtraction(
+    source: { kind: "file"; file: File } | { kind: "text"; text: string }
+  ): Promise<void> {
+    const seq = ++extractionSeqRef.current;
+    setExtractSource(source.kind);
+    setExtractStatus("extracting");
+    setExtractError("");
+    setSubmitError("");
+    try {
+      const draft = await analyzeMaterialDraft(
+        source.kind === "file" ? { file: source.file } : { text: source.text }
+      );
+      if (seq !== extractionSeqRef.current) return;
+      applyDraft(draft, source.kind);
+      setExtractStatus("done");
+    } catch (error) {
+      if (seq !== extractionSeqRef.current) return;
+      setExtractError(
+        error instanceof Error ? error.message : "No se pudo extraer la información."
+      );
+      setExtractStatus("error");
+    }
+  }
+
   function handleSelectFile(event: React.ChangeEvent<HTMLInputElement>): void {
     const file = event.target.files?.[0] ?? null;
     setSelectedFile(file);
-    if (file && !title.trim()) {
+    if (!file) return;
+    if (!title.trim()) {
       setTitle(file.name);
     }
-    setSubmitError("");
+    void runExtraction({ kind: "file", file });
+  }
+
+  function handleExtractFromText(): void {
+    if (!content.trim() || isExtracting) return;
+    void runExtraction({ kind: "text", text: content });
+  }
+
+  function handleRetryExtraction(): void {
+    if (extractSource === "file" && selectedFile) {
+      void runExtraction({ kind: "file", file: selectedFile });
+    } else if (content.trim()) {
+      void runExtraction({ kind: "text", text: content });
+    }
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>): Promise<void> {
@@ -129,32 +213,31 @@ const [subjectId, setSubjectId] = useState(availableSubject);
       setSubmitError("Selecciona una materia y un tema.");
       return;
     }
-    const finalTitle = title.trim() || (mode === "file" ? selectedFile?.name ?? "" : "");
+    const finalTitle = title.trim() || selectedFile?.name || "";
     if (!finalTitle) {
       setSubmitError("El título es obligatorio.");
       return;
     }
-    if (mode === "text" && !content.trim()) {
+    if (!selectedFile && !content.trim()) {
       setSubmitError("Escribe el contenido que quieres estudiar.");
-      return;
-    }
-    if (mode === "file" && !selectedFile) {
-      setSubmitError("Selecciona una foto o un archivo.");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      let created: ApiMaterial;
-      if (mode === "text") {
-        created = await createMaterial({ topicId, title: finalTitle, content: content.trim() });
-      } else {
-        created = await uploadMaterial({ topicId, title: finalTitle, file: selectedFile! });
-      }
-      await onCreated(
-        { subjectId, subjectName: selectedSubject?.name ?? "la materia", material: created },
-        useAi
-      );
+      const created = selectedFile
+        ? await uploadMaterial({
+            topicId,
+            title: finalTitle,
+            file: selectedFile,
+            content: content.trim() || undefined
+          })
+        : await createMaterial({ topicId, title: finalTitle, content: content.trim() });
+      await onCreated({
+        subjectId,
+        subjectName: selectedSubject?.name ?? "la materia",
+        material: created
+      });
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "No se pudo agregar el material.");
     } finally {
@@ -181,10 +264,56 @@ const [subjectId, setSubjectId] = useState(availableSubject);
         </div>
       ) : (
         <form className="space-y-4" onSubmit={handleSubmit}>
+          <div className="space-y-2">
+            <label
+              className="flex min-h-24 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-violet-300 bg-[#f8f7fc] px-4 py-5 text-center"
+              htmlFor="material-file"
+            >
+              <span aria-hidden="true" className="text-2xl">📷</span>
+              <span className="text-sm font-semibold text-[#6d4aff]">
+                {selectedFile ? selectedFile.name : "Toma una foto o sube un archivo"}
+              </span>
+              <span className="text-xs text-slate-500">
+                {selectedFile ? "Toca para cambiar el archivo" : "JPG, PNG, GIF o WebP · toma una foto con la cámara"}
+              </span>
+              <input
+                accept={FILE_ACCEPT}
+                className="sr-only"
+                id="material-file"
+                onChange={handleSelectFile}
+                type="file"
+              />
+            </label>
+
+            {isExtracting && (
+              <p className="text-sm text-slate-500">Extrayendo información con IA…</p>
+            )}
+            {!isExtracting && extractStatus === "done" && (
+              <p className="text-sm font-medium text-emerald-700">
+                Información extraída con IA. Revisa y ajusta los campos.
+              </p>
+            )}
+            {!isExtracting && extractStatus === "error" && (
+              <div className="space-y-2">
+                <FieldError>
+                  {`${extractError || "No se pudo extraer la información."} Puedes completar los campos manualmente.`}
+                </FieldError>
+                <button
+                  className="min-h-11 rounded-xl bg-[#6d4aff] px-4 text-sm font-semibold text-white hover:bg-[#5b3fe0]"
+                  onClick={handleRetryExtraction}
+                  type="button"
+                >
+                  Reintentar extracción
+                </button>
+              </div>
+            )}
+          </div>
+
           <label className="block text-sm font-semibold" htmlFor="material-subject">
             Materia
             <select
-              className="mt-2 min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 text-base outline-none focus:border-[#6d4aff] focus:ring-2 focus:ring-[#f1eeff]"
+              className="mt-2 min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 text-base outline-none focus:border-[#6d4aff] focus:ring-2 focus:ring-[#f1eeff] disabled:bg-slate-50"
+              disabled={isExtracting}
               id="material-subject"
               onChange={(event) => handleSubjectChange(event.target.value)}
               value={subjectId}
@@ -211,7 +340,8 @@ const [subjectId, setSubjectId] = useState(availableSubject);
               </p>
             ) : (
               <select
-                className="mt-2 min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 text-base outline-none focus:border-[#6d4aff] focus:ring-2 focus:ring-[#f1eeff]"
+                className="mt-2 min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 text-base outline-none focus:border-[#6d4aff] focus:ring-2 focus:ring-[#f1eeff] disabled:bg-slate-50"
+                disabled={isExtracting}
                 id="material-topic"
                 onChange={(event) => setTopicId(event.target.value)}
                 value={topicId}
@@ -261,45 +391,11 @@ const [subjectId, setSubjectId] = useState(availableSubject);
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            {(["text", "file"] as const).map((option) => (
-              <button
-                className={`min-h-11 rounded-xl px-4 text-sm font-semibold transition ${
-                  mode === option
-                    ? "bg-[#f1eeff] text-[#6d4aff]"
-                    : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-                }`}
-                key={option}
-                onClick={() => setMode(option)}
-                type="button"
-              >
-                {option === "text" ? "✎ Texto" : "📷 Foto / archivo"}
-              </button>
-            ))}
-          </div>
-
-          {mode === "file" && (
-            <label
-              className="flex min-h-14 cursor-pointer items-center justify-between rounded-xl border border-dashed border-violet-300 bg-[#f8f7fc] px-4 text-sm font-semibold text-[#6d4aff]"
-              htmlFor="material-file"
-            >
-              <span className="truncate pr-2">{selectedFile?.name ?? "Toma una foto o sube un archivo"}</span>
-              <span aria-hidden="true">↑</span>
-              <input
-                accept={FILE_ACCEPT}
-                capture="environment"
-                className="sr-only"
-                id="material-file"
-                onChange={handleSelectFile}
-                type="file"
-              />
-            </label>
-          )}
-
           <label className="block text-sm font-semibold" htmlFor="material-title">
             Título
             <input
-              className="mt-2 min-h-12 w-full rounded-xl border border-slate-200 px-3 text-base outline-none focus:border-[#6d4aff] focus:ring-2 focus:ring-[#f1eeff]"
+              className="mt-2 min-h-12 w-full rounded-xl border border-slate-200 px-3 text-base outline-none focus:border-[#6d4aff] focus:ring-2 focus:ring-[#f1eeff] disabled:bg-slate-50"
+              disabled={isExtracting}
               id="material-title"
               onChange={(event) => setTitle(event.target.value)}
               placeholder="Ej. Apuntes de la unidad 1"
@@ -307,38 +403,33 @@ const [subjectId, setSubjectId] = useState(availableSubject);
             />
           </label>
 
-          {mode === "text" && (
-            <label className="block text-sm font-semibold" htmlFor="material-content">
-              Texto o apuntes
-              <textarea
-                className="mt-2 min-h-28 w-full rounded-xl border border-slate-200 p-3 text-base outline-none focus:border-[#6d4aff] focus:ring-2 focus:ring-[#f1eeff]"
-                id="material-content"
-                onChange={(event) => setContent(event.target.value)}
-                placeholder="Pega aquí el contenido que quieres estudiar…"
-                value={content}
-              />
-            </label>
+          <label className="block text-sm font-semibold" htmlFor="material-content">
+            Texto o apuntes
+            <textarea
+              className="mt-2 min-h-28 w-full rounded-xl border border-slate-200 p-3 text-base outline-none focus:border-[#6d4aff] focus:ring-2 focus:ring-[#f1eeff] disabled:bg-slate-50"
+              disabled={isExtracting}
+              id="material-content"
+              onChange={(event) => setContent(event.target.value)}
+              placeholder="Pega aquí el contenido que quieres estudiar…"
+              value={content}
+            />
+          </label>
+
+          {!selectedFile && content.trim() && (
+            <button
+              className="min-h-11 rounded-xl bg-[#f1eeff] px-4 text-sm font-semibold text-[#6d4aff] hover:bg-[#e7e1ff] disabled:opacity-60"
+              disabled={isExtracting}
+              onClick={handleExtractFromText}
+              type="button"
+            >
+              ✨ Extraer con IA
+            </button>
           )}
 
           {submitError && <FieldError>{submitError}</FieldError>}
 
-          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3">
-            <input
-              checked={useAi}
-              className="mt-0.5 size-4 accent-[#6d4aff]"
-              onChange={(event) => setUseAi(event.target.checked)}
-              type="checkbox"
-            />
-            <span className="text-sm">
-              <span className="font-semibold">✨ Procesar con IA mode</span>
-              <span className="block text-xs text-slate-500">
-                Analiza el contenido, extrae el texto y genera preguntas de opción múltiple.
-              </span>
-            </span>
-          </label>
-
           <DialogActions
-            disabled={isSubmitting}
+            disabled={isSubmitting || isExtracting}
             onCancel={onClose}
             submitLabel={isSubmitting ? "Guardando…" : "Agregar material"}
           />

@@ -53,6 +53,13 @@ export interface ApiMaterialEditInput {
   content?: string;
 }
 
+export interface ApiMaterialDraft {
+  suggestedSubjectId: string | null;
+  suggestedTopicId: string | null;
+  suggestedTitle: string | null;
+  extractedContent: string | null;
+}
+
 export interface CreateMaterialInput {
   topicId: string;
   title: string;
@@ -140,15 +147,32 @@ export function uploadMaterial(input: {
   topicId: string;
   file: File;
   title?: string;
+  content?: string;
 }): Promise<ApiMaterial> {
   const form = new FormData();
   form.set("topicId", input.topicId);
   form.set("file", input.file);
   if (input.title) form.set("title", input.title);
+  if (input.content) form.set("content", input.content);
 
   return request<ApiMaterial>("/materials/upload", {
     method: "POST",
     body: form
+  });
+}
+
+export function analyzeMaterialDraft(input: { file?: File; text?: string }): Promise<ApiMaterialDraft> {
+  if (input.file) {
+    const form = new FormData();
+    form.set("file", input.file);
+    return request<ApiMaterialDraft>("/materials/analyze", {
+      method: "POST",
+      body: form
+    });
+  }
+  return request<ApiMaterialDraft>("/materials/analyze", {
+    method: "POST",
+    body: JSON.stringify({ text: input.text })
   });
 }
 
