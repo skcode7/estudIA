@@ -15,6 +15,8 @@
 - [Módulo de materiales](./components/materiales.md) — Dueño del Material y de todo lo que cuelga de él: su ciclo de procesamiento con IA, sus figuras extraídas y sus preguntas.
 - [Módulo de quizzes](./components/quizzes.md) — Dueño del quiz como instantánea de preguntas, de los intentos y su corrección, y del progreso por tema que se acumula al corregir.
 - [Módulo de IA y sus adaptadores](./components/ia.md) — Dueño de la frontera con los modelos: qué puertos exponen los casos de uso, qué proveedor responde a cada trabajo y cómo se valida lo que el modelo devuelve.
+- [Capa de persistencia (Prisma)](./components/persistencia.md) — Dueño de la conexión a PostgreSQL y de cómo los repositorios Prisma traducen los puertos del dominio a tablas, con las convenciones de orden y reemplazo de las que depende la API.
+- [La forma del CRUD de catálogo](./components/crud-de-catalogo.md) — Cómo están construidos los módulos de materias, temas y usuarios — un caso de uso por operación, validación en el DTO y bindings repetidos — y las asimetrías entre ellos.
 - [Módulos de materias, temas y usuarios](./components/catalogo.md) — Dueños de la jerarquía de catálogo (materia → tema) y del registro mínimo de usuario, con las reglas de borrado que arrastran todo lo demás.
 - [Aplicación web (Next.js)](./components/web.md) — Dueño de la interfaz: una sola página client-side que compone vistas y diálogos, sus hooks de estado y el cliente HTTP contra la API.
 

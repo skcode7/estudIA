@@ -24,3 +24,26 @@ Siembra inicial del wiki (14 páginas) sobre el commit `36ec39f`.
   `ObjectStorage.getSignedUrl` igual.
 - Pendiente: los flujos de onboarding de usuario y de borrado de materia con cascada, y una
   decisión sobre el "progreso básico" (qué exponer de `TopicProgress`).
+
+## 2026-09-24 · wikipoke-ingest apps/api/src
+
+Pase sobre el cluster `apps/api/src` (44 archivos sin cubrir al empezar).
+
+- new: `components/persistencia.md` (PrismaService/PrismaModule y los repositorios: convenciones
+  de orden, updates parciales, reemplazo en transacción y borrado real), y
+  `components/crud-de-catalogo.md` (la forma del CRUD de materias/temas/usuarios: caso de uso por
+  operación, validación en el DTO, bindings repetidos y asimetrías entre módulos).
+- `components/ia.md`: nueva sección sobre schemas y mappers, con la tolerancia de los schemas Zod,
+  la exigencia de una sola respuesta correcta, la normalización de coordenadas 0–1 / 0–100 y la
+  foto viajando como data URL base64.
+- `components/materiales.md`: nueva sección sobre lectura y edición; editar contenido no reprocesa
+  y deja preguntas desactualizadas.
+- `components/quizzes.md`: contrato de entrada del intento (`SubmitAttemptDto`).
+- `decisions/storage-s3-minio.md`: el binding `@Global()` de `ObjectStorage`.
+- `architecture.md`: sonda de salud (`GET /api/v1/health`, literal y sin tocar la base de datos) y
+  tabla de páginas actualizada.
+- Hallazgo anotado en `components/crud-de-catalogo.md`: `PATCH` vacío aceptado en materias/temas
+  pero rechazado en materiales (asimetría de reglas entre controladores).
+- Resultado: `apps/api/src` queda **totalmente cubierto** (0 archivos sin reclamar). El backlog
+  pasa de 69 a 25 archivos: 17 en `apps/web/components`, 2 más en `apps/web` (`app`, `hooks`), 5 en
+  `packages/*` (aún placeholders) y `pnpm-workspace.yaml`.

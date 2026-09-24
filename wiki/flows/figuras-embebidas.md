@@ -8,6 +8,7 @@ sources:
   - apps/api/src/modules/materials/presentation/dto/materials.dto.ts
   - apps/api/src/modules/ai/ai.module.ts
   - apps/api/src/modules/ai/application/ports/image-extractor.ts
+  - apps/api/src/infrastructure/ai/noop.image-extractor.ts
   - apps/api/src/modules/ai/application/ports/ai-provider.ts
   - apps/api/src/infrastructure/ai/openrouter/openrouter.image-extractor.ts
   - apps/api/src/infrastructure/images/sharp.image-cropper.ts

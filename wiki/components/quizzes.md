@@ -6,6 +6,7 @@ sources:
   - apps/api/src/modules/quizzes/quizzes.module.ts
   - apps/api/src/modules/quizzes/application/ports/quiz.repository.ts
   - apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts
+  - apps/api/src/modules/quizzes/presentation/dto/quizzes.dto.ts
   - apps/api/src/modules/materials/infrastructure/prisma-material-question.repository.ts
   - apps/api/prisma/schema.prisma
 synced: 36ec39f
@@ -67,3 +68,8 @@ y no se vuelva a tocar, no se nota.
 No hay `GET /quizzes/:id` ni listado de intentos: un quiz generado solo existe en la pantalla que
 lo pidió, y si la página se recarga se pierde (la web lo reconoce y ofrece generar otro). Tampoco
 hay deduplicación de intentos ni caducidad: cada envío crea un `QuizAttempt` nuevo.
+
+El contrato de entrada está en los DTOs: un intento exige `startedAt` y un array de respuestas
+validado elemento a elemento (`apps/api/src/modules/quizzes/presentation/dto/quizzes.dto.ts:39`),
+que es lo que permite anidar `SubmitAnswerDto` con su par `questionId` / `selectedOptionId` sin
+volver a declarar la validación en el controller.

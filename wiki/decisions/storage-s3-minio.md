@@ -6,6 +6,7 @@ options: Sistema de archivos del servidor · binarios en PostgreSQL · S3-compat
 sources:
   - requirements/ADR-0001-MVP-SIMPLICITY.md
   - apps/api/src/modules/storage/application/ports/object-storage.ts
+  - apps/api/src/modules/storage/object-storage.module.ts
   - apps/api/src/infrastructure/object-storage/s3.object-storage.ts
   - docker-compose.yml
   - apps/api/src/modules/materials/application/use-cases/delete-material.use-case.ts
@@ -29,7 +30,9 @@ un puerto `ObjectStorage` con implementación S3, y MinIO como S3 de desarrollo.
 cuando haga falta. La implementación usa el SDK de AWS contra cualquier endpoint S3, y **todo su
 configurable está en variables de entorno**: endpoint, región, credenciales, bucket y
 `forcePathStyle` (`apps/api/src/infrastructure/object-storage/s3.object-storage.ts:17`). Pasar de
-MinIO a Backblaze B2 o Contabo es cambiar `.env`, no código.
+MinIO a Backblaze B2 o Contabo es cambiar `.env`, no código. El binding vive en un módulo
+`@Global()` que exporta el puerto (`apps/api/src/modules/storage/object-storage.module.ts:6`), de
+modo que materiales lo inyecta sin declarar dependencias de módulo.
 
 En local, `docker-compose.yml` levanta MinIO y un servicio `minio-init` que crea el bucket
 `estudia-materials` (`docker-compose.yml:39`): S3 no crea buckets por sí solo, y sin ese contenedor

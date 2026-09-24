@@ -5,6 +5,9 @@ responsibility: El mapa del monolito modular: capas, puntos de entrada e infraes
 sources:
   - apps/api/src/main.ts
   - apps/api/src/app.module.ts
+  - apps/api/src/modules/health/health.module.ts
+  - apps/api/src/modules/health/application/use-cases/get-health.use-case.ts
+  - apps/api/src/modules/health/presentation/controllers/health.controller.ts
   - apps/web/app/page.tsx
   - apps/web/app/layout.tsx
   - package.json
@@ -70,6 +73,11 @@ qué vista renderiza según la navegación (`apps/web/app/page.tsx:64`) y monta 
 El layout fija el idioma de la interfaz en español (`apps/web/app/layout.tsx:13`). La web habla solo
 con `NEXT_PUBLIC_API_URL` (`apps/web/package.json:15`), sin cookies ni sesión.
 
+**Salud.** `GET /api/v1/health` es el sonda de despliegue: un caso de uso que devuelve
+`{ "status": "ok" }` literal (`apps/api/src/modules/health/application/use-cases/get-health.use-case.ts:7`),
+sin tocar la base de datos ni nada más (`apps/api/src/modules/health/presentation/controllers/health.controller.ts:5`).
+Que responda `ok` solo dice que el proceso Nest está vivo; no dice que PostgreSQL ni MinIO lo estén.
+
 **Infraestructura local.** `docker-compose.yml:2` levanta PostgreSQL 16 y `docker-compose.yml:20`
 MinIO como storage S3-compatible; el bucket `estudia-materials` lo crea el servicio `minio-init`
 (`docker-compose.yml:48`) y no existe hasta que ese contenedor corre. Las credenciales y endpoints
@@ -97,6 +105,8 @@ modo que producción cambia de proveedor sin tocar código.
 | [Módulo de materiales](./components/materiales.md) | `Material`, sus figuras, sus preguntas y su borrado |
 | [Módulo de quizzes](./components/quizzes.md) | el quiz como instantánea, los intentos y `TopicProgress` |
 | [Módulo de IA y sus adaptadores](./components/ia.md) | puertos de IA, proveedores y validación de la salida |
+| [Capa de persistencia (Prisma)](./components/persistencia.md) | la conexión global y los repositorios que traducen los puertos a tablas |
+| [La forma del CRUD de catálogo](./components/crud-de-catalogo.md) | cómo están hechos los módulos de materias, temas y usuarios |
 | [Materias, temas y usuarios](./components/catalogo.md) | la jerarquía de catálogo y sus cascadas |
 | [Aplicación web](./components/web.md) | la página única, los hooks y el cliente HTTP |
 | [Puertos y adaptadores](./concepts/puertos-y-adapters.md) | el patrón que repite cada módulo |

@@ -12,6 +12,7 @@ sources:
 synced: 36ec39f
 related:
   - ../components/materiales.md
+  - ../components/crud-de-catalogo.md
   - ../decisions/authentico.md
 ---
 
@@ -20,7 +21,9 @@ related:
 Tres módulos pequeños con la misma forma (controller → casos de uso → puerto → repositorio Prisma)
 que sostienen la jerarquía sobre la que vive todo lo demás: `Subject` → `Topic` → `Material`. Lo
 que importa aquí no es el CRUD, que es el que uno espera, sino qué pasa al borrar y quién es
-"el usuario".
+"el usuario". La forma concreta de esos módulos — un caso de uso por operación, validación en el
+DTO, asimetrías entre los tres — está en
+[La forma del CRUD de catálogo](./crud-de-catalogo.md).
 
 ## La jerarquía y su única regla
 

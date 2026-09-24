@@ -8,9 +8,15 @@ sources:
   - apps/api/src/modules/materials/application/ports/material.repository.ts
   - apps/api/src/modules/materials/application/ports/material-image.repository.ts
   - apps/api/src/modules/materials/application/ports/material-question.repository.ts
+  - apps/api/src/modules/materials/application/ports/image-cropper.ts
   - apps/api/src/modules/materials/application/use-cases/delete-material.use-case.ts
   - apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts
+  - apps/api/src/modules/materials/application/use-cases/get-material.use-case.ts
   - apps/api/src/modules/materials/application/use-cases/get-material-image.use-case.ts
+  - apps/api/src/modules/materials/application/use-cases/list-materials.use-case.ts
+  - apps/api/src/modules/materials/application/use-cases/update-material.use-case.ts
+  - apps/api/src/modules/materials/infrastructure/prisma-material.repository.ts
+  - apps/api/src/modules/materials/infrastructure/prisma-material-image.repository.ts
   - apps/api/prisma/schema.prisma
 synced: 36ec39f
 related:
@@ -101,3 +107,21 @@ URL firmada ni acceso directo al bucket.
 - `questionCount` no es un campo del material: se calcula contando preguntas por material
   (`apps/api/src/modules/materials/application/ports/material-question.repository.ts:23`), y por eso
   un material recién creado responde `0` sin importar su estado.
+
+## Leer y editar sin tocar el procesamiento
+
+Los casos de uso de lectura devuelven el material **con** su conteo de preguntas, y el conteo se
+resuelve en la misma consulta para toda la lista (`apps/api/src/modules/materials/application/use-cases/list-materials.use-case.ts:15`);
+el detalle de uno solo hace lo propio (`apps/api/src/modules/materials/application/use-cases/get-material.use-case.ts:18`).
+Editar es `PATCH` de título y/o contenido y devuelve de nuevo el conteo recalculado
+(`apps/api/src/modules/materials/application/use-cases/update-material.use-case.ts:22`).
+
+Editar el contenido **no** reprocesa nada: las preguntas generadas siguen correspondiéndose con el
+texto que había cuando se procesó, y nada lo detecta. Un material editado sin reprocesar es una
+fuente de preguntas desactualizadas, y reprocesar trae el otro problema descrito en
+[Módulo de quizzes](../components/quizzes.md). La única forma coherente de corregir un material es
+editar y volver a procesarlo, sabiendo lo que eso borra.
+
+El recorte de figuras también es un puerto del módulo: `ImageCropper` declara solo
+`cropToWebp` (`apps/api/src/modules/materials/application/ports/image-cropper.ts:14`) y sharp lo
+implementa fuera de `modules/`, de modo que cambiar de librería de imagen no toca el caso de uso.

@@ -6,11 +6,17 @@ sources:
   - apps/api/src/modules/ai/ai.module.ts
   - apps/api/src/modules/ai/application/ports/ai-provider.ts
   - apps/api/src/infrastructure/ai/ai.registry.ts
+  - apps/api/src/infrastructure/ai/chat.types.ts
   - apps/api/src/infrastructure/ai/deepseek/deepseek.provider.ts
   - apps/api/src/infrastructure/ai/deepseek/deepseek.client.ts
+  - apps/api/src/infrastructure/ai/deepseek/deepseek.mapper.ts
   - apps/api/src/infrastructure/ai/deepseek/deepseek.prompts.ts
+  - apps/api/src/infrastructure/ai/deepseek/deepseek.schemas.ts
   - apps/api/src/infrastructure/ai/model-output.ts
   - apps/api/src/infrastructure/ai/openrouter/openrouter.client.ts
+  - apps/api/src/infrastructure/ai/openrouter/openrouter.mapper.ts
+  - apps/api/src/infrastructure/ai/openrouter/openrouter.prompts.ts
+  - apps/api/src/infrastructure/ai/openrouter/openrouter.schemas.ts
 synced: 36ec39f
 related:
   - ../flows/figuras-embebidas.md
@@ -60,6 +66,24 @@ Tras validar, el adaptador de DeepSeek todavía filtra lo que no cuadra: una pre
 `imageIndex` no corresponde a ninguna figura real se descarta y un juego sin ninguna pregunta
 válida es un error (`apps/api/src/infrastructure/ai/deepseek/deepseek.provider.ts:54`), de modo que
 una alucinación del modelo no llega a la base de datos.
+
+## El borde del adaptador: schemas y mappers
+
+Cada proveedor repite el mismo trio — prompt, schema Zod, mapper — y ahí es donde se absorbe el
+desorden del modelo. Los schemas son deliberadamente tolerantes: un `""` donde se esperaba un id se
+convierte en `null` y un título vacío desaparece (`apps/api/src/infrastructure/ai/deepseek/deepseek.schemas.ts:9`),
+en vez de rechazar la respuesta entera. Lo que sí es estricto es lo que no admite ambigüedad: 4 a 6
+opciones por pregunta y exactamente una correcta, que el mapper descarta si no se cumple
+(`apps/api/src/infrastructure/ai/deepseek/deepseek.mapper.ts:28`).
+
+En la visión, el mismo espíritu: las coordenadas se aceptan normalizadas (0–1) o en porcentaje
+(0–100) y las normaliza el mapper (`apps/api/src/infrastructure/ai/openrouter/openrouter.mapper.ts:31`),
+las regiones degeneradas se descartan (`apps/api/src/infrastructure/ai/openrouter/openrouter.mapper.ts:39`)
+y la foto viaja como data URL en base64 dentro del mensaje de chat
+(`apps/api/src/infrastructure/ai/openrouter/openrouter.prompts.ts:31`), que es como la API de chat
+entiende imágenes. El formato de mensajes (`system` / `user` con bloques de texto e imagen) es un
+tipo propio del adaptador (`apps/api/src/infrastructure/ai/chat.types.ts:1`), no el formato de
+ningún SDK.
 
 ## Configuración
 
