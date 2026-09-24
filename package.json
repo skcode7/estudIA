@@ -20,6 +20,7 @@
     "db:studio": "pnpm --filter @estudia/api prisma studio"
   },
   "devDependencies": {
-    "turbo": "2.10.12"
+    "turbo": "2.10.12",
+    "wikipoke": "^0.3.1"
   }
 }

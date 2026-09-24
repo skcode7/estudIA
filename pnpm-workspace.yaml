@@ -8,3 +8,6 @@ allowBuilds:
   '@scarf/scarf': true
   prisma: true
   unrs-resolver: true
+
+minimumReleaseAgeExclude:
+  - wikipoke@0.3.1

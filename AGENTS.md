@@ -111,3 +111,12 @@ Solo cuando el usuario lo pida explícitamente ("agrégalo en el ToDo", "guarda 
 3. Escribir el requerimiento en español con la estructura establecida: Contexto (citando rutas y comportamiento actual reales del repo), Objetivo, Alcance propuesto, Cambios implicados (Backend / Frontend), Fuera de alcance (por ahora) y Notas (decisiones, coherencia con AGENTS.md, referencias a requerimientos relacionados).
 4. Solo documentar: no implementar código asociado al requerimiento.
 5. Informar al usuario de la ruta creada.
+
+<!-- wikipoke:start · managed by wikipoke: `wikipoke hooks remove agents` takes this block out -->
+## Code wiki
+
+This repository keeps a code wiki in `wiki/`, maintained with the skills in `.agents/skills/`:
+`wikipoke-ingest` updates it, `wikipoke-query` answers from it, `wikipoke-lint` reviews it. At
+the start of a session, run `sh wiki/.wikipoke-hook.sh` and act on what it prints; it is silent
+when the wiki is current.
+<!-- wikipoke:end -->
