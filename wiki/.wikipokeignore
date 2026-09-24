@@ -38,3 +38,27 @@ go.sum
 .editorconfig
 .npmrc
 .nvmrc
+.node-version
+.dockerignore
+
+# tests and test configuration (24 *.spec.ts alongside each use case / mapper)
+**/*.spec.ts
+**/*.test.ts
+apps/web/playwright.config.ts
+
+# generated files and migrations (the schema is what matters, not ninety migrations)
+apps/api/prisma/migrations/**
+apps/web/next-env.d.ts
+apps/web/tsconfig.tsbuildinfo
+apps/web/public/**
+docs/estudIA-desing.png
+docs/schema.prisma
+
+# build plumbing and tool configuration
+**/tsconfig*.json
+**/eslint.config.mjs
+apps/web/postcss.config.mjs
+apps/web/next.config.ts
+apps/api/nest-cli.json
+turbo.json
+**/Dockerfile
