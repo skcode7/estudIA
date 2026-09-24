@@ -51,16 +51,16 @@ describe("deepseek.mapper", () => {
         concepts: ["cloro", "desinfección"],
         objectives: ["Entender el uso del cloro"],
         extractedContent: "El cloro es un desinfectante común.",
-        embeddedFigureCount: 0
+        hasEmbeddedFigures: false
       });
     });
 
-    it("maps the count of embedded figures", () => {
+    it("maps the embedded figures flag", () => {
       const result = toMaterialAnalysis(
-        materialAnalysisSchema.parse({ ...ANALYSIS_FIXTURE, embeddedFigureCount: 2 })
+        materialAnalysisSchema.parse({ ...ANALYSIS_FIXTURE, hasEmbeddedFigures: true })
       );
 
-      expect(result.embeddedFigureCount).toBe(2);
+      expect(result.hasEmbeddedFigures).toBe(true);
     });
 
     it("maps suggested subject and topic ids", () => {

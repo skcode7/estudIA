@@ -43,6 +43,7 @@ function baseMaterial(overrides: Partial<MaterialRecord> = {}): MaterialRecord {
     title: "Foto apunte 1.jpg",
     content: null,
     storageKey: "topics/topic-1/materials/abc.jpg",
+    hasEmbeddedFigures: false,
     processingStatus: "PENDING",
     processingError: null,
     createdAt: new Date("2026-09-10T00:00:00.000Z"),
@@ -89,9 +90,33 @@ describe("CreateFileMaterialUseCase", () => {
       type: "FILE",
       title: "Foto apunte 1.jpg",
       content: null,
-      storageKey: "topics/topic-1/materials/abc.jpg"
+      storageKey: "topics/topic-1/materials/abc.jpg",
+      hasEmbeddedFigures: false
     });
     expect(result).toEqual(created);
+  });
+
+  it("persists the hasEmbeddedFigures flag from the draft analysis", async () => {
+    const repository = materialRepositoryMock();
+    const topicRepository = topicRepositoryMock();
+    const storage = objectStorageMock();
+    vi.mocked(topicRepository.findById).mockResolvedValue({
+      id: "topic-1",
+      subjectId: "subject-1",
+      name: "Álgebra",
+      description: null,
+      createdAt: new Date("2026-09-10T00:00:00.000Z"),
+      updatedAt: new Date("2026-09-10T00:00:00.000Z")
+    });
+    vi.mocked(storage.upload).mockResolvedValue({ key: "topics/topic-1/materials/abc.jpg", contentType: "image/jpeg" });
+    vi.mocked(repository.create).mockResolvedValue(baseMaterial());
+
+    const useCase = new CreateFileMaterialUseCase(repository, topicRepository, storage);
+    await useCase.execute({ ...baseInput, hasEmbeddedFigures: true });
+
+    expect(repository.create).toHaveBeenCalledWith(
+      expect.objectContaining({ hasEmbeddedFigures: true })
+    );
   });
 
   it("persists the extracted content when provided", async () => {

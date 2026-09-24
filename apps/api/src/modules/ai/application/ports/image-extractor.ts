@@ -22,8 +22,6 @@ export interface ExtractImageRegionsInput {
   };
   /** Cantidad máxima de figuras a devolver. */
   maxRegions: number;
-  /** Aproximación de figuras detectadas en el análisis previo (0 si se desconoce). */
-  hintCount: number;
 }
 
 /**

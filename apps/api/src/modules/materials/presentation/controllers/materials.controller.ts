@@ -96,7 +96,8 @@ export class MaterialsController {
         originalName: file.originalname,
         contentType: file.mimetype,
         body: file.buffer,
-        content: dto.content?.trim() || undefined
+        content: dto.content?.trim() || undefined,
+        hasEmbeddedFigures: dto.hasEmbeddedFigures ?? false
       })
       .then((material) => toMaterialDto({ material, questionCount: 0 }));
   }
@@ -160,6 +161,7 @@ function toMaterialDto({ material, questionCount }: MaterialWithQuestionCount): 
     title: material.title,
     content: material.content,
     storageKey: material.storageKey,
+    hasEmbeddedFigures: material.hasEmbeddedFigures,
     processingStatus: material.processingStatus,
     processingError: material.processingError,
     questionCount,
@@ -173,11 +175,13 @@ function toMaterialDraftDto(result: {
   suggestedTopicId: string | null;
   suggestedTitle: string | null;
   extractedContent: string | null;
+  hasEmbeddedFigures: boolean;
 }): MaterialDraftDto {
   return {
     suggestedSubjectId: result.suggestedSubjectId,
     suggestedTopicId: result.suggestedTopicId,
     suggestedTitle: result.suggestedTitle,
-    extractedContent: result.extractedContent
+    extractedContent: result.extractedContent,
+    hasEmbeddedFigures: result.hasEmbeddedFigures
   };
 }

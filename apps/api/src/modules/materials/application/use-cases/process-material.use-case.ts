@@ -99,7 +99,11 @@ export class ProcessMaterialUseCase {
       return this.fail(materialId, this.providerError("analizar el material", error));
     }
 
-    const updatedFields: { title?: string; content?: string | null } = {};
+    const updatedFields: {
+      title?: string;
+      content?: string | null;
+      hasEmbeddedFigures?: boolean;
+    } = {};
     if (analysis.suggestedTitle) {
       updatedFields.title = analysis.suggestedTitle;
     }
@@ -107,17 +111,17 @@ export class ProcessMaterialUseCase {
     if (extractedContent !== material.content) {
       updatedFields.content = extractedContent;
     }
+    const hasEmbeddedFigures = material.hasEmbeddedFigures || (analysis.hasEmbeddedFigures ?? false);
+    if (hasEmbeddedFigures !== material.hasEmbeddedFigures) {
+      updatedFields.hasEmbeddedFigures = hasEmbeddedFigures;
+    }
     if (Object.keys(updatedFields).length > 0) {
       await this.repository.updateFields(materialId, updatedFields);
     }
 
     await this.saveAnalysis(materialId, material, analysis);
 
-    const extractedImages = await this.extractEmbeddedImages(
-      material,
-      image,
-      analysis.embeddedFigureCount ?? 0
-    );
+    const extractedImages = await this.extractEmbeddedImages(material, image, hasEmbeddedFigures);
 
     let questionsCount: number;
     try {
@@ -177,10 +181,10 @@ export class ProcessMaterialUseCase {
   private async extractEmbeddedImages(
     material: MaterialRecord,
     image: { mimeType: string; body: Buffer } | null,
-    figureCount: number
+    hasEmbeddedFigures: boolean
   ): Promise<ExtractedImages> {
     const empty: ExtractedImages = { hints: [], imageIdByIndex: new Map() };
-    if (!image || figureCount <= 0) {
+    if (!image || !hasEmbeddedFigures) {
       return empty;
     }
     if (!this.imageExtractor.isAvailable()) {
@@ -194,8 +198,7 @@ export class ProcessMaterialUseCase {
     try {
       regions = await this.imageExtractor.extractRegions({
         image,
-        maxRegions: MAX_EXTRACTED_IMAGES,
-        hintCount: figureCount
+        maxRegions: MAX_EXTRACTED_IMAGES
       });
     } catch (error) {
       this.logger.warn(

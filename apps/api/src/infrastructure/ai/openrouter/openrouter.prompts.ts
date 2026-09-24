@@ -6,7 +6,6 @@ export interface ExtractRegionsPromptInput {
     body: Buffer;
   };
   maxRegions: number;
-  hintCount: number;
 }
 
 const EXTRACT_REGIONS_SYSTEM_PROMPT = `Eres un asistente que localiza las figuras o imágenes propias embebidas en una foto de unos apuntes escolares: banderas, mapas, diagramas, dibujos, esquemas visuales o recortes. El texto escrito a mano NO cuenta como figura.
@@ -27,14 +26,7 @@ Reglas:
 - No añadas explicaciones fuera del JSON.`;
 
 export function extractRegionsMessages(input: ExtractRegionsPromptInput): ChatMessage[] {
-  const userText = [
-    `Localiza las figuras propias de esta imagen (máximo ${input.maxRegions}).`,
-    input.hintCount > 0
-      ? `Un análisis previo detectó aproximadamente ${input.hintCount} figuras en esta imagen.`
-      : null
-  ]
-    .filter(Boolean)
-    .join("\n");
+  const userText = `Localiza las figuras propias de esta imagen (máximo ${input.maxRegions}).`;
 
   const dataUrl = `data:${input.image.mimeType};base64,${input.image.body.toString("base64")}`;
 

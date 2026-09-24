@@ -16,7 +16,7 @@ export function toMaterialAnalysis(payload: MaterialAnalysisPayload): MaterialAn
     concepts: payload.concepts,
     objectives: payload.objectives,
     extractedContent: payload.extractedContent ?? null,
-    embeddedFigureCount: payload.embeddedFigureCount
+    hasEmbeddedFigures: payload.hasEmbeddedFigures
   };
 }
 

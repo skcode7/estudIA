@@ -22,7 +22,7 @@ export const materialAnalysisSchema = z.object({
   concepts: z.array(z.string().trim().min(1)).default([]),
   objectives: z.array(z.string().trim().min(1)).default([]),
   extractedContent: z.string().nullable().optional(),
-  embeddedFigureCount: z.number().int().min(0).max(50).default(0)
+  hasEmbeddedFigures: z.boolean().default(false)
 });
 
 export const generatedQuestionOptionSchema = z.object({

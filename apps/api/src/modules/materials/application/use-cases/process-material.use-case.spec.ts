@@ -80,6 +80,7 @@ function baseMaterial(overrides: Partial<MaterialRecord> = {}): MaterialRecord {
     title: "Apuntes de fotosíntesis",
     content: "La fotosíntesis convierte la luz en energía química.",
     storageKey: null,
+    hasEmbeddedFigures: false,
     processingStatus: "PENDING",
     processingError: null,
     createdAt: new Date("2026-09-10T00:00:00.000Z"),
@@ -95,7 +96,7 @@ function baseAnalysis(overrides: Partial<MaterialAnalysis> = {}): MaterialAnalys
     concepts: ["fotosíntesis", "clorofila"],
     objectives: ["Entender la fotosíntesis"],
     extractedContent: "Texto transcrito por la IA.",
-    embeddedFigureCount: 0,
+    hasEmbeddedFigures: false,
     ...overrides
   };
 }
@@ -264,7 +265,7 @@ describe("ProcessMaterialUseCase", () => {
       baseMaterial({ type: "FILE", content: null, storageKey: "topics/topic-1/materials/foto.jpg" })
     );
     vi.mocked(storage.getObject).mockResolvedValue(Buffer.from("fake-image"));
-    vi.mocked(ai.analyzeMaterial).mockResolvedValue(baseAnalysis({ embeddedFigureCount: 2 }));
+    vi.mocked(ai.analyzeMaterial).mockResolvedValue(baseAnalysis({ hasEmbeddedFigures: true }));
     vi.mocked(imageExtractor.extractRegions).mockResolvedValue(extractedRegions());
     vi.mocked(imageCropper.cropToWebp).mockResolvedValue(Buffer.from("crop"));
     vi.mocked(storage.upload).mockResolvedValue({ key: "k", contentType: "image/webp" });
@@ -291,9 +292,12 @@ describe("ProcessMaterialUseCase", () => {
     expect(result.material.processingStatus).toBe("COMPLETED");
     expect(imageExtractor.extractRegions).toHaveBeenCalledWith({
       image: { mimeType: "image/jpeg", body: expect.any(Buffer) },
-      maxRegions: 5,
-      hintCount: 2
+      maxRegions: 5
     });
+    expect(repository.updateFields).toHaveBeenCalledWith(
+      "uuid-1",
+      expect.objectContaining({ hasEmbeddedFigures: true })
+    );
     expect(imageCropper.cropToWebp).toHaveBeenCalledTimes(2);
     expect(storage.upload).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -325,7 +329,7 @@ describe("ProcessMaterialUseCase", () => {
       baseMaterial({ type: "FILE", content: null, storageKey: "topics/topic-1/materials/foto.jpg" })
     );
     vi.mocked(mocks.storage.getObject).mockResolvedValue(Buffer.from("fake-image"));
-    vi.mocked(ai.analyzeMaterial).mockResolvedValue(baseAnalysis({ embeddedFigureCount: 2 }));
+    vi.mocked(ai.analyzeMaterial).mockResolvedValue(baseAnalysis({ hasEmbeddedFigures: true }));
     vi.mocked(imageExtractor.extractRegions).mockRejectedValue(new Error("provider down"));
     vi.mocked(ai.generateQuestions).mockResolvedValue(generatedQuestionPayload());
     vi.mocked(questionRepository.replaceForMaterial).mockResolvedValue(1);
@@ -350,7 +354,7 @@ describe("ProcessMaterialUseCase", () => {
       baseMaterial({ type: "FILE", content: null, storageKey: "topics/topic-1/materials/foto.jpg" })
     );
     vi.mocked(mocks.storage.getObject).mockResolvedValue(Buffer.from("fake-image"));
-    vi.mocked(ai.analyzeMaterial).mockResolvedValue(baseAnalysis({ embeddedFigureCount: 2 }));
+    vi.mocked(ai.analyzeMaterial).mockResolvedValue(baseAnalysis({ hasEmbeddedFigures: true }));
     vi.mocked(ai.generateQuestions).mockResolvedValue(generatedQuestionPayload());
     vi.mocked(mocks.questionRepository.replaceForMaterial).mockResolvedValue(1);
 
@@ -364,6 +368,34 @@ describe("ProcessMaterialUseCase", () => {
     );
   });
 
+  it("extracts figures flagged at upload time even when the analysis reports none", async () => {
+    const mocks = buildMocks();
+    const { repository, questionRepository, ai, imageExtractor, imageCropper, imageRepository } = mocks;
+    vi.mocked(repository.findById).mockResolvedValue(
+      baseMaterial({
+        type: "FILE",
+        content: null,
+        storageKey: "topics/topic-1/materials/foto.jpg",
+        hasEmbeddedFigures: true
+      })
+    );
+    vi.mocked(mocks.storage.getObject).mockResolvedValue(Buffer.from("fake-image"));
+    vi.mocked(ai.analyzeMaterial).mockResolvedValue(baseAnalysis({ hasEmbeddedFigures: false }));
+    vi.mocked(imageExtractor.extractRegions).mockResolvedValue([extractedRegions()[0]!]);
+    vi.mocked(imageCropper.cropToWebp).mockResolvedValue(Buffer.from("crop"));
+    vi.mocked(mocks.storage.upload).mockResolvedValue({ key: "k", contentType: "image/webp" });
+    vi.mocked(imageRepository.listByMaterial).mockResolvedValue([]);
+    vi.mocked(imageRepository.replaceForMaterial).mockResolvedValue([imageRecords()[0]!]);
+    vi.mocked(ai.generateQuestions).mockResolvedValue(generatedQuestionPayload());
+    vi.mocked(questionRepository.replaceForMaterial).mockResolvedValue(1);
+
+    const useCase = buildUseCase(mocks);
+    const result = await useCase.execute("uuid-1");
+
+    expect(result.material.processingStatus).toBe("COMPLETED");
+    expect(imageExtractor.extractRegions).toHaveBeenCalledTimes(1);
+  });
+
   it("cleans up stale extracted images when reprocessing produces fewer figures", async () => {
     const mocks = buildMocks();
     const { repository, ai, storage, imageExtractor, imageCropper, imageRepository } = mocks;
@@ -371,7 +403,7 @@ describe("ProcessMaterialUseCase", () => {
       baseMaterial({ type: "FILE", content: null, storageKey: "topics/topic-1/materials/foto.jpg" })
     );
     vi.mocked(storage.getObject).mockResolvedValue(Buffer.from("fake-image"));
-    vi.mocked(ai.analyzeMaterial).mockResolvedValue(baseAnalysis({ embeddedFigureCount: 1 }));
+    vi.mocked(ai.analyzeMaterial).mockResolvedValue(baseAnalysis({ hasEmbeddedFigures: true }));
     vi.mocked(imageExtractor.extractRegions).mockResolvedValue([extractedRegions()[0]!]);
     vi.mocked(imageCropper.cropToWebp).mockResolvedValue(Buffer.from("crop"));
     vi.mocked(storage.upload).mockResolvedValue({ key: "k", contentType: "image/webp" });

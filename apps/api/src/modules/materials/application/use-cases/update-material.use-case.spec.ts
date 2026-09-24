@@ -30,6 +30,7 @@ function baseMaterial(overrides: Partial<MaterialRecord> = {}): MaterialRecord {
     title: "Foto apunte.jpg",
     content: null,
     storageKey: "topics/topic-1/materials/foto.jpg",
+    hasEmbeddedFigures: false,
     processingStatus: "COMPLETED",
     processingError: null,
     createdAt: new Date("2026-09-10T00:00:00.000Z"),

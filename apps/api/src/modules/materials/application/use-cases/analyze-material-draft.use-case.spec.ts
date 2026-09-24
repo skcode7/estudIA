@@ -108,8 +108,26 @@ describe("AnalyzeMaterialDraftUseCase", () => {
       suggestedSubjectId: "subject-1",
       suggestedTopicId: "topic-1",
       suggestedTitle: "Fotosíntesis",
-      extractedContent: "Texto transcrito por la IA."
+      extractedContent: "Texto transcrito por la IA.",
+      hasEmbeddedFigures: false
     });
+  });
+
+  it("reports the embedded figures detected in the image", async () => {
+    const { ai, useCase } = setup();
+    vi.mocked(ai.analyzeMaterial).mockResolvedValue(
+      baseAnalysis({ hasEmbeddedFigures: true })
+    );
+
+    const result = await useCase.execute({
+      image: {
+        mimeType: "image/jpeg",
+        body: Buffer.from("fake-image"),
+        originalName: "apuntes.jpg"
+      }
+    });
+
+    expect(result.hasEmbeddedFigures).toBe(true);
   });
 
   it("analyzes plain text and leaves extracted content null", async () => {

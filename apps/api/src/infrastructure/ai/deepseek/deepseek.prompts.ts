@@ -52,14 +52,14 @@ Analiza el material proporcionado y responde ÚNICAMENTE con un objeto JSON vál
   "concepts": ["concepto clave 1", "concepto clave 2"],
   "objectives": ["objetivo de aprendizaje 1"],
   "extractedContent": "texto completo de los apuntes",
-  "embeddedFigureCount": 0
+  "hasEmbeddedFigures": false
 }
 Reglas:
 - Usa el idioma del contenido.
 - "suggestedTitle": ideal para el título del material; vacío si el material ya tiene uno claro.
 - "suggestedSubjectId" y "suggestedTopicId": elige EXCLUSIVAMENTE ids de la lista de materias y temas incluida en el mensaje del usuario; si la lista no está, está vacía o ningún elemento encaja claramente con el contenido, responde null. Nunca inventes ids.
 - "extractedContent": si el material es una imagen, transcribe íntegramente su texto; si es texto, copia el contenido tal cual.
-- "embeddedFigureCount": cuántas figuras o imágenes propias aparecen DENTRO de los apuntes (banderas, mapas, dibujos, diagramas, esquemas visuales). El texto escrito a mano no cuenta. Usa 0 si no hay ninguna.
+- "hasEmbeddedFigures": true si DENTRO de los apuntes hay alguna figura o imagen propia (banderas, mapas, dibujos, diagramas, esquemas visuales); false si solo hay texto escrito. No hace falta contarlas.
 - No añadas explicaciones fuera del JSON.`;
 
 const GENERATE_QUESTIONS_SYSTEM_PROMPT = `Eres un asistente que genera preguntas de opción múltiple a partir de apuntes escolares.

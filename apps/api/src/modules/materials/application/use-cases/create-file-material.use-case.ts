@@ -18,6 +18,8 @@ export interface CreateFileMaterialInput {
   body: Buffer;
   /** Contenido en texto del material (transcripción extraída o editada por el usuario). */
   content?: string | null;
+  /** Marca si la foto contiene figuras propias (según el análisis del borrador). */
+  hasEmbeddedFigures?: boolean;
 }
 
 @Injectable()
@@ -53,7 +55,8 @@ export class CreateFileMaterialUseCase {
       type: "FILE",
       title: input.title,
       content: input.content?.trim() || null,
-      storageKey: stored.key
+      storageKey: stored.key,
+      hasEmbeddedFigures: input.hasEmbeddedFigures ?? false
     };
     return this.repository.create(createInput);
   }

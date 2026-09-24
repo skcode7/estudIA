@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsDateString, IsEnum, IsOptional, IsString, IsUUID, MaxLength, MinLength } from "class-validator";
+import { Transform } from "class-transformer";
+import { IsBoolean, IsDateString, IsEnum, IsOptional, IsString, IsUUID, MaxLength, MinLength } from "class-validator";
 
 export enum MaterialTypeDto {
   TEXT = "TEXT",
@@ -44,6 +45,16 @@ export class UploadMaterialDto {
   @IsString()
   @MaxLength(200000)
   content?: string;
+
+  @ApiPropertyOptional({
+    example: true,
+    description:
+      "Marca si la foto contiene figuras propias (banderas, mapas, diagramas…) según el análisis del borrador"
+  })
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === "true")
+  @IsBoolean()
+  hasEmbeddedFigures?: boolean;
 }
 
 export class AnalyzeMaterialDraftDto {
@@ -94,6 +105,14 @@ export class MaterialDraftDto {
   @IsOptional()
   @IsString()
   extractedContent!: string | null;
+
+  @ApiProperty({
+    example: true,
+    description:
+      "Marca si la foto contiene figuras propias (banderas, mapas, diagramas…) además del texto"
+  })
+  @IsBoolean()
+  hasEmbeddedFigures!: boolean;
 }
 
 export class MaterialDto {
@@ -126,6 +145,14 @@ export class MaterialDto {
   @IsOptional()
   @IsString()
   storageKey!: string | null;
+
+  @ApiProperty({
+    example: true,
+    description:
+      "Marca si el material contiene figuras propias (banderas, mapas, diagramas…) además del texto"
+  })
+  @IsBoolean()
+  hasEmbeddedFigures!: boolean;
 
   @ApiProperty({ example: "PENDING", enum: ["PENDING", "PROCESSING", "COMPLETED", "FAILED"], description: "Estado del procesamiento IA" })
   @IsEnum(["PENDING", "PROCESSING", "COMPLETED", "FAILED"])

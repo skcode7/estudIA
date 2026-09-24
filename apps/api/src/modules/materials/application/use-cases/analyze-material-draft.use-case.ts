@@ -29,6 +29,8 @@ export interface AnalyzeMaterialDraftResult {
   suggestedTopicId: string | null;
   suggestedTitle: string | null;
   extractedContent: string | null;
+  /** Marca si la foto contiene figuras propias (banderas, mapas, diagramas…) además del texto. */
+  hasEmbeddedFigures: boolean;
 }
 
 @Injectable()
@@ -83,7 +85,8 @@ export class AnalyzeMaterialDraftUseCase {
       suggestedSubjectId: subjectId,
       suggestedTopicId: topicId,
       suggestedTitle: analysis.suggestedTitle ?? null,
-      extractedContent: analysis.extractedContent?.trim() ?? null
+      extractedContent: analysis.extractedContent?.trim() ?? null,
+      hasEmbeddedFigures: analysis.hasEmbeddedFigures ?? false
     };
   }
 

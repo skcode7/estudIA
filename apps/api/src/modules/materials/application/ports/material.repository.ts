@@ -9,6 +9,8 @@ export interface MaterialRecord {
   title: string;
   content: string | null;
   storageKey: string | null;
+  /** Marca si el material contiene figuras propias además del texto (para procesarlas después). */
+  hasEmbeddedFigures: boolean;
   processingStatus: MaterialProcessingStatus;
   processingError: string | null;
   createdAt: Date;
@@ -21,11 +23,13 @@ export interface CreateMaterialInput {
   title: string;
   content?: string | null;
   storageKey?: string | null;
+  hasEmbeddedFigures?: boolean;
 }
 
 export interface UpdateMaterialFieldsInput {
   title?: string;
   content?: string | null;
+  hasEmbeddedFigures?: boolean;
 }
 
 export abstract class MaterialRepository {

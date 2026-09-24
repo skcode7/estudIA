@@ -34,10 +34,11 @@ export interface MaterialAnalysis {
   objectives: string[];
   extractedContent?: string | null;
   /**
-   * Cantidad de figuras/imágenes propias (banderas, mapas, diagramas…) detectadas
-   * dentro de la imagen del material. 0 o undefined si no hay ninguna.
+   * Marca si la imagen del material contiene figuras propias (banderas, mapas,
+   * diagramas…) además del texto escrito. La cantidad de figuras la determina
+   * después el modelo especialista de visión.
    */
-  embeddedFigureCount?: number;
+  hasEmbeddedFigures?: boolean;
 }
 
 export interface MaterialImageHint {

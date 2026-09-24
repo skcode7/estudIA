@@ -33,6 +33,7 @@ describe("GetMaterialUseCase", () => {
       title: "Apunte",
       content: "Contenido",
       storageKey: null,
+      hasEmbeddedFigures: false,
       processingStatus: "PENDING",
       processingError: null,
       createdAt: new Date("2026-09-10T00:00:00.000Z"),

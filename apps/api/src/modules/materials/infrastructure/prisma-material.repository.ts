@@ -21,6 +21,7 @@ export class PrismaMaterialRepository implements MaterialRepository {
         title: input.title,
         content: input.content ?? null,
         storageKey: input.storageKey ?? null,
+        hasEmbeddedFigures: input.hasEmbeddedFigures ?? false,
         processingStatus: "PENDING" as MaterialProcessingStatus
       }
     });
@@ -53,7 +54,10 @@ export class PrismaMaterialRepository implements MaterialRepository {
       where: { id },
       data: {
         ...(fields.title !== undefined ? { title: fields.title } : {}),
-        ...(fields.content !== undefined ? { content: fields.content } : {})
+        ...(fields.content !== undefined ? { content: fields.content } : {}),
+        ...(fields.hasEmbeddedFigures !== undefined
+          ? { hasEmbeddedFigures: fields.hasEmbeddedFigures }
+          : {})
       }
     });
   }
