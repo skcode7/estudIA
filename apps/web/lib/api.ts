@@ -41,6 +41,7 @@ export interface ApiMaterial {
   title: string;
   content: string | null;
   storageKey: string | null;
+  hasEmbeddedFigures: boolean;
   processingStatus: MaterialProcessingStatus;
   processingError: string | null;
   questionCount: number;
@@ -58,6 +59,7 @@ export interface ApiMaterialDraft {
   suggestedTopicId: string | null;
   suggestedTitle: string | null;
   extractedContent: string | null;
+  hasEmbeddedFigures: boolean;
 }
 
 export interface CreateMaterialInput {
@@ -148,12 +150,14 @@ export function uploadMaterial(input: {
   file: File;
   title?: string;
   content?: string;
+  hasEmbeddedFigures?: boolean;
 }): Promise<ApiMaterial> {
   const form = new FormData();
   form.set("topicId", input.topicId);
   form.set("file", input.file);
   if (input.title) form.set("title", input.title);
   if (input.content) form.set("content", input.content);
+  if (input.hasEmbeddedFigures) form.set("hasEmbeddedFigures", "true");
 
   return request<ApiMaterial>("/materials/upload", {
     method: "POST",

@@ -49,6 +49,7 @@ export function MaterialDialog({
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [hasEmbeddedFigures, setHasEmbeddedFigures] = useState(false);
 
   const [extractStatus, setExtractStatus] = useState<ExtractStatus>("idle");
   const [extractError, setExtractError] = useState("");
@@ -126,6 +127,7 @@ export function MaterialDialog({
   }
 
   function applyDraft(draft: ApiMaterialDraft, source: ExtractSource): void {
+    setHasEmbeddedFigures(draft.hasEmbeddedFigures);
     if (draft.suggestedTitle) {
       setTitle(draft.suggestedTitle);
     }
@@ -166,6 +168,7 @@ export function MaterialDialog({
     setExtractStatus("extracting");
     setExtractError("");
     setSubmitError("");
+    setHasEmbeddedFigures(false);
     try {
       const draft = await analyzeMaterialDraft(
         source.kind === "file" ? { file: source.file } : { text: source.text }
@@ -230,7 +233,8 @@ export function MaterialDialog({
             topicId,
             title: finalTitle,
             file: selectedFile,
-            content: content.trim() || undefined
+            content: content.trim() || undefined,
+            hasEmbeddedFigures
           })
         : await createMaterial({ topicId, title: finalTitle, content: content.trim() });
       await onCreated({
