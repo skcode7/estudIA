@@ -138,7 +138,9 @@ page was verified against, which is the date that matters.
   that moves shows up as broken links to fix. `[[wikilinks]]` are reported, not followed.
 - Link generously. The check reports pages nothing links to: an orphan page is a page nobody finds.
 - `index.md` groups pages by type; each line is the page's `responsibility`.
-- Language: English. Change this line if the project documents in another language.
+- Language: Spanish. Escribe cada página, su `title` y su `responsibility` en español. Mantén en su
+  forma original los identificadores de código, rutas de archivo, nombres de comandos y los valores
+  de `type:`. El texto de ejemplo de citas (`path:line`) no se traduce.
 
 ## Writing a page
 
