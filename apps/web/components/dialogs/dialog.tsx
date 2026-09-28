@@ -3,11 +3,13 @@ import { type ReactNode } from "react";
 export function Dialog({
   children,
   onClose,
-  title
+  title,
+  wide = false
 }: {
   children: ReactNode;
   onClose: () => void;
   title: string;
+  wide?: boolean;
 }) {
   return (
     <div
@@ -15,7 +17,11 @@ export function Dialog({
       className="fixed inset-0 z-30 grid place-items-center bg-slate-950/35 p-4"
       role="dialog"
     >
-      <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-xl">
+      <div
+        className={`w-full rounded-3xl bg-white p-6 shadow-xl ${
+          wide ? "max-h-[90vh] max-w-2xl overflow-y-auto" : "max-w-lg"
+        }`}
+      >
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-xl font-bold">{title}</h2>
           <button

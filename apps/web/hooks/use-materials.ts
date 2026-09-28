@@ -4,15 +4,26 @@ import { useCallback, useState } from "react";
 
 import { listMaterials, listTopics } from "../lib/api";
 
+export type OpenMaterialDialogOptions = {
+  subjectId?: string;
+  topicId?: string;
+};
+
 export function useMaterials(setSubjectMaterials: (subjectId: string, count: number) => void) {
   const [isOpen, setIsOpen] = useState(false);
   const [preselectedSubjectId, setPreselectedSubjectId] = useState<string | null>(null);
+  const [preselectedTopicId, setPreselectedTopicId] = useState<string | null>(null);
 
-  const open = useCallback(() => setIsOpen(true), []);
+  const open = useCallback((options?: OpenMaterialDialogOptions) => {
+    if (options?.subjectId) setPreselectedSubjectId(options.subjectId);
+    if (options?.topicId) setPreselectedTopicId(options.topicId);
+    setIsOpen(true);
+  }, []);
 
   const close = useCallback(() => {
     setIsOpen(false);
     setPreselectedSubjectId(null);
+    setPreselectedTopicId(null);
   }, []);
 
   const preselectSubject = useCallback((subjectId: string) => {
@@ -33,5 +44,13 @@ export function useMaterials(setSubjectMaterials: (subjectId: string, count: num
     [setSubjectMaterials]
   );
 
-  return { isOpen, open, close, preselectSubject, preselectedSubjectId, refreshSubjectMaterialCount };
+  return {
+    isOpen,
+    open,
+    close,
+    preselectSubject,
+    preselectedSubjectId,
+    preselectedTopicId,
+    refreshSubjectMaterialCount
+  };
 }

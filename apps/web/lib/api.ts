@@ -212,6 +212,68 @@ export function deleteMaterial(id: string): Promise<void> {
   });
 }
 
+export interface ApiMaterialQuestionOption {
+  id: string;
+  text: string;
+  isCorrect: boolean;
+}
+
+export interface ApiMaterialQuestion {
+  id: string;
+  statement: string;
+  explanation: string | null;
+  difficulty: string;
+  imageId: string | null;
+  options: ApiMaterialQuestionOption[];
+}
+
+export interface ApiMaterialQuestionEditInput {
+  statement: string;
+  explanation: string | null;
+  difficulty: string;
+  imageId: string | null;
+  options: Array<{ text: string; isCorrect: boolean }>;
+}
+
+export interface ApiMaterialImage {
+  id: string;
+  label: string;
+  order: number;
+}
+
+export function listMaterialQuestions(materialId: string): Promise<ApiMaterialQuestion[]> {
+  return request<ApiMaterialQuestion[]>(
+    `/materials/${encodeURIComponent(materialId)}/questions`
+  );
+}
+
+export function updateMaterialQuestion(
+  materialId: string,
+  questionId: string,
+  input: ApiMaterialQuestionEditInput
+): Promise<ApiMaterialQuestion> {
+  return request<ApiMaterialQuestion>(
+    `/materials/${encodeURIComponent(materialId)}/questions/${encodeURIComponent(questionId)}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(input)
+    }
+  );
+}
+
+export function deleteMaterialQuestion(materialId: string, questionId: string): Promise<void> {
+  return request<void>(
+    `/materials/${encodeURIComponent(materialId)}/questions/${encodeURIComponent(questionId)}`,
+    {
+      method: "DELETE"
+    }
+  );
+}
+
+export function listMaterialImages(materialId: string): Promise<ApiMaterialImage[]> {
+  return request<ApiMaterialImage[]>(`/materials/${encodeURIComponent(materialId)}/images`);
+}
+
 export interface ApiQuizOption {
   id: string;
   text: string;

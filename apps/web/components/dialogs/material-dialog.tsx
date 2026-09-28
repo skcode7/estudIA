@@ -30,11 +30,13 @@ type ExtractStatus = "idle" | "extracting" | "done" | "error";
 export function MaterialDialog({
   subjects,
   preselectedSubjectId,
+  preselectedTopicId,
   onClose,
   onCreated
 }: {
   subjects: Subject[];
   preselectedSubjectId: string | null;
+  preselectedTopicId?: string | null;
   onClose: () => void;
   onCreated: (created: MaterialCreated) => Promise<void>;
 }) {
@@ -77,7 +79,11 @@ export function MaterialDialog({
         const pending = pendingTopicSuggestionRef.current;
         pendingTopicSuggestionRef.current = null;
         const match = pending ? fetched.find((topic) => topic.id === pending) : undefined;
-        setTopicId(match?.id ?? fetched[0]?.id ?? "");
+        const preselected =
+          preselectedTopicId && fetched.some((topic) => topic.id === preselectedTopicId)
+            ? preselectedTopicId
+            : undefined;
+        setTopicId(match?.id ?? preselected ?? fetched[0]?.id ?? "");
       })
       .catch((error: unknown) => {
         if (cancelled) return;
@@ -89,7 +95,7 @@ export function MaterialDialog({
     return () => {
       cancelled = true;
     };
-  }, [subjectId]);
+  }, [subjectId, preselectedTopicId]);
 
   const selectedSubject = useMemo(
     () => subjects.find((s) => s.id === subjectId),

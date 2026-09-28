@@ -12,6 +12,7 @@ import {
   type ApiTopic,
   type ApiMaterialEditInput
 } from "../../lib/api";
+import { type OpenMaterialDialogOptions } from "../../hooks/use-materials";
 import { type Subject } from "../../lib/subjects";
 import { MaterialDeleteDialog } from "../dialogs/material-delete-dialog";
 import { MaterialEditDialog } from "../dialogs/material-edit-dialog";
@@ -24,10 +25,14 @@ function materialIcon(type: ApiMaterial["type"]): string {
 
 export function MaterialsView({
   subjects,
-  onSubjectMaterialsChange
+  onSubjectMaterialsChange,
+  openMaterialDialog,
+  reloadSignal = 0
 }: {
   subjects: Subject[];
   onSubjectMaterialsChange: (subjectId: string) => void;
+  openMaterialDialog: (options?: OpenMaterialDialogOptions) => void;
+  reloadSignal?: number;
 }) {
   const [subjectId, setSubjectId] = useState("");
   const [topics, setTopics] = useState<ApiTopic[]>([]);
@@ -90,7 +95,7 @@ export function MaterialsView({
     return () => {
       cancelled = true;
     };
-  }, [topicId]);
+  }, [topicId, reloadSignal]);
 
   const selectedSubjectName = useMemo(
     () => subjects.find((s) => s.id === activeSubjectId)?.name ?? "",
@@ -172,6 +177,19 @@ export function MaterialsView({
             Procesa tus apuntes con IA y revisa el estado de cada material.
           </p>
         </div>
+        <button
+          className="min-h-12 rounded-xl bg-[#6d4aff] px-5 text-sm font-semibold text-white shadow-sm hover:bg-[#5b3fe0] disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={!activeSubjectId}
+          onClick={() =>
+            openMaterialDialog({
+              subjectId: activeSubjectId,
+              topicId: topicId || undefined
+            })
+          }
+          type="button"
+        >
+          + Agregar material
+        </button>
       </header>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -227,8 +245,15 @@ export function MaterialsView({
         />
       ) : materials.length === 0 ? (
         <EmptyPanel
+          ctaLabel="+ Agregar material"
           icon="📄"
-          message="Usa el botón «Agregar material» para subir tus apuntes."
+          message="Sube una foto de tus apuntes o pega el texto para este tema."
+          onCta={() =>
+            openMaterialDialog({
+              subjectId: activeSubjectId,
+              topicId: topicId || undefined
+            })
+          }
           title="Sin materiales"
         />
       ) : (
@@ -306,6 +331,14 @@ export function MaterialsView({
         <MaterialEditDialog
           material={editingMaterial}
           onClose={() => setEditingMaterial(null)}
+          onQuestionsChanged={(questionCount) => {
+            setMaterials((current) =>
+              current.map((item) =>
+                item.id === editingMaterial.id ? { ...item, questionCount } : item
+              )
+            );
+            onSubjectMaterialsChange(activeSubjectId);
+          }}
           onSaved={handleSaveEdit}
           subjectName={selectedSubjectName}
         />
