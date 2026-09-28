@@ -29,11 +29,15 @@ Dos reglas, y una de ellas es nueva:
 1. **Una pregunta que ya está en un quiz es inmutable.** No se edita, no se borra y no se regenera.
 2. **Un material puede estar marcado o no.** La marca es reversible y decide si sus preguntas entran en los quizzes nuevos. Es la respuesta a «ya no quiero estudiar esto», que hoy no existe: o se borra (y se lleva el historial por delante) o se sigue recibiendo en cada quiz.
 
-## Fase 1 · Aviso de material desactualizado (MVP)
+## Fase 1 · Aviso de material desactualizado (MVP) — implementada
 
-Sin tocar el backend. En el diálogo de edición, cuando el material esté `COMPLETED` y tenga preguntas, un aviso explica que editar el texto no actualiza las preguntas y que hay que reprocesar o corregirlas a mano. La Fase 2 y la 3 dan sentido a ese aviso; hoy es la única defensa posible.
+Sin tocar el backend. En el diálogo de edición, cuando el material esté `COMPLETED` y tenga preguntas, un aviso explica que editar el texto no actualiza las preguntas y que hay que reprocesar o corregirlas a mano. La Fase 2 y la 3 dan sentido a ese aviso; hasta entonces era la única defensa posible.
 
-La web ya tiene todo lo necesario para saberlo: `processingStatus` y `questionCount` llegan en cada material.
+La web ya tenía todo lo necesario para saberlo: `processingStatus` y `questionCount` llegan en cada material. No hizo falta ningún campo nuevo ni endpoint.
+
+Implementado en `3fe7ee4`. `WarningNote` (`apps/web/components/ui/feedback.tsx`) es la tercera primitiva de realimentación, y el motivo de que sea nueva es la lección del momento: `Notice` y `FieldError` existían y ninguno servía, porque el aviso no es un éxito ni un error. Reutilizar cualquiera de los dos habría puesto un mensaje de peligro donde solo hay una advertencia.
+
+Siendo la Fase 1 la única defensa disponible, el texto del aviso nombra las dos salidas reales —reprocesar o corregir a mano en la pestaña Preguntas— en vez de limitarse a advertir. Un aviso que dice «esto no hace lo que crees» sin decir qué hacer solo traslada el problema.
 
 ## Fase 2 · Regenerar solo lo que nadie ha usado
 

@@ -11,7 +11,7 @@ sources:
   - apps/web/components/ui/feedback.tsx
   - apps/web/components/ui/material-status-badge.tsx
   - apps/web/components/ui/stat.tsx
-synced: 9c5e777
+synced: 3fe7ee4
 related:
   - ./web.md
   - ./vistas-de-catalogo.md
@@ -68,9 +68,13 @@ nombre de lo que falló. Materiales y Quiz lo reutilizan tal cual, así que un f
 materiales o preguntas le dice al usuario que fallaron sus materias. No es un bug de lógica, es
 un texto que quedó pegado al primer consumidor.
 
-`feedback.tsx` son los dos mensajes de confirmación y error dentro de un formulario: `Notice` para
-lo que se logró (`aria-live="polite"`, porque un aviso de éxito no debe interrumpir) y
-`FieldError` para lo que falló (`role="alert"`, que sí debe anunciarse).
+`feedback.tsx` son los tres mensajes dentro de un formulario, y son tres porque hay tres cosas
+distintas que puede pasar: `Notice` para lo que se logró (`aria-live="polite"`, porque un aviso de
+éxito no debe interrumpir), `FieldError` para lo que falló (`role="alert"`, que sí debe anunciarse) y
+`WarningNote` para lo que va a pasar pero conviene que el usuario sepa antes de que pase. Los tres
+se distinguen solo por el color —esmeralda, rosa, ámbar— y esa es la única diferencia que hace
+falta: un mensaje que no es ni un éxito ni un error necesita su propio lugar, no metido a la fuerza
+en uno de los otros dos.
 
 ## El vocabulario visual
 

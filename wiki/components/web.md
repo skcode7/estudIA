@@ -14,7 +14,7 @@ sources:
   - apps/web/components/views/materials-view.tsx
   - apps/web/components/dialogs/material-edit-dialog.tsx
   - apps/web/components/dialogs/material-delete-dialog.tsx
-synced: 9c5e777
+synced: 3fe7ee4
 related:
   - ../components/catalogo.md
   - ../flows/procesamiento-de-material.md
@@ -87,9 +87,9 @@ Las imágenes de preguntas se resuelven con `assetUrl`, que solo antepone la bas
 ## Editar un material y lo que tiene debajo
 
 El diálogo de edición dejó de ser un formulario de dos campos: desde `95b7a11` lleva el nombre de
-la materia en el propio título (`apps/web/components/dialogs/material-edit-dialog.tsx:162`) y bajo
+la materia en el propio título (`apps/web/components/dialogs/material-edit-dialog.tsx:46`) y bajo
 los campos de título y contenido hay dos pestañas —Preguntas e Imágenes— controladas con estado
-local, sin router (`apps/web/components/dialogs/material-edit-dialog.tsx:43`). Ambas se cargan al
+local, sin router (`apps/web/components/dialogs/material-edit-dialog.tsx:41`). Ambas se cargan al
 abrir, con una sola llamada al par de endpoints.
 
 La pestaña de preguntas es la que hace útil el diálogo: lista cada una con sus opciones, marca la
@@ -106,6 +106,11 @@ de lo demás todavía no avisa de su tamaño (`docs/ToDo/confirmar-borrado-en-ca
 
 Es el reverso de que reprocesar sea destructivo: corregir a mano es la salida que hoy no destruye
 el historial de intentos (ver [Módulo de quizzes](../components/quizzes.md)).
+
+Lo que **no** hace todavía el diálogo es avisar de que editar el contenido deja las preguntas
+viejas. Ese aviso es la Fase 1 de `docs/ToDo/ciclo-vida-preguntas-material.md` (`3fe7ee4`), y siendo
+la única defensa que existe por ahora conviene leerlo como lo que es: el usuario ya está avisado,
+pero nada impide todavía que se regenere por encima de un quiz ya resuelto.
 
 ## Dos decisiones que se notan
 
