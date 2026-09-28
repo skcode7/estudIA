@@ -13,7 +13,7 @@ sources:
   - apps/web/components/dialogs/material-dialog.tsx
   - apps/web/components/views/materials-view.tsx
   - apps/web/components/dialogs/material-edit-dialog.tsx
-synced: 95361be
+synced: 452cda8
 related:
   - ../components/catalogo.md
   - ../flows/procesamiento-de-material.md
@@ -84,9 +84,9 @@ Las imágenes de preguntas se resuelven con `assetUrl`, que solo antepone la bas
 ## Editar un material y lo que tiene debajo
 
 El diálogo de edición dejó de ser un formulario de dos campos: desde `95b7a11` lleva el nombre de
-la materia en el propio título (`apps/web/components/dialogs/material-edit-dialog.tsx:160`) y bajo
+la materia en el propio título (`apps/web/components/dialogs/material-edit-dialog.tsx:162`) y bajo
 los campos de título y contenido hay dos pestañas —Preguntas e Imágenes— controladas con estado
-local, sin router (`apps/web/components/dialogs/material-edit-dialog.tsx:41`). Ambas se cargan al
+local, sin router (`apps/web/components/dialogs/material-edit-dialog.tsx:43`). Ambas se cargan al
 abrir, con una sola llamada al par de endpoints.
 
 La pestaña de preguntas es la que hace útil el diálogo: lista cada una con sus opciones, marca la
