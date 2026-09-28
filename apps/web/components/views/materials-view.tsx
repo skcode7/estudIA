@@ -27,11 +27,13 @@ export function MaterialsView({
   subjects,
   onSubjectMaterialsChange,
   openMaterialDialog,
+  processingIds = [],
   reloadSignal = 0
 }: {
   subjects: Subject[];
   onSubjectMaterialsChange: (subjectId: string) => void;
   openMaterialDialog: (options?: OpenMaterialDialogOptions) => void;
+  processingIds?: string[];
   reloadSignal?: number;
 }) {
   const [subjectId, setSubjectId] = useState("");
@@ -174,7 +176,7 @@ export function MaterialsView({
         <div>
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Materiales</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Procesa tus apuntes con IA y revisa el estado de cada material.
+            Los materiales se procesan con IA al añadirlos. Aquí ves su estado.
           </p>
         </div>
         <button
@@ -259,7 +261,8 @@ export function MaterialsView({
       ) : (
         <div className="mt-6 space-y-3">
           {materials.map((material) => {
-            const isProcessing = processingId === material.id;
+            const isProcessing =
+              processingId === material.id || processingIds.includes(material.id);
             const showProcess =
               material.processingStatus === "PENDING" || material.processingStatus === "FAILED";
             return (

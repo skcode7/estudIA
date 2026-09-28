@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 
-import { listMaterials, listTopics } from "../lib/api";
+import { listMaterials, listTopics, processMaterial } from "../lib/api";
 
 export type OpenMaterialDialogOptions = {
   subjectId?: string;
@@ -13,6 +13,8 @@ export function useMaterials(setSubjectMaterials: (subjectId: string, count: num
   const [isOpen, setIsOpen] = useState(false);
   const [preselectedSubjectId, setPreselectedSubjectId] = useState<string | null>(null);
   const [preselectedTopicId, setPreselectedTopicId] = useState<string | null>(null);
+  const [processingIds, setProcessingIds] = useState<string[]>([]);
+  const [reloadSignal, setReloadSignal] = useState(0);
 
   const open = useCallback((options?: OpenMaterialDialogOptions) => {
     if (options?.subjectId) setPreselectedSubjectId(options.subjectId);
@@ -28,6 +30,31 @@ export function useMaterials(setSubjectMaterials: (subjectId: string, count: num
 
   const preselectSubject = useCallback((subjectId: string) => {
     setPreselectedSubjectId(subjectId);
+  }, []);
+
+  const reloadMaterials = useCallback(() => {
+    setReloadSignal((current) => current + 1);
+  }, []);
+
+  /**
+   * Procesa un material en segundo plano y avisa al listado para que se refresque
+   * al terminar. El `POST /materials/:id/process` no falla ante un error de la IA:
+   * devuelve el material ya en `FAILED`, y su error lo muestra el propio listado.
+   * Solo un fallo de la petición deja el material en `PENDING`, reintentable
+   * con el botón "Procesar".
+   */
+  const startProcessing = useCallback(async (materialId: string): Promise<void> => {
+    setProcessingIds((current) =>
+      current.includes(materialId) ? current : [...current, materialId]
+    );
+    try {
+      await processMaterial(materialId);
+    } catch {
+      // El material queda PENDING o FAILED y el listado se encarga de mostrarlo.
+    } finally {
+      setProcessingIds((current) => current.filter((id) => id !== materialId));
+      setReloadSignal((current) => current + 1);
+    }
   }, []);
 
   const refreshSubjectMaterialCount = useCallback(
@@ -51,6 +78,10 @@ export function useMaterials(setSubjectMaterials: (subjectId: string, count: num
     preselectSubject,
     preselectedSubjectId,
     preselectedTopicId,
-    refreshSubjectMaterialCount
+    processingIds,
+    reloadMaterials,
+    reloadSignal,
+    refreshSubjectMaterialCount,
+    startProcessing
   };
 }

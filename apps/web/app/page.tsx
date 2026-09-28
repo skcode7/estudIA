@@ -20,7 +20,6 @@ import { navLabel, type NavItemId } from "../lib/navigation";
 export default function HomePage() {
   const [notice, setNotice] = useState("");
   const [activeView, setActiveView] = useState<NavItemId>("home");
-  const [materialsReloadSignal, setMaterialsReloadSignal] = useState(0);
 
   const user = useUser();
   const subjects = useSubjects(setNotice);
@@ -90,7 +89,8 @@ export default function HomePage() {
               void materials.refreshSubjectMaterialCount(subjectId)
             }
             openMaterialDialog={materials.open}
-            reloadSignal={materialsReloadSignal}
+            processingIds={materials.processingIds}
+            reloadSignal={materials.reloadSignal}
             subjects={subjects.subjects}
           />
         ) : activeView === "quiz" ? (
@@ -139,8 +139,9 @@ export default function HomePage() {
           onCreated={async (created) => {
             materials.close();
             await materials.refreshSubjectMaterialCount(created.subjectId);
-            setMaterialsReloadSignal((current) => current + 1);
+            materials.reloadMaterials();
             setNotice(`Material añadido a ${created.subjectName}.`);
+            void materials.startProcessing(created.material.id);
           }}
           preselectedSubjectId={materials.preselectedSubjectId}
           preselectedTopicId={materials.preselectedTopicId}
