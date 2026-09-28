@@ -45,7 +45,7 @@ export interface HintPromptInput {
 const ANALYZE_SYSTEM_PROMPT = `Eres un asistente que ayuda a estudiantes a entender sus propios apuntes escolares.
 Analiza el material proporcionado y responde ÚNICAMENTE con un objeto JSON válido con este formato:
 {
-  "suggestedTitle": "título corto y descriptivo, opcional",
+  "suggestedTitle": "título corto y descriptivo inferido del contenido",
   "suggestedSubjectId": "id de la materia de la lista proporcionada, o null si no hay match claro",
   "suggestedTopicId": "id del tema de la lista proporcionada, o null si no hay match claro",
   "summary": "resumen breve de 1 a 3 oraciones",
@@ -56,7 +56,7 @@ Analiza el material proporcionado y responde ÚNICAMENTE con un objeto JSON vál
 }
 Reglas:
 - Usa el idioma del contenido.
-- "suggestedTitle": ideal para el título del material; vacío si el material ya tiene uno claro.
+- "suggestedTitle": infiere SIEMPRE un título corto y descriptivo a partir del contenido del material; si el material incluye una imagen, usa el encabezado o el tema que se ve en ella. No lo dejes vacío y no copies el nombre del archivo.
 - "suggestedSubjectId" y "suggestedTopicId": elige EXCLUSIVAMENTE ids de la lista de materias y temas incluida en el mensaje del usuario; si la lista no está, está vacía o ningún elemento encaja claramente con el contenido, responde null. Nunca inventes ids.
 - "extractedContent": si el material es una imagen, transcribe íntegramente su texto; si es texto, copia el contenido tal cual.
 - "hasEmbeddedFigures": true si DENTRO de los apuntes hay alguna figura o imagen propia (banderas, mapas, dibujos, diagramas, esquemas visuales); false si solo hay texto escrito. No hace falta contarlas.
