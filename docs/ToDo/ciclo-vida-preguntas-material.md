@@ -95,7 +95,12 @@ Un material desmarcado sigue mostrando su badge «Listo» en verde —procesado 
 ## Decisiones abiertas
 
 - **Mensaje de «no hay preguntas».** El error actual (`GenerateQuizUseCase`) dice «procesa materiales con IA». Con el flag pasa a tener dos causas distintas —no hay preguntas generadas, o no hay materiales marcados— y el mensaje debería distinguirlas.
-- **Dónde vive la acción de marcar.** En la fila del listado, en el diálogo de edición o en ambos. El listado es donde el usuario ya está viendo todos los materiales, así que es el sitio natural; el diálogo, donde además ya se verá el estado en las preguntas.
+
+### La acción de marcar vive en la fila
+
+Se decide en la fila del listado de materiales, no en el diálogo de edición: armar una lista de estudio es comparar materiales entre sí, y eso solo se puede hacer viendo la lista completa. El diálogo sirve para corregir uno concreto, que no es el trabajo de este caso.
+
+Eso lleva la fila a **cuatro acciones**, y aquí hay una asimetría que conviene respetar: Procesar, Editar y Eliminar son **acciones** —verbos que hacen algo— y Marcar es un **estado** que ya está o no está. No debería leerse igual. La forma que mantiene la diferencia es un botón conmutador (estrella, marcador, check) que refleja el estado actual y cambia al pulsarse, no un cuarto verbo con su etiqueta. Si se mezclan, la fila deja de leerse como «qué puedo hacer aquí» y pasa a ser un muro de botones.
 
 ## Cambios implicados
 
@@ -113,7 +118,7 @@ Un material desmarcado sigue mostrando su badge «Listo» en verde —procesado 
 
 ### Frontend
 - Diálogo de edición: aviso de la Fase 1; Editar y Eliminar deshabilitados con la razón visible.
-- Listado de materiales: acción de marcar/desmarcar en la fila, y el contador de preguntas en gris (`text-slate-500`) en vez de verde cuando el material está desmarcado.
+- Listado de materiales: botón conmutador de marcar/desmarcar en la fila, y el contador de preguntas en gris (`text-slate-500`) en vez de verde cuando el material está desmarcado.
 - Vista de Quiz: el selector de temas pasa a ofrecer solo los elegibles, y el mensaje de «no hay preguntas» distingue las dos causas.
 - `apps/web/lib/api.ts` — cliente de las nuevas rutas.
 
