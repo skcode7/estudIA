@@ -71,3 +71,26 @@ preguntas e imágenes en la API, alta de material desde el listado y edición co
   `apps/web/components`, más `app` y `hooks` a medias), más los placeholders de `packages/*` y
   `pnpm-workspace.yaml`. No se reclamó ningún archivo nuevo salvo los ya leídos para las páginas
   tocadas.
+
+## 2026-09-28 · wikipoke-ingest apps/web/components
+
+Cluster de 16 archivos de la interfaz, el último grande del backlog. Dos páginas nuevas, sin tocar
+ninguna de las que ya existían más que para enlazarlas y reclamar dos archivos sueltos.
+
+- new: `components/armazon-y-primitivas.md` — `AppShell` y las dos navegaciones (la misma lista
+  `navItems`, entera en escritorio y recortada a cuatro en móvil); el diálogo base y su variante
+  `wide`; los tres estados de lista; y el vocabulario de cuatro estilos de botón que se repite sin
+  token de Tailwind.
+- new: `components/vistas-de-catalogo.md` — Inicio y Mis materias, la tarjeta que las dos comparten y
+  el estado de Subjects, con sus tres diálogos. Documentado que el color de una materia depende de
+  su posición en la lista, y que editar una cambia el color de las siguientes.
+- `components/web.md` y `architecture.md` — enlaces cruzados y `material-delete-dialog.tsx` /
+  `globals.css` reclamados donde correspondía.
+- Hallazgo anotado: `ErrorPanel` tiene el título fijo «No se pudieron cargar tus materias»
+  (`components/ui/state-panels.tsx:16`) y lo reutilizan Materiales y Quiz, así que un fallo al
+  cargar otra cosa miente al usuario. No se corrigió: un pase de wiki no toca código.
+- Sin tocar código, sin claims busescos y sin ampliar `sources` más allá de lo leído.
+- Resultado: el backlog pasa de 24 a **6 archivos**, todos los de `packages/*` y `pnpm-workspace.yaml`
+  (este último ya reclamado desde `architecture.md`). Los cinco `packages/*` son placeholders vacíos:
+  no merecen página mientras estén como están, y su futuro ya está decidido en
+  `docs/ToDo/paquetes-compartidos-vacios.md`.

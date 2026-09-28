@@ -13,10 +13,13 @@ sources:
   - apps/web/components/dialogs/material-dialog.tsx
   - apps/web/components/views/materials-view.tsx
   - apps/web/components/dialogs/material-edit-dialog.tsx
-synced: 452cda8
+  - apps/web/components/dialogs/material-delete-dialog.tsx
+synced: 9c5e777
 related:
   - ../components/catalogo.md
   - ../flows/procesamiento-de-material.md
+  - ./armazon-y-primitivas.md
+  - ./vistas-de-catalogo.md
 ---
 
 # Aplicación web (Next.js)
@@ -94,6 +97,12 @@ correcta y permite editar enunciado, explicación y opciones, o eliminar con una
 avisa de que arrastra quizzes. Al borrar, el diálogo avisa a la vista con `onQuestionsChanged` y el
 conteo de la fila se actualiza sin volver a listar (`apps/web/components/views/materials-view.tsx:334`).
 La de imágenes es de solo consulta, y el binario sale de `assetUrl` contra la ruta de la figura.
+
+Borrar el material entero tiene su propio diálogo
+(`apps/web/components/dialogs/material-delete-dialog.tsx:7`), que sigue el patrón de
+`DeleteSubjectDialog`: nombre de la materia, aviso de que no se puede deshacer, y un texto que sí
+es honesto sobre lo que sobrevive —las preguntas del tema se quedan— aunque el borrado en cascada
+de lo demás todavía no avisa de su tamaño (`docs/ToDo/confirmar-borrado-en-cascada.md`).
 
 Es el reverso de que reprocesar sea destructivo: corregir a mano es la salida que hoy no destruye
 el historial de intentos (ver [Módulo de quizzes](../components/quizzes.md)).

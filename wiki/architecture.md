@@ -13,9 +13,10 @@ sources:
   - package.json
   - apps/api/package.json
   - apps/web/package.json
+  - apps/web/app/globals.css
   - docker-compose.yml
   - .env.example
-synced: 95361be
+synced: 9c5e777
 ---
 
 # Arquitectura de estudIA
@@ -71,7 +72,10 @@ arranca desde `dist/`, así que `process.env` no se rellena solo.
 **Web.** No hay router de páginas: una única página client-side, `apps/web/app/page.tsx:20`, decide
 qué vista renderiza según la navegación (`apps/web/app/page.tsx:65`) y monta los diálogos globales.
 El layout fija el idioma de la interfaz en español (`apps/web/app/layout.tsx:13`). La web habla solo
-con `NEXT_PUBLIC_API_URL` (`apps/web/package.json:15`), sin cookies ni sesión.
+con `NEXT_PUBLIC_API_URL` (`apps/web/package.json:15`), sin cookies ni sesión. El diseño no usa
+librería de componentes: Tailwind con clases escritas a mano y tres colores base en
+`apps/web/app/globals.css:3` (fondo `#f8f7fc`, texto `#1e1b2e` y el morado `#6d4aff` que se repite
+literalmente en cada archivo, sin token de Tailwind).
 
 **Salud.** `GET /api/v1/health` es el sonda de despliegue: un caso de uso que devuelve
 `{ "status": "ok" }` literal (`apps/api/src/modules/health/application/use-cases/get-health.use-case.ts:7`),
@@ -91,7 +95,7 @@ modo que producción cambia de proveedor sin tocar código.
 | `apps/api/src/modules/*` | los casos de dominio: materias, temas, materiales, quizzes, usuarios, health |
 | `apps/api/src/infrastructure/ai` | los adaptadores de IA: cliente DeepSeek, cliente OpenRouter y el registro de proveedor |
 | `apps/api/src/infrastructure/database`, `object-storage`, `images` | Prisma, S3 y el recorte de figuras con sharp |
-| `apps/web/components`, `hooks`, `lib` | la interfaz: vistas, diálogos, hooks de datos y el cliente HTTP |
+| `apps/web/components`, `hooks`, `lib` | la interfaz: armazón, vistas, diálogos, primitivas, hooks de datos y el cliente HTTP |
 | `packages/types`, `packages/validation` | tipos compartidos y esquemas Zod (`packages/validation/src/index.ts` re-exporta `z`) |
 | `apps/api/prisma/schema.prisma` | el modelo de datos; las migraciones son generadas y no se documentan |
 
@@ -109,6 +113,8 @@ modo que producción cambia de proveedor sin tocar código.
 | [La forma del CRUD de catálogo](./components/crud-de-catalogo.md) | cómo están hechos los módulos de materias, temas y usuarios |
 | [Materias, temas y usuarios](./components/catalogo.md) | la jerarquía de catálogo y sus cascadas |
 | [Aplicación web](./components/web.md) | la página única, los hooks, el cliente HTTP y el diálogo de edición |
+| [Armazón y primitivas de la interfaz](./components/armazon-y-primitivas.md) | el esqueleto, las dos navegaciones, el diálogo base y el vocabulario visual |
+| [Vistas de catálogo](./components/vistas-de-catalogo.md) | Inicio y Mis materias, `SubjectCard` y el estado de Subjects |
 | [Puertos y adaptadores](./concepts/puertos-y-adapters.md) | el patrón que repite cada módulo |
 | [Configuración por entorno](./concepts/configuracion-por-entorno.md) | qué se lee al arrancar y qué al llamar |
 | [DeepSeek y el modelo de visión](./decisions/proveedor-ia.md) | por qué un puerto y dos proveedores |
