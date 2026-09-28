@@ -54,7 +54,7 @@ Es la diferencia entre un borrado que deja restos y uno que es limpio: no hace f
 
 ## Fase 4 · El flag de estudio en el material
 
-Un booleano en `Material` —`marked` o el nombre que se elija— que dice si el material está en la lista de estudio del estudiante. Es reversible por definición: excluir es ponerlo a `false`, y volver a incluir es ponerlo a `true`.
+Un booleano `marked` en `Material` que dice si el material está en la lista de estudio del estudiante. Es reversible por definición: excluir es ponerlo a `false`, y volver a incluir es ponerlo a `true`.
 
 **El valor por defecto es `true` (marcado)**, para que la migración no cambie el comportamiento de nada de lo que ya está en la base y todo material nuevo entre solo en el pool. Se empieza a **desmarcar** lo que no se estudia, en vez de marcar lo que sí. El default contrario traería una trampa difícil de ver: un material recién subido y todavía sin procesar no tiene preguntas, así que no aparecería en ningún quiz, y no habría forma de saber que el sistema lo está ignorando salvo mirar el flag.
 
@@ -82,12 +82,20 @@ Es un caso de uso real, pero no es de este requerimiento. La regla que se implem
 
 Por eso el filtro debe escribirse como decisión —«solo preguntas con material marcado»— y no apoyarse en que la JOIN excluirá lo demás por accidente.
 
+### Cómo se ve un material desmarcado
+
+No hace falta un distintivo ni un badge nuevo: **el contador de preguntas se pone gris**. Hoy ese contador es verde esmeralda (`apps/web/components/views/materials-view.tsx:289`) y dice cuántas preguntas hay generadas; en un material desmarcado pasa al gris que ya usa el estado «Pendiente» (`apps/web/components/ui/material-status-badge.tsx:4`, `bg-slate-100 text-slate-600`). La fila sigue mostrando las preguntas que tiene, solo que en un tono que no reclama atención: el material está ahí, pero fuera de la lista de estudio.
+
+La convención que hay detrás, y que conviene no romper al añadir estados nuevos:
+
+> El **badge de estado** habla del procesamiento (¿se procesó? `PENDING`, `COMPLETED`…). El **color del contador** habla de la disponibilidad (¿entra en el pool?).
+
+Un material desmarcado sigue mostrando su badge «Listo» en verde —procesado es procesado— y su contador en gris. Mezclar los dos sí sería confuso: un badge apagado sugeriría que hay que procesarlo otra vez.
+
 ## Decisiones abiertas
 
-- **Nombre del flag.** `marked` es corto pero genérico; `isStudying` o `studyList` dicen más. El nombre es el vocabulario del dominio: si se llama «marcado», la UI debe hablar de material marcado.
-- **Excluir en bloque o pregunta a pregunta.** Resuelto: el flag es de material y se resuelve en bloque. La granularidad fina, si algún día hace falta, es un segundo campo y otro requerimiento.
-- **Qué muestra un material desmarcado.** Queda `COMPLETED` con sus preguntas pero fuera del pool. Hay que decidir si el listado lo marca, para que no parezca disponible.
 - **Mensaje de «no hay preguntas».** El error actual (`GenerateQuizUseCase`) dice «procesa materiales con IA». Con el flag pasa a tener dos causas distintas —no hay preguntas generadas, o no hay materiales marcados— y el mensaje debería distinguirlas.
+- **Dónde vive la acción de marcar.** En la fila del listado, en el diálogo de edición o en ambos. El listado es donde el usuario ya está viendo todos los materiales, así que es el sitio natural; el diálogo, donde además ya se verá el estado en las preguntas.
 
 ## Cambios implicados
 
@@ -104,8 +112,8 @@ Por eso el filtro debe escribirse como decisión —«solo preguntas con materia
 - Tests: regenerar sin uso, `409` con uso, editar/borrar con uso, borrado de material con y sin preguntas usadas, el filtro del pool con material marcado y desmarcado, y que las preguntas sin material queden fuera a propósito.
 
 ### Frontend
-- Diálogo de edición: aviso de la Fase 1; Editar y Eliminar deshabilitados con la razón visible; acción de marcar/desmarcar.
-- Listado de materiales: acción de marcar y marca visible de los excluidos.
+- Diálogo de edición: aviso de la Fase 1; Editar y Eliminar deshabilitados con la razón visible.
+- Listado de materiales: acción de marcar/desmarcar en la fila, y el contador de preguntas en gris (`text-slate-500`) en vez de verde cuando el material está desmarcado.
 - Vista de Quiz: el selector de temas pasa a ofrecer solo los elegibles, y el mensaje de «no hay preguntas» distingue las dos causas.
 - `apps/web/lib/api.ts` — cliente de las nuevas rutas.
 
