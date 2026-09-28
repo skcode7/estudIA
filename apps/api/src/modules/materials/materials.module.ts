@@ -12,11 +12,15 @@ import { MaterialRepository } from "./application/ports/material.repository";
 import { AnalyzeMaterialDraftUseCase } from "./application/use-cases/analyze-material-draft.use-case";
 import { CreateFileMaterialUseCase } from "./application/use-cases/create-file-material.use-case";
 import { CreateTextMaterialUseCase } from "./application/use-cases/create-text-material.use-case";
+import { DeleteMaterialQuestionUseCase } from "./application/use-cases/delete-material-question.use-case";
 import { DeleteMaterialUseCase } from "./application/use-cases/delete-material.use-case";
 import { GetMaterialImageUseCase } from "./application/use-cases/get-material-image.use-case";
 import { GetMaterialUseCase } from "./application/use-cases/get-material.use-case";
+import { ListMaterialImagesUseCase } from "./application/use-cases/list-material-images.use-case";
+import { ListMaterialQuestionsUseCase } from "./application/use-cases/list-material-questions.use-case";
 import { ListMaterialsUseCase } from "./application/use-cases/list-materials.use-case";
 import { ProcessMaterialUseCase, PROCESS_MATERIAL_CONFIG } from "./application/use-cases/process-material.use-case";
+import { UpdateMaterialQuestionUseCase } from "./application/use-cases/update-material-question.use-case";
 import { UpdateMaterialUseCase } from "./application/use-cases/update-material.use-case";
 import { PrismaMaterialImageRepository } from "./infrastructure/prisma-material-image.repository";
 import { PrismaMaterialQuestionRepository } from "./infrastructure/prisma-material-question.repository";
@@ -36,6 +40,10 @@ import { parsePositiveInt } from "../../shared/env.utils";
     ProcessMaterialUseCase,
     UpdateMaterialUseCase,
     AnalyzeMaterialDraftUseCase,
+    ListMaterialQuestionsUseCase,
+    UpdateMaterialQuestionUseCase,
+    DeleteMaterialQuestionUseCase,
+    ListMaterialImagesUseCase,
     { provide: MaterialRepository, useClass: PrismaMaterialRepository },
     { provide: MaterialImageRepository, useClass: PrismaMaterialImageRepository },
     { provide: MaterialQuestionRepository, useClass: PrismaMaterialQuestionRepository },

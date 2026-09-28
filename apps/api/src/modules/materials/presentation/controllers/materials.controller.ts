@@ -19,20 +19,31 @@ import type { Response } from "express";
 import { AnalyzeMaterialDraftUseCase } from "../../application/use-cases/analyze-material-draft.use-case";
 import { CreateFileMaterialUseCase } from "../../application/use-cases/create-file-material.use-case";
 import { CreateTextMaterialUseCase } from "../../application/use-cases/create-text-material.use-case";
+import { DeleteMaterialQuestionUseCase } from "../../application/use-cases/delete-material-question.use-case";
 import { DeleteMaterialUseCase } from "../../application/use-cases/delete-material.use-case";
 import { GetMaterialImageUseCase } from "../../application/use-cases/get-material-image.use-case";
 import { GetMaterialUseCase } from "../../application/use-cases/get-material.use-case";
+import { ListMaterialImagesUseCase } from "../../application/use-cases/list-material-images.use-case";
+import { ListMaterialQuestionsUseCase } from "../../application/use-cases/list-material-questions.use-case";
 import { ListMaterialsUseCase } from "../../application/use-cases/list-materials.use-case";
 import { ProcessMaterialUseCase } from "../../application/use-cases/process-material.use-case";
+import { UpdateMaterialQuestionUseCase } from "../../application/use-cases/update-material-question.use-case";
 import { UpdateMaterialUseCase } from "../../application/use-cases/update-material.use-case";
-import { MaterialWithQuestionCount } from "../../application/ports/material-question.repository";
+import {
+  MaterialQuestionRecord,
+  MaterialWithQuestionCount
+} from "../../application/ports/material-question.repository";
+import { MaterialImageRecord } from "../../application/ports/material-image.repository";
 import {
   AnalyzeMaterialDraftDto,
   CreateTextMaterialDto,
   MaterialDraftDto,
   MaterialDto,
+  MaterialImageDto,
+  MaterialQuestionDto,
   MaterialTypeDto,
   UpdateMaterialDto,
+  UpdateMaterialQuestionDto,
   UploadMaterialDto
 } from "../dto/materials.dto";
 
@@ -49,7 +60,11 @@ export class MaterialsController {
     private readonly deleteMaterialUseCase: DeleteMaterialUseCase,
     private readonly processMaterialUseCase: ProcessMaterialUseCase,
     private readonly updateMaterialUseCase: UpdateMaterialUseCase,
-    private readonly analyzeMaterialDraftUseCase: AnalyzeMaterialDraftUseCase
+    private readonly analyzeMaterialDraftUseCase: AnalyzeMaterialDraftUseCase,
+    private readonly listMaterialQuestionsUseCase: ListMaterialQuestionsUseCase,
+    private readonly updateMaterialQuestionUseCase: UpdateMaterialQuestionUseCase,
+    private readonly deleteMaterialQuestionUseCase: DeleteMaterialQuestionUseCase,
+    private readonly listMaterialImagesUseCase: ListMaterialImagesUseCase
   ) {}
 
   @Post("analyze")
@@ -116,6 +131,43 @@ export class MaterialsController {
     return toMaterialDto(await this.getMaterialUseCase.execute(id));
   }
 
+  @Get(":id/questions")
+  async listQuestions(@Param("id") id: string): Promise<MaterialQuestionDto[]> {
+    const questions = await this.listMaterialQuestionsUseCase.execute(id);
+    return questions.map(toMaterialQuestionDto);
+  }
+
+  @Patch(":id/questions/:questionId")
+  updateQuestion(
+    @Param("id") id: string,
+    @Param("questionId") questionId: string,
+    @Body() dto: UpdateMaterialQuestionDto
+  ): Promise<MaterialQuestionDto> {
+    return this.updateMaterialQuestionUseCase
+      .execute(id, questionId, {
+        statement: dto.statement,
+        explanation: dto.explanation ?? null,
+        difficulty: dto.difficulty,
+        imageId: dto.imageId,
+        options: dto.options
+      })
+      .then(toMaterialQuestionDto);
+  }
+
+  @Delete(":id/questions/:questionId")
+  removeQuestion(
+    @Param("id") id: string,
+    @Param("questionId") questionId: string
+  ): Promise<void> {
+    return this.deleteMaterialQuestionUseCase.execute(id, questionId);
+  }
+
+  @Get(":id/images")
+  async listImages(@Param("id") id: string): Promise<MaterialImageDto[]> {
+    const images = await this.listMaterialImagesUseCase.execute(id);
+    return images.map(toMaterialImageDto);
+  }
+
   @Get(":id/images/:imageId")
   async findImage(
     @Param("id") id: string,
@@ -167,6 +219,29 @@ function toMaterialDto({ material, questionCount }: MaterialWithQuestionCount): 
     questionCount,
     createdAt: material.createdAt.toISOString(),
     updatedAt: material.updatedAt.toISOString()
+  };
+}
+
+function toMaterialQuestionDto(question: MaterialQuestionRecord): MaterialQuestionDto {
+  return {
+    id: question.id,
+    statement: question.statement,
+    explanation: question.explanation,
+    difficulty: question.difficulty,
+    imageId: question.imageId,
+    options: question.options.map((option) => ({
+      id: option.id,
+      text: option.text,
+      isCorrect: option.isCorrect
+    }))
+  };
+}
+
+function toMaterialImageDto(image: MaterialImageRecord): MaterialImageDto {
+  return {
+    id: image.id,
+    label: image.label,
+    order: image.order
   };
 }
 

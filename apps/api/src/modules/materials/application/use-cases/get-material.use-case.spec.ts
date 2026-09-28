@@ -18,7 +18,11 @@ function materialRepositoryMock(): MaterialRepository {
 function questionRepositoryMock(): MaterialQuestionRepository {
   return {
     countByMaterials: vi.fn(),
-    replaceForMaterial: vi.fn()
+    replaceForMaterial: vi.fn(),
+    listByMaterial: vi.fn(),
+    findByIdForMaterial: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn()
   };
 }
 

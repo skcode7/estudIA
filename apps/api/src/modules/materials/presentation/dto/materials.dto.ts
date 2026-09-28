@@ -1,6 +1,21 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Transform } from "class-transformer";
-import { IsBoolean, IsDateString, IsEnum, IsOptional, IsString, IsUUID, MaxLength, MinLength } from "class-validator";
+import { Transform, Type } from "class-transformer";
+import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
+  IsBoolean,
+  IsDateString,
+  IsEnum,
+  IsIn,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+  MinLength,
+  ValidateIf,
+  ValidateNested
+} from "class-validator";
 
 export enum MaterialTypeDto {
   TEXT = "TEXT",
@@ -188,4 +203,99 @@ export class UpdateMaterialDto {
   @IsString()
   @MinLength(1)
   content?: string;
+}
+
+export class MaterialQuestionOptionDto {
+  @ApiProperty({ example: "d4e5f6a7-b8c9-0123-def0-123456789013", description: "UUID de la opción" })
+  @IsUUID()
+  id!: string;
+
+  @ApiProperty({ example: "París", description: "Texto de la opción" })
+  @IsString()
+  text!: string;
+
+  @ApiProperty({ example: true, description: "Si esta opción es la correcta" })
+  @IsBoolean()
+  isCorrect!: boolean;
+}
+
+export class MaterialQuestionDto {
+  @ApiProperty({ example: "c3d4e5f6-a7b8-9012-cdef-123456789012", description: "UUID de la pregunta" })
+  @IsUUID()
+  id!: string;
+
+  @ApiProperty({ example: "¿Cuál es la capital de Francia?", description: "Enunciado" })
+  @IsString()
+  statement!: string;
+
+  @ApiPropertyOptional({ example: "París es la capital.", nullable: true })
+  @IsOptional()
+  @IsString()
+  explanation!: string | null;
+
+  @ApiProperty({ example: "medium" })
+  @IsString()
+  difficulty!: string;
+
+  @ApiPropertyOptional({ example: "e5f6a7b8-c9d0-1234-ef01-234567890145", nullable: true })
+  @IsOptional()
+  @IsString()
+  imageId!: string | null;
+
+  @ApiProperty({ type: () => [MaterialQuestionOptionDto] })
+  options!: MaterialQuestionOptionDto[];
+}
+
+export class UpdateMaterialQuestionOptionDto {
+  @ApiProperty({ example: "París", description: "Texto de la opción" })
+  @IsString()
+  @MinLength(1)
+  text!: string;
+
+  @ApiProperty({ example: true, description: "Si esta opción es la correcta" })
+  @IsBoolean()
+  isCorrect!: boolean;
+}
+
+export class UpdateMaterialQuestionDto {
+  @ApiProperty({ example: "¿Cuál es la capital de Francia?", minLength: 1 })
+  @IsString()
+  @MinLength(1)
+  statement!: string;
+
+  @ApiPropertyOptional({ example: "París es la capital.", nullable: true })
+  @IsOptional()
+  @IsString()
+  explanation?: string | null;
+
+  @ApiProperty({ example: "medium", enum: ["easy", "medium", "hard"] })
+  @IsIn(["easy", "medium", "hard"])
+  difficulty!: string;
+
+  @ApiPropertyOptional({ nullable: true })
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null && value !== undefined)
+  @IsUUID()
+  imageId!: string | null;
+
+  @ApiProperty({ type: () => [UpdateMaterialQuestionOptionDto] })
+  @IsArray()
+  @ArrayMinSize(2)
+  @ArrayMaxSize(6)
+  @ValidateNested({ each: true })
+  @Type(() => UpdateMaterialQuestionOptionDto)
+  options!: UpdateMaterialQuestionOptionDto[];
+}
+
+export class MaterialImageDto {
+  @ApiProperty({ example: "e5f6a7b8-c9d0-1234-ef01-234567890145" })
+  @IsUUID()
+  id!: string;
+
+  @ApiProperty({ example: "Bandera de Francia" })
+  @IsString()
+  label!: string;
+
+  @ApiProperty({ example: 0 })
+  order!: number;
 }
