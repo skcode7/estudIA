@@ -189,7 +189,8 @@ export function MaterialEditDialog({
         {hasQuestions && (
           <WarningNote>
             Editar el contenido no actualiza las preguntas generadas. Para cambiar lo que se estudia,
-            vuelve a procesar el material o corrige las preguntas a mano en la pestaña Preguntas.
+            vuelve a procesar el material o corrige las preguntas a mano en la pestaña Preguntas. Si
+            lo vuelves a procesar, la IA propondrá de nuevo el título.
           </WarningNote>
         )}
 
