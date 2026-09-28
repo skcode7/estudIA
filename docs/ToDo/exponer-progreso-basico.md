@@ -35,7 +35,7 @@ Que el estudiante vea el progreso real por tema y por materia (aciertos, intento
 
 - Insignias y Repaso (siguen siendo placeholders).
 - Usar el progreso para elegir preguntas del quiz (`docs/ToDo/generacion-inteligente-quiz.md`).
-- Recalcular progreso histórico si se reprocesa un material (`docs/ToDo/reprocesar-material-preserva-historial.md`).
+- Recalcular progreso histórico si algo se borra en cascada (`docs/ToDo/ciclo-vida-preguntas-material.md` deja esas operaciones bloqueadas cuando la pregunta se usó, pero el contador ya escrito no se corrige).
 
 ## Notas
 

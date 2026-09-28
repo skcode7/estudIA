@@ -39,4 +39,4 @@ Que recargar o cambiar de vista no pierda un quiz ya generado: el estudiante pue
 
 - Hallazgo del wiki: `wiki/components/quizzes.md`, `wiki/components/web.md`, `wiki/flows/generar-y-resolver-quiz.md`.
 - Coherencia con AGENTS.md: mobile-first; perder el quiz al girar el teléfono o recargar es el fallo que más se nota.
-- Relacionado: `docs/ToDo/reprocesar-material-preserva-historial.md` (un GET de quiz viejo puede devolver menos preguntas).
+- Relacionado: `docs/ToDo/ciclo-vida-preguntas-material.md` (un GET de quiz viejo puede devolver menos preguntas si algo se borró en cascada; ese ToDo propone bloquear esas operaciones).

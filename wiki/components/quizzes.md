@@ -9,7 +9,7 @@ sources:
   - apps/api/src/modules/quizzes/presentation/dto/quizzes.dto.ts
   - apps/api/src/modules/materials/infrastructure/prisma-material-question.repository.ts
   - apps/api/prisma/schema.prisma
-synced: 95361be
+synced: 9c5e777
 related:
   - ../flows/generar-y-resolver-quiz.md
   - ../components/materiales.md
@@ -68,7 +68,7 @@ material, que se añadió en `1b39eff`: arrastra exactamente los mismos `QuizQue
 Corregir el texto de una pregunta no tiene ese problema —solo se borran y recrean sus opciones
 (`apps/api/src/modules/materials/infrastructure/prisma-material-question.repository.ts:107`)—, y
 es la razón de que la web ofrezca esa vía antes que reprocesar. La política de qué hacer con el
-historial sigue sin decidir: está en `docs/ToDo/reprocesar-material-preserva-historial.md`.
+historial sigue sin decidir: está en `docs/ToDo/ciclo-vida-preguntas-material.md`.
 
 ## Lo que el módulo no tiene
 
