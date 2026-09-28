@@ -15,13 +15,19 @@ Cuando algo sí toca esas preguntas, la base de datos reacciona sola y en silenc
 
 Consecuencias, documentadas en `wiki/components/quizzes.md`: un quiz generado antes pierde preguntas en silencio y queda con menos de las que nació; los intentos corregidos pierden su detallado aunque conserven el `score`; y `TopicProgress` no se recalcula, así que sus contadores suman aciertos que ya no tienen respuesta detrás.
 
-Este requerimiento unifica tres que estaban separados y que en realidad son la misma pregunta —*qué puede hacerse con preguntas que ya están en un quiz*— y la resuelve en tres fases, de menos a más invasiva.
+Al otro lado, el quiz se construye hoy **sin ninguna selección**: baraja todas las preguntas de los temas elegidos
+(`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:18`). El estudiante no puede decir qué quiere estudiar; solo puede recibir lo que hay.
+
+Este requerimiento unifica tres que estaban separados y que son la misma pregunta —*qué puede hacerse con preguntas que ya están en un quiz*— y añade la respuesta a la que hoy no existe salida: **dejar de usar un material sin borrarlo**.
 
 Unifica: `marcar-material-desactualizado.md`, `reprocesar-material-preserva-historial.md` y `preguntas-huerfanas-al-borrar-material.md`.
 
 ## Objetivo
 
-Una regla única y honesta: **una pregunta que ya está en un quiz es inmutable**. No se edita, no se borra y no se regenera. Y una pregunta que no se quiere seguir usando tiene una salida —**Excluir**— que la aparta de los nuevos quizzes sin tocar la historia.
+Dos reglas, y una de ellas es nueva:
+
+1. **Una pregunta que ya está en un quiz es inmutable.** No se edita, no se borra y no se regenera.
+2. **Un material puede estar marcado o no.** La marca es reversible y decide si sus preguntas entran en los quizzes nuevos. Es la respuesta a «ya no quiero estudiar esto», que hoy no existe: o se borra (y se lleva el historial por delante) o se sigue recibiendo en cada quiz.
 
 ## Fase 1 · Aviso de material desactualizado (MVP)
 
@@ -33,48 +39,80 @@ La web ya tiene todo lo necesario para saberlo: `processingStatus` y `questionCo
 
 `ProcessMaterialUseCase` comprueba, antes de `replaceForMaterial`, si alguna de las preguntas del material aparece en `QuizQuestion`. Si ninguna aparece, reprocesa como hoy. Si alguna aparece, **no regenera** y responde con un `409` explicando por qué.
 
-Es la regla que pedía el usuario: regenérer solo si ninguna pregunta se ha usado. Cubre el caso común —corregir un apunte antes de estudiarlo— sin tocar nada que ya tenga historial.
+Cubre el caso real —corregir un apunte antes de estudiarlo— sin tocar nada que ya tenga historial.
 
-## Fase 3 · Preguntas usadas inmutables, y Excluir
+## Fase 3 · Preguntas usadas inmutables
 
-1. **Bloquear edición y borrado** de una pregunta que esté en algún `QuizQuestion`, con el mismo `409` explicativo. Hoy el diálogo de edición permite ambas cosas y rompe el historial en silencio.
-2. **Excluir**: acción que aparta el material (o una pregunta suelta) de la selección de quizzes futuros. A diferencia del borrado, **funciona aunque la pregunta esté usada**: conserva quizzes, intentos y progreso, y solo deja de ofrecerla.
+Editar o borrar una pregunta que esté en algún `QuizQuestion` devuelve el mismo `409` explicativo. Hoy el diálogo de edición permite ambas cosas y rompe el historial en silencio.
 
-La exclusión se implementa con una marca en `Question` (`excludedAt` o `isExcluded`) y un filtro en el único punto por el que entran preguntas a un quiz: `findQuestionIdsByTopics` (`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:18`). Ese filtro es la diferencia entre "excluida para el futuro" y "borrada", y por eso puede ser reversible.
+## Fase 4 · El flag de estudio en el material
+
+Un booleano en `Material` —`marked` o el nombre que se elija— que dice si el material está en la lista de estudio del estudiante. Es reversible por definición: excluir es ponerlo a `false`, y volver a incluir es ponerlo a `true`.
+
+**El filtro va en un solo sitio**: `findQuestionIdsByTopics`, que es el único punto por el que entran preguntas a un quiz. Pasa a filtrar por material marcado, y con eso quedan resueltas de una vez las dos caras de la misma marca:
+
+- **Excluir** un material desde el listado de materiales: deja de generar preguntas nuevas sin tocar quizzes, intentos ni progreso. Es la salida que hoy no existe, y por eso la regla de inmutabilidad deja de ser un castigo.
+- **Marcar** una selección de materiales para estudiar: el pool del quiz se reduce a esa selección.
+
+### Dos niveles que no deben confundirse
+
+La marca es estado persistente y se cambia en el listado. La selección del quiz es efímera y no toca la marca:
+
+```
+Material.marked   →  persistente, se cambia en la lista de materiales
+Selector de Quiz  →  efímero, solo ofrece temas con material marcado
+```
+
+Elegir un tema en la pantalla de Quiz **no marca ni desmarca nada**: solo delimita por dónde se baraja. Es lo que hace falta para que el selector sea un filtro de verdad, en lugar de un cambio de estado disfrazado cada vez que se abre un quiz.
+
+### La consecuencia que hay que decidir antes de migrar
+
+Al filtrar por `sourceMaterial.marked`, las preguntas **huérfanas** (las de un material borrado, que quedan con `sourceMaterialId` en `null`) dejan de entrar en los quizzes nuevos de forma automática: no tienen material que esté marcado. Hoy sí entran. Es probablemente lo correcto —una pregunta sin apunte detrás no es verificable—, pero es un cambio de comportamiento que hay que decidir y no descubrir.
+
+### El valor por defecto, y por qué importa
+
+Si el default es `true` (marcado), nada cambia para lo que ya está en la base y todo material nuevo entra solo en el pool: se empieza a **desmarcar** lo que no se estudia. Si el default es `false`, cada material nuevo hay que marcarlo a mano, y hasta entonces es invisible en los quizzes.
+
+La trampa concreta del default `false`: un material recién subido y todavía sin procesar no tiene preguntas, así que no aparece en ningún quiz —y tampoco hay forma de saber que el sistema lo está ignorando salvo mirando el flag. Con default `true` esa trampa no existe.
 
 ## Decisiones abiertas
 
-- **Excluir en bloque o pregunta a pregunta.** El caso de uso real es «este material ya no lo estudio»: un botón que excluye todas las preguntas del material. La pregunta suelta es el granularity fino. Proponer ambos, el de bloque primero.
-- **Reactivar.** Si excluir es reversible, hace falta un camino de vuelta; si no, Excluir es casi un borrado disfrazado y pierde su ventaja.
-- **Qué hacer con un material excluido en la UI.** Queda `COMPLETED` con sus preguntas, pero fuera del pool. Hay que decidir si se marca en el listado para que no parezca disponible.
+- **Nombre del flag.** `marked` es corto pero genérico; `isStudying` o `studyList` dicen más. El nombre es el vocabulario del dominio: si se llama «marcado», la UI debe hablar de material marcado.
+- **Excluir en bloque o pregunta a pregunta.** El flag es de material, así que la granularidad fina se pierde. Si algún día hace falta excluir una pregunta suelta, es un segundo campo y otro requerimiento.
+- **Qué muestra un material desmarcado.** Queda `COMPLETED` con sus preguntas pero fuera del pool. Hay que decidir si el listado lo marca, para que no parezca disponible.
+- **Mensaje de «no hay preguntas».** El error actual (`GenerateQuizUseCase`) dice «procesa materiales con IA». Con el flag pasa a tener dos causas distintas —no hay preguntas generadas, o no hay materiales marcados— y el mensaje debería distinguirlas.
 
 ## Cambios implicados
 
 ### Backend
-- `apps/api/src/modules/materials/application/ports/material-question.repository.ts` — método para contar/listar preguntas del material que aparecen en `QuizQuestion`.
+- `apps/api/src/modules/materials/application/ports/material-question.repository.ts` — método para listar las preguntas del material que aparecen en `QuizQuestion`.
 - `apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts` — comprobación previa a `replaceForMaterial`, con `ConflictException` si hay uso.
 - `apps/api/src/modules/materials/application/use-cases/update-material-question.use-case.ts` y `delete-material-question.use-case.ts` — rechazar la operación si la pregunta está usada.
-- Nuevo caso de uso de exclusión (excluir/reincluir preguntas de un material) y su endpoint.
-- `apps/api/prisma/schema.prisma` — marca de exclusión en `Question` + migración.
-- `apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:18` — filtro de exclusión en la selección de preguntas.
-- `apps/api/src/modules/materials/application/use-cases/delete-material.use-case.ts` — aplicar la política de borrado con la regla nueva (hoy `sourceMaterialId` es `SetNull` y no avisa).
-- Tests: regenerar sin uso, `409` con uso, editar/borrar con uso, exclusión fuera y dentro del pool, borrado de material con preguntas usadas.
+- `apps/api/prisma/schema.prisma` — flag en `Material` + migración, con el default que se decida.
+- Puerto y casos de uso de Material: exponer y cambiar la marca (`PATCH /materials/:id/study` o similar, o un campo más del `PATCH` existente).
+- `apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:18` — filtro por material marcado.
+- Selector de temas de la pantalla de Quiz: hoy `listTopics` devuelve todos los temas de la materia sin saber nada de preguntas
+  (`apps/web/components/views/quiz-view.tsx:35`). Hacen falta temas con material marcado (y con preguntas) — un conteo en el DTO de tema o un endpoint propio.
+- `apps/api/src/modules/materials/application/use-cases/delete-material.use-case.ts` — aplicar la política de borrado con la regla de la Fase 3.
+- Tests: regenerar sin uso, `409` con uso, editar/borrar con uso, el filtro del pool con material marcado y desmarcado, preguntas huérfanas, y el default de la marca.
 
 ### Frontend
-- Diálogo de edición: aviso de la Fase 1; deshabilitar Editar/Eliminar con la razón a la vista; acción Excluir.
-- Listado de materiales: marca visible de desfasado o excluido, cuando se implemente la Fase 2.
+- Diálogo de edición: aviso de la Fase 1; Editar y Eliminar deshabilitados con la razón visible; acción de marcar/desmarcar.
+- Listado de materiales: acción de marcar y marca visible de los excluidos.
+- Vista de Quiz: el selector de temas pasa a ofrecer solo los elegibles, y el mensaje de «no hay preguntas» distingue las dos causas.
 - `apps/web/lib/api.ts` — cliente de las nuevas rutas.
 
 ## Fuera de alcance (por ahora)
 
 - Snapshot del enunciado en el quiz (la alternativa de fondo a toda esta política: si el quiz copiara la pregunta, nada de esto sería necesario). Es más caro y no se necesita si la regla de inmutabilidad basta.
 - Corregir `TopicProgress` cuando algo se borra en cascada. Se acepta que el contador quede como está; está anotado en `docs/ToDo/exponer-progreso-basico.md`.
-- Mover la decisión al usuario con un aviso previo en lugar de un `409`.
+- Mover el estado al usuario con un aviso previo en lugar de un `409`.
 - `docs/ToDo/persistir-quiz-en-curso.md` sigue abierto: un `GET /quizzes/:id` sobre un quiz cuyas preguntas se borraron devolverá menos preguntas, y la Fase 3 evita que eso ocurra.
 
 ## Notas
 
 - Coherencia con AGENTS.md: el procesamiento sigue siendo on-demand; esto no introduce colas ni workers. Es «manejar errores explícitamente» aplicado a la integridad del historial, y evitar duplicación (tres ToDos que eran la misma pregunta ahora son uno).
-- La Fase 1 no depende de las otras dos y puede hacerse ya; las Fases 2 y 3 comparten la misma comprobación de uso, así que conviene implementarlas juntas aunque la 1 se adelante.
-- No confundir con `docs/ToDo/generacion-inteligente-quiz.md` (cómo se eligen las preguntas del quiz) ni con `docs/ToDo/preguntas-segun-longitud-material.md` (cuántas se generan): esas cambian la calidad, esto cambia la integridad.
+- La Fase 1 no depende de las demás y puede hacerse ya. Las Fases 2 y 3 comparten la misma comprobación de uso; la Fase 4 es independiente de ellas y se puede hacer en cualquier momento.
+- La Fase 4 habilita `docs/ToDo/generacion-inteligente-quiz.md`: si el pool ya está acotado a una selección, seleccionar por desempeño tiene mucho menos sentido de resolver en un mar de preguntas.
+- No confundir con `docs/ToDo/preguntas-segun-longitud-material.md` (cuántas se generan): esas cambian la calidad, esto cambia la integridad y la disponibilidad.
 - Hallazgos del wiki: `wiki/components/materiales.md` y `wiki/components/quizzes.md`.
