@@ -9,7 +9,7 @@ sources:
   - apps/api/src/modules/quizzes/presentation/dto/quizzes.dto.ts
   - apps/api/src/modules/materials/infrastructure/prisma-material-question.repository.ts
   - apps/api/prisma/schema.prisma
-synced: 36ec39f
+synced: 95361be
 related:
   - ../flows/generar-y-resolver-quiz.md
   - ../components/materiales.md
@@ -50,7 +50,7 @@ guardando cuando se decida exponerlo.
 
 Las preguntas se reemplazan en bloque al procesar un material: `replaceForMaterial` borra todas
 las del material y crea las nuevas
-(`apps/api/src/modules/materials/infrastructure/prisma-material-question.repository.ts:45`). Como
+(`apps/api/src/modules/materials/infrastructure/prisma-material-question.repository.ts:47`). Como
 `QuizQuestion` y `Answer` referencian a la pregunta con `onDelete: Cascade`
 (`apps/api/prisma/schema.prisma:149` y `apps/api/prisma/schema.prisma:179`), **reprocesar un
 material destruye lo que sus preguntas antiguas sostenían**:
@@ -62,6 +62,13 @@ material destruye lo que sus preguntas antiguas sostenían**:
 
 No hay nada en el código que lo impida ni que lo repare. Mientras el material se procese una vez
 y no se vuelva a tocar, no se nota.
+
+La otra puerta a la misma cascada es borrar una pregunta a mano desde el diálogo de edición del
+material, que se añadió en `1b39eff`: arrastra exactamente los mismos `QuizQuestion` y `Answer`.
+Corregir el texto de una pregunta no tiene ese problema —solo se borran y recrean sus opciones
+(`apps/api/src/modules/materials/infrastructure/prisma-material-question.repository.ts:107`)—, y
+es la razón de que la web ofrezca esa vía antes que reprocesar. La política de qué hacer con el
+historial sigue sin decidir: está en `docs/ToDo/reprocesar-material-preserva-historial.md`.
 
 ## Lo que el módulo no tiene
 

@@ -11,7 +11,9 @@ sources:
   - apps/web/hooks/use-user.ts
   - apps/web/hooks/use-materials.ts
   - apps/web/components/dialogs/material-dialog.tsx
-synced: 36ec39f
+  - apps/web/components/views/materials-view.tsx
+  - apps/web/components/dialogs/material-edit-dialog.tsx
+synced: 95361be
 related:
   - ../components/catalogo.md
   - ../flows/procesamiento-de-material.md
@@ -26,25 +28,41 @@ es cliente y todo se pide a la API al montar cada vista.
 ## Una página, muchas vistas
 
 `HomePage` (`apps/web/app/page.tsx:20`) mantiene `activeView` y conmuta entre `HomeView`,
-`SubjectsView`, `MaterialsView` y `QuizView` (`apps/web/app/page.tsx:64`). Los diálogos — crear
+`SubjectsView`, `MaterialsView` y `QuizView` (`apps/web/app/page.tsx:65`). Los diálogos — crear
 materia, editar, borrar, agregar material, onboarding de usuario — viven en el mismo nivel que las
-vistas y se abren por estado (`apps/web/app/page.tsx:100`), no por ruta.
+vistas y se abren por estado (`apps/web/app/page.tsx:103`), no por ruta.
 
 La consecuencia práctica: **la URL no dice dónde estás**. Recargar la página vuelve siempre a
 Inicio, y un quiz en curso o un borrador de material se pierden, porque su estado vive solo en el
 componente. Es también lo que hace que la app funcione como app móvil: nada que enrutar.
+
+## Dialogos que una vista abre desde dentro
+
+La misma vista que lista materiales también puede crear uno, y para eso la página le pasa el
+`openMaterialDialog` del hook (`apps/web/app/page.tsx:92`). Abrirlo desde Materiales lleva la
+materia y el tema que ya están filtrados, así que `useMaterials.open` acepta opciones de
+preselección en vez de no admitir argumentos
+(`apps/web/hooks/use-materials.ts:17`) y el diálogo las aplica al cargar los temas
+(`apps/web/components/dialogs/material-dialog.tsx:83`). El botón global del FAB sigue funcionando
+igual: la preselección solo se aplica cuando viene.
+
+El alta vive en un diálogo de la página, no en la vista, y la vista no se entera del resultado. Se
+resuelve con un contador: `page.tsx` lo incrementa al crear
+(`apps/web/app/page.tsx:142`) y `MaterialsView` lo usa como dependencia del efecto que lista
+(`apps/web/components/views/materials-view.tsx:98`). Es un patrón de recarga por señal, no un
+gestor de caché: la web no tiene invalidación de datos más allá de eso.
 
 ## Estado: hooks cortos, composición en la página
 
 Tres hooks reúnen los datos y sus estados de carga y error: `useUser`, `useSubjects` y
 `useMaterials`. Cada uno expone funciones ya cerradas que las vistas disparan; la página es quien
 los compone (por ejemplo, crear una materia preselecciona esa materia en el diálogo de material,
-`apps/web/app/page.tsx:38`). No hay store global ni React Query: si dos vistas necesitan lo mismo,
+`apps/web/app/page.tsx:39`). No hay store global ni React Query: si dos vistas necesitan lo mismo,
 la página se lo pasa por props.
 
 La navegación (`apps/web/lib/navigation.ts:1`) anuncia ya siete destinos; tres de ellos — Repaso,
 Progreso e Insignias (`apps/web/lib/navigation.ts:6`) — caen en un placeholder
-(`apps/web/app/page.tsx:96`) porque aún no hay nada que mostrar.
+(`apps/web/app/page.tsx:99`) porque aún no hay nada que mostrar.
 
 ## El cliente HTTP
 
@@ -55,8 +73,30 @@ devolvió Nest — `message` puede ser string o array y se normaliza a texto
 (`apps/web/lib/api.ts:73`). Ese mensaje es el que ve el usuario en rojo: la API escribe los
 mensajes de error pensando en la pantalla.
 
+Desde `9342e58` el `request` tolera respuestas sin cuerpo: un `DELETE` de Nest no devuelve JSON, y
+un `response.json()` a secas rompía con el borrado de materiales
+(`apps/web/lib/api.ts:98`). Cualquier método que conteste `204` o con cuerpo vacío resuelve
+`undefined` en vez de lanzar.
+
 Las imágenes de preguntas se resuelven con `assetUrl`, que solo antepone la base de la API
-(`apps/web/lib/api.ts:213`): la web nunca ve el bucket.
+(`apps/web/lib/api.ts:290`): la web nunca ve el bucket.
+
+## Editar un material y lo que tiene debajo
+
+El diálogo de edición dejó de ser un formulario de dos campos: desde `95b7a11` lleva el nombre de
+la materia en el propio título (`apps/web/components/dialogs/material-edit-dialog.tsx:160`) y bajo
+los campos de título y contenido hay dos pestañas —Preguntas e Imágenes— controladas con estado
+local, sin router (`apps/web/components/dialogs/material-edit-dialog.tsx:41`). Ambas se cargan al
+abrir, con una sola llamada al par de endpoints.
+
+La pestaña de preguntas es la que hace útil el diálogo: lista cada una con sus opciones, marca la
+correcta y permite editar enunciado, explicación y opciones, o eliminar con una confirmación que
+avisa de que arrastra quizzes. Al borrar, el diálogo avisa a la vista con `onQuestionsChanged` y el
+conteo de la fila se actualiza sin volver a listar (`apps/web/components/views/materials-view.tsx:334`).
+La de imágenes es de solo consulta, y el binario sale de `assetUrl` contra la ruta de la figura.
+
+Es el reverso de que reprocesar sea destructivo: corregir a mano es la salida que hoy no destruye
+el historial de intentos (ver [Módulo de quizzes](../components/quizzes.md)).
 
 ## Dos decisiones que se notan
 
@@ -75,5 +115,5 @@ expone (ver [Módulo de quizzes](../components/quizzes.md)).
 El onboarding toma el primer usuario de la lista (`apps/web/hooks/use-user.ts:21`), sin sesión ni
 perfil: la misma instalación compartida entre dos navegadores muestra el mismo usuario. Y el
 diálogo de material dispara el análisis con IA en cuanto se elige un archivo
-(`apps/web/components/dialogs/material-dialog.tsx:195`), de modo que cada cambio de archivo cuesta
+(`apps/web/components/dialogs/material-dialog.tsx:201`), de modo que cada cambio de archivo cuesta
 una llamada a la IA que el usuario percibe como espera antes de poder editar los campos.

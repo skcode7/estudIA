@@ -10,7 +10,7 @@ sources:
   - apps/api/src/infrastructure/ai/deepseek/deepseek.client.ts
   - apps/api/src/infrastructure/object-storage/s3.object-storage.ts
   - .env.example
-synced: 36ec39f
+synced: 95361be
 related:
   - ../components/ia.md
 ---
@@ -45,7 +45,7 @@ Este es el matiz que más confusión causa, porque el código no es uniforme:
 
 Los casos de uso no leen `process.env`: cada módulo define un token de config y lo construye con
 una fábrica — `PROCESS_MATERIAL_CONFIG` con las preguntas por material
-(`apps/api/src/modules/materials/materials.module.ts:46`) y `GENERATE_QUIZ_CONFIG` con las
+(`apps/api/src/modules/materials/materials.module.ts:54`) y `GENERATE_QUIZ_CONFIG` con las
 preguntas del quiz (`apps/api/src/modules/quizzes/quizzes.module.ts:23`). Eso los hace testeables
 sin tocar el entorno y hace del módulo el sitio donde se ve todo lo configurable.
 

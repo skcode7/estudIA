@@ -9,7 +9,7 @@ sources:
   - apps/api/src/modules/ai/application/ports/ai-provider.ts
   - apps/api/src/modules/materials/materials.module.ts
   - apps/api/src/modules/ai/ai.module.ts
-synced: 36ec39f
+synced: 95361be
 related:
   - ../components/ia.md
   - ../components/materiales.md
@@ -33,7 +33,7 @@ materials.module.ts                        { provide: MaterialRepository, useCla
 
 Un caso de uso recibe el puerto por constructor y no puede ver al adaptador; el adaptador
 implementa el puerto y no conoce a los casos de uso; el único sitio donde ambos se encuentran es la
-lista de `providers` del módulo (`apps/api/src/modules/materials/materials.module.ts:39`), que es
+lista de `providers` del módulo (`apps/api/src/modules/materials/materials.module.ts:47`), que es
 donde hay que mirar para saber qué implementación corre hoy.
 
 ## Por qué clase abstracta y no `interface`
@@ -60,7 +60,7 @@ sustituyen por mocks del mismo tipo.
 
 Nada es perfecto y hay dos excepciones visibles. Los DTOs de la capa `presentation` son
 class-validator y se conocen en el controller, que es donde se traducen a tipos del dominio
-(`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:156`). Y la
+(`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:208`). Y la
 configuración no pasa por puertos: se inyecta como token propio de cada módulo (ver
 [Configuración por entorno](./configuracion-por-entorno.md)).
 

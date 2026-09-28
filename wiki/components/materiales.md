@@ -15,10 +15,14 @@ sources:
   - apps/api/src/modules/materials/application/use-cases/get-material-image.use-case.ts
   - apps/api/src/modules/materials/application/use-cases/list-materials.use-case.ts
   - apps/api/src/modules/materials/application/use-cases/update-material.use-case.ts
+  - apps/api/src/modules/materials/application/use-cases/list-material-questions.use-case.ts
+  - apps/api/src/modules/materials/application/use-cases/update-material-question.use-case.ts
+  - apps/api/src/modules/materials/application/use-cases/delete-material-question.use-case.ts
+  - apps/api/src/modules/materials/application/use-cases/list-material-images.use-case.ts
   - apps/api/src/modules/materials/infrastructure/prisma-material.repository.ts
   - apps/api/src/modules/materials/infrastructure/prisma-material-image.repository.ts
   - apps/api/prisma/schema.prisma
-synced: 36ec39f
+synced: 95361be
 related:
   - ../flows/procesamiento-de-material.md
   - ../flows/figuras-embebidas.md
@@ -46,12 +50,12 @@ intenta extraer figuras de la foto.
 
 ## Los puertos y quién los implementa
 
-El módulo se auto-cablea en `materials.module.ts` (`apps/api/src/modules/materials/materials.module.ts:39`)
+El módulo se auto-cablea en `materials.module.ts` (`apps/api/src/modules/materials/materials.module.ts:47`)
 y esa lista es el contrato de lo que necesita: los repositorios de material, imagen y pregunta (en
 Prisma), `ImageCropper` (sharp), los repositorios de temas y materias — que **no** son suyos: se
 importan de los módulos vecinos — y el puerto de IA a través del módulo `ai`. La config de
 preguntas por material se inyecta como token propio
-(`apps/api/src/modules/materials/materials.module.ts:46`) en vez de leer `process.env` dentro del
+(`apps/api/src/modules/materials/materials.module.ts:54`) en vez de leer `process.env` dentro del
 caso de uso.
 
 ## Las tres cadenas de datos
@@ -68,7 +72,7 @@ Un material procesado deja tres rastros que se mantienen juntos y se limpian jun
    no acumula.
 3. **Las preguntas** (`Question` + `QuestionOption`), que pertenecen al tema pero recuerdan su
    material de origen. También se reemplazan en bloque
-   (`apps/api/src/modules/materials/application/ports/material-question.repository.ts:24`).
+   (`apps/api/src/modules/materials/application/ports/material-question.repository.ts:50`).
 
 Más un cuarto rastro invisible para la API: el `analysis.json` que `ProcessMaterialUseCase`
 deposita junto al material en el storage.
@@ -100,12 +104,12 @@ URL firmada ni acceso directo al bucket.
 ## Límites y detalles que importan
 
 - El tope de subida es 10 MB y vive en el controller
-  (`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:39`); un
+  (`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:50`); un
   archivo mayor lo corta Multer antes de llegar al caso de uso.
 - Solo se procesan imágenes (JPG, PNG, GIF, WebP). Un PDF o un `.doc` se puede guardar como
   material, pero su procesamiento falla con un mensaje que dice qué tipos se aceptan.
 - `questionCount` no es un campo del material: se calcula contando preguntas por material
-  (`apps/api/src/modules/materials/application/ports/material-question.repository.ts:23`), y por eso
+  (`apps/api/src/modules/materials/application/ports/material-question.repository.ts:47`), y por eso
   un material recién creado responde `0` sin importar su estado.
 
 ## Leer y editar sin tocar el procesamiento
@@ -121,6 +125,34 @@ texto que había cuando se procesó, y nada lo detecta. Un material editado sin 
 fuente de preguntas desactualizadas, y reprocesar trae el otro problema descrito en
 [Módulo de quizzes](../components/quizzes.md). La única forma coherente de corregir un material es
 editar y volver a procesarlo, sabiendo lo que eso borra.
+
+## Corregir una pregunta a mano
+
+Como reprocesar es destructivo, desde `1b39eff` el módulo también deja corregir el resultado sin
+volver a generarlo: cuatro rutas bajo el material — listar, editar y borrar preguntas, y listar las
+figuras — cada una con su caso de uso.
+
+Lo que las hace seguras es que **el material manda**: cada caso de uso comprueba primero que el
+material existe, y el repositorio filtra por `sourceMaterialId` en lugar de por id suelto
+(`apps/api/src/modules/materials/application/ports/material-question.repository.ts:53`). Editar o
+borrar una pregunta de otro material no da un `404` ambiguo, da «no encontrada para este material».
+
+`UpdateMaterialQuestionUseCase` (`apps/api/src/modules/materials/application/use-cases/update-material-question.use-case.ts:37`)
+impone las reglas que la IA cumple por contrato pero que una edición manual podría romper: entre 2
+y 6 opciones, ninguna vacía, y **exactamente una** correcta
+(`apps/api/src/modules/materials/application/use-cases/update-material-question.use-case.ts:52`).
+También valida que la imagen vinculada, si la hay, sea una figura de ese mismo material
+(`apps/api/src/modules/materials/application/use-cases/update-material-question.use-case.ts:57`).
+Guardar borra y recrea las opciones dentro de una transacción
+(`apps/api/src/modules/materials/infrastructure/prisma-material-question.repository.ts:107`), y
+`difficulty` e `imageId` se mantienen: editar el texto de una pregunta no rehace la figura que la
+ilustra.
+
+Las figuras se listan como metadatos (`id`, `label`, `order`) sin su binario
+(`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:165`): el peso de
+las imágenes sigue saliendo por la ruta de una en una. Borrar una pregunta **sí** arrastra sus
+`QuizQuestion` y `Answer` por la misma cascada que reprocesar, y esto no tiene todavía arreglo
+documentado — ver [Módulo de quizzes](../components/quizzes.md).
 
 El recorte de figuras también es un puerto del módulo: `ImageCropper` declara solo
 `cropToWebp` (`apps/api/src/modules/materials/application/ports/image-cropper.ts:14`) y sharp lo

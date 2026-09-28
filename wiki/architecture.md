@@ -15,7 +15,7 @@ sources:
   - apps/web/package.json
   - docker-compose.yml
   - .env.example
-synced: 36ec39f
+synced: 95361be
 ---
 
 # Arquitectura de estudIA
@@ -69,7 +69,7 @@ El `.env` se carga a mano desde `apps/api/.env` (`apps/api/src/main.ts:10`): el 
 arranca desde `dist/`, así que `process.env` no se rellena solo.
 
 **Web.** No hay router de páginas: una única página client-side, `apps/web/app/page.tsx:20`, decide
-qué vista renderiza según la navegación (`apps/web/app/page.tsx:64`) y monta los diálogos globales.
+qué vista renderiza según la navegación (`apps/web/app/page.tsx:65`) y monta los diálogos globales.
 El layout fija el idioma de la interfaz en español (`apps/web/app/layout.tsx:13`). La web habla solo
 con `NEXT_PUBLIC_API_URL` (`apps/web/package.json:15`), sin cookies ni sesión.
 
@@ -102,13 +102,13 @@ modo que producción cambia de proveedor sin tocar código.
 | [Procesamiento de un material](./flows/procesamiento-de-material.md) | de la foto o el texto al material con preguntas |
 | [Figuras embebidas](./flows/figuras-embebidas.md) | cómo se extraen, recortan y guardan los dibujos de una foto |
 | [Generar y resolver un quiz](./flows/generar-y-resolver-quiz.md) | selección de preguntas, intento, corrección y progreso |
-| [Módulo de materiales](./components/materiales.md) | `Material`, sus figuras, sus preguntas y su borrado |
+| [Módulo de materiales](./components/materiales.md) | `Material`, sus figuras, sus preguntas, su edición a mano y su borrado |
 | [Módulo de quizzes](./components/quizzes.md) | el quiz como instantánea, los intentos y `TopicProgress` |
 | [Módulo de IA y sus adaptadores](./components/ia.md) | puertos de IA, proveedores y validación de la salida |
 | [Capa de persistencia (Prisma)](./components/persistencia.md) | la conexión global y los repositorios que traducen los puertos a tablas |
 | [La forma del CRUD de catálogo](./components/crud-de-catalogo.md) | cómo están hechos los módulos de materias, temas y usuarios |
 | [Materias, temas y usuarios](./components/catalogo.md) | la jerarquía de catálogo y sus cascadas |
-| [Aplicación web](./components/web.md) | la página única, los hooks y el cliente HTTP |
+| [Aplicación web](./components/web.md) | la página única, los hooks, el cliente HTTP y el diálogo de edición |
 | [Puertos y adaptadores](./concepts/puertos-y-adapters.md) | el patrón que repite cada módulo |
 | [Configuración por entorno](./concepts/configuracion-por-entorno.md) | qué se lee al arrancar y qué al llamar |
 | [DeepSeek y el modelo de visión](./decisions/proveedor-ia.md) | por qué un puerto y dos proveedores |

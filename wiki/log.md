@@ -47,3 +47,27 @@ Pase sobre el cluster `apps/api/src` (44 archivos sin cubrir al empezar).
 - Resultado: `apps/api/src` queda **totalmente cubierto** (0 archivos sin reclamar). El backlog
   pasa de 69 a 25 archivos: 17 en `apps/web/components`, 2 más en `apps/web` (`app`, `hooks`), 5 en
   `packages/*` (aún placeholders) y `pnpm-workspace.yaml`.
+
+## 2026-09-28 · wikipoke-ingest
+
+Reconciliación con 10 commits (desde `36ec39f`): unificación de los botones de material, CRUD de
+preguntas e imágenes en la API, alta de material desde el listado y edición con pestañas.
+
+- `components/materiales.md` — nueva sección «Corregir una pregunta a mano»: las cuatro rutas bajo
+  el material, por qué el repositorio filtra por `sourceMaterialId` y qué reglas impone
+  `UpdateMaterialQuestionUseCase` (2–6 opciones, exactamente una correcta, imagen del material).
+  Anotado que borrar una pregunta arrastra `QuizQuestion` y `Answer`.
+- `components/web.md` — el diálogo de edición como segunda pantalla del módulo (título con la
+  materia, pestañas Preguntas/Imágenes, `onQuestionsChanged`); el diálogo de alta abierto desde la
+  vista con preselección de materia/tema; recarga por contador (`materialsReloadSignal`) porque no
+  hay caché que invalidar; `request` tolerante a respuestas sin cuerpo desde `9342e58`.
+- `components/quizzes.md` — la cascada de borrar una pregunta es la misma que reprocesar; editar
+  el texto no la tiene, y por eso la web ofrece esa vía. Enlaza con el ToDo que sigue abierto.
+- `flows/figuras-embebidas.md` — enlaza con la página de materiales, donde vive el listado de
+  figuras; el flujo no cambia.
+- `architecture.md` — descripciones de materiales y web actualizadas en la tabla de páginas.
+- Citas re-apuntadas y `synced:` elevating a `95361be` en las 9 páginas afectadas.
+- El backlog baja de 25 a 24 archivos: la web sigue siendo lo no cubierto (16 en
+  `apps/web/components`, más `app` y `hooks` a medias), más los placeholders de `packages/*` y
+  `pnpm-workspace.yaml`. No se reclamó ningún archivo nuevo salvo los ya leídos para las páginas
+  tocadas.

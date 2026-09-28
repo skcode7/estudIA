@@ -25,7 +25,7 @@ sources:
   - apps/api/src/modules/users/application/use-cases/list-users.use-case.ts
   - apps/api/src/modules/users/presentation/dto/users.dto.ts
   - apps/api/src/main.ts
-synced: 36ec39f
+synced: 95361be
 related:
   - ../components/catalogo.md
   - ../components/persistencia.md
@@ -79,7 +79,7 @@ para Swagger y para la web.
 
 - **`PATCH` vacío.** En materias y temas un `PATCH` sin campos devuelve el registro sin cambios; en
   materiales es un `400` que exige al menos `title` o `content`
-  (`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:142`). La regla
+  (`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:194`). La regla
   no es uniforme y la web no lo nota porque siempre envía algo.
 - **Usuarios es mitad de módulo.** Solo `GET /users` y `POST /users`: no hay update, no hay delete
   y el puerto no los declara (`apps/api/src/modules/users/application/ports/user.repository.ts:12`).

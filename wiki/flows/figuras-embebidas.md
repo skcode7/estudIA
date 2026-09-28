@@ -13,10 +13,11 @@ sources:
   - apps/api/src/infrastructure/ai/openrouter/openrouter.image-extractor.ts
   - apps/api/src/infrastructure/images/sharp.image-cropper.ts
   - apps/api/src/modules/materials/presentation/controllers/materials.controller.ts
-synced: 36ec39f
+synced: 95361be
 related:
   - ./procesamiento-de-material.md
   - ../decisions/proveedor-ia.md
+  - ../components/materiales.md
 ---
 
 # Figuras embebidas en una foto de apuntes
@@ -32,7 +33,7 @@ La marca nace en el análisis del borrador: el modelo de texto dice si la foto t
 aparte del texto (`apps/api/src/modules/ai/application/ports/ai-provider.ts:41`). El usuario la ve
 en el formulario y puede corregirla antes de guardar; viaja como string `"true"` desde un
 multipart, y el DTO la normaliza a booleano
-(`apps/api/src/modules/materials/presentation/dto/materials.dto.ts:55`). Durante el procesamiento
+(`apps/api/src/modules/materials/presentation/dto/materials.dto.ts:70`). Durante el procesamiento
 la marca es pegajosa: si el material ya la traía, un análisis nuevo no la quita
 (`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:114`).
 
@@ -102,5 +103,5 @@ al `id` real de la fila `MaterialImage`
 modelo inventa un índice que no existe, la pregunta se guarda sin imagen en vez de fallar.
 
 Para mostrarla, la web pide `GET /materials/:id/images/:imageId`
-(`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:119`), que
+(`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:171`), que
 devuelve el binario con caché privada de un día. Nunca hay URL pública del bucket.
