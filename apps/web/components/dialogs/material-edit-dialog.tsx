@@ -16,7 +16,7 @@ import {
   type ApiMaterialQuestion
 } from "../../lib/api";
 import { Dialog, DialogActions } from "./dialog";
-import { FieldError } from "../ui/feedback";
+import { FieldError, WarningNote } from "../ui/feedback";
 
 type Tab = "questions" | "images";
 
@@ -55,6 +55,9 @@ export function MaterialEditDialog({
 
   const [confirmingQuestionId, setConfirmingQuestionId] = useState<string | null>(null);
   const [isDeletingQuestion, setIsDeletingQuestion] = useState(false);
+
+  // Un material procesado con preguntas: editar su texto deja el pool viejo sin avisar a nadie.
+  const hasQuestions = material.processingStatus === "COMPLETED" && material.questionCount > 0;
 
   useEffect(() => {
     let cancelled = false;
@@ -182,6 +185,13 @@ export function MaterialEditDialog({
             value={content}
           />
         </label>
+
+        {hasQuestions && (
+          <WarningNote>
+            Editar el contenido no actualiza las preguntas generadas. Para cambiar lo que se estudia,
+            vuelve a procesar el material o corrige las preguntas a mano en la pestaña Preguntas.
+          </WarningNote>
+        )}
 
         {saveError && <FieldError>{saveError}</FieldError>}
 

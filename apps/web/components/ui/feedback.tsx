@@ -16,3 +16,12 @@ export function FieldError({ children }: { children: string }) {
     </p>
   );
 }
+
+export function WarningNote({ children }: { children: string }) {
+  return (
+    <p className="flex items-start gap-2 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
+      <span aria-hidden="true">⚠</span>
+      <span>{children}</span>
+    </p>
+  );
+}
