@@ -95,7 +95,16 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     throw new Error(await readError(response));
   }
 
-  return (await response.json()) as T;
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
+  const text = await response.text();
+  if (!text) {
+    return undefined as T;
+  }
+
+  return JSON.parse(text) as T;
 }
 
 export function listSubjects(): Promise<ApiSubject[]> {
@@ -194,6 +203,12 @@ export function updateMaterial(id: string, input: ApiMaterialEditInput): Promise
   return request<ApiMaterial>(`/materials/${encodeURIComponent(id)}`, {
     method: "PATCH",
     body: JSON.stringify(input)
+  });
+}
+
+export function deleteMaterial(id: string): Promise<void> {
+  return request<void>(`/materials/${encodeURIComponent(id)}`, {
+    method: "DELETE"
   });
 }
 

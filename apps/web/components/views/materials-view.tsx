@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
+  deleteMaterial,
   listMaterials,
   listTopics,
   processMaterial,
@@ -12,6 +13,7 @@ import {
   type ApiMaterialEditInput
 } from "../../lib/api";
 import { type Subject } from "../../lib/subjects";
+import { MaterialDeleteDialog } from "../dialogs/material-delete-dialog";
 import { MaterialEditDialog } from "../dialogs/material-edit-dialog";
 import { EmptyPanel, ErrorPanel, LoadingPanel } from "../ui/state-panels";
 import { MaterialStatusBadge } from "../ui/material-status-badge";
@@ -36,6 +38,9 @@ export function MaterialsView({
   const [loadError, setLoadError] = useState("");
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [editingMaterial, setEditingMaterial] = useState<ApiMaterial | null>(null);
+  const [deletingMaterial, setDeletingMaterial] = useState<ApiMaterial | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   const activeSubjectId = subjectId || subjects[0]?.id || "";
 
@@ -142,6 +147,22 @@ export function MaterialsView({
     [activeSubjectId, onSubjectMaterialsChange]
   );
 
+  const handleConfirmDelete = useCallback(async () => {
+    if (!deletingMaterial) return;
+    setIsDeleting(true);
+    setDeleteError("");
+    try {
+      await deleteMaterial(deletingMaterial.id);
+      setMaterials((current) => current.filter((m) => m.id !== deletingMaterial.id));
+      setDeletingMaterial(null);
+      onSubjectMaterialsChange(activeSubjectId);
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : "No se pudo eliminar el material.");
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [activeSubjectId, deletingMaterial, onSubjectMaterialsChange]);
+
   return (
     <>
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -246,7 +267,7 @@ export function MaterialsView({
                     </p>
                   )}
                 </div>
-                <div className="flex shrink-0 gap-2">
+                <div className="flex shrink-0 flex-wrap gap-2">
                   {showProcess && (
                     <button
                       className="min-h-11 rounded-xl bg-[#6d4aff] px-4 text-sm font-semibold text-white hover:bg-[#5b3fe0] disabled:cursor-not-allowed disabled:opacity-60"
@@ -254,16 +275,25 @@ export function MaterialsView({
                       onClick={() => void handleProcess(material)}
                       type="button"
                     >
-                      {isProcessing ? "Procesando…" : "✨ IA mode"}
+                      {isProcessing ? "Procesando…" : "Procesar"}
                     </button>
                   )}
                   <button
-                    className="min-h-11 rounded-xl px-4 text-sm font-semibold text-slate-500 hover:bg-slate-100"
+                    className="min-h-11 rounded-xl bg-[#f1eeff] px-4 text-sm font-semibold text-[#6d4aff] hover:bg-[#e7e1ff]"
                     onClick={() => setEditingMaterial(material)}
-                    title="Editar"
                     type="button"
                   >
-                    ✎
+                    ✎ Editar
+                  </button>
+                  <button
+                    className="min-h-11 rounded-xl px-4 text-sm font-semibold text-rose-600 hover:bg-rose-50"
+                    onClick={() => {
+                      setDeleteError("");
+                      setDeletingMaterial(material);
+                    }}
+                    type="button"
+                  >
+                    ✕ Eliminar
                   </button>
                 </div>
               </article>
@@ -278,6 +308,20 @@ export function MaterialsView({
           onClose={() => setEditingMaterial(null)}
           onSaved={handleSaveEdit}
           subjectName={selectedSubjectName}
+        />
+      )}
+
+      {deletingMaterial && (
+        <MaterialDeleteDialog
+          error={deleteError}
+          isDeleting={isDeleting}
+          material={deletingMaterial}
+          onCancel={() => {
+            if (isDeleting) return;
+            setDeletingMaterial(null);
+            setDeleteError("");
+          }}
+          onConfirm={() => void handleConfirmDelete()}
         />
       )}
     </>
