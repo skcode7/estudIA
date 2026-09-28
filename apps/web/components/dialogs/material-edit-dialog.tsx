@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import Image from "next/image";
+
 import {
   assetUrl,
   deleteMaterialQuestion,
@@ -191,12 +193,12 @@ export function MaterialEditDialog({
       </form>
 
       <div className="mt-6 border-t border-slate-100 pt-5">
-        <div className="flex gap-2">
+        <div className="-mb-px flex gap-6 border-b border-slate-100">
           <button
-            className={`min-h-11 rounded-xl px-4 text-sm font-semibold ${
+            className={`-mb-px border-b-2 pb-3 text-sm transition-colors ${
               tab === "questions"
-                ? "bg-[#6d4aff] text-white"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                ? "border-[#6d4aff] font-semibold text-[#6d4aff]"
+                : "border-transparent font-medium text-slate-500 hover:text-slate-700"
             }`}
             onClick={() => setTab("questions")}
             type="button"
@@ -204,10 +206,10 @@ export function MaterialEditDialog({
             Preguntas
           </button>
           <button
-            className={`min-h-11 rounded-xl px-4 text-sm font-semibold ${
+            className={`-mb-px border-b-2 pb-3 text-sm transition-colors ${
               tab === "images"
-                ? "bg-[#6d4aff] text-white"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                ? "border-[#6d4aff] font-semibold text-[#6d4aff]"
+                : "border-transparent font-medium text-slate-500 hover:text-slate-700"
             }`}
             onClick={() => setTab("images")}
             type="button"
@@ -217,11 +219,11 @@ export function MaterialEditDialog({
         </div>
 
         {isLoadingExtras ? (
-          <p className="mt-4 text-sm text-slate-500">Cargando…</p>
+          <p className="pt-4 text-sm text-slate-500">Cargando…</p>
         ) : extrasError ? (
-          <p className="mt-4 text-sm font-medium text-rose-600">{extrasError}</p>
+          <p className="pt-4 text-sm font-medium text-rose-600">{extrasError}</p>
         ) : tab === "questions" ? (
-          <div className="mt-4 space-y-3">
+          <div className="space-y-3 pt-4">
             {questions.length === 0 ? (
               <p className="text-sm text-slate-500">Todavía no hay preguntas. Procesa el material con IA.</p>
             ) : (
@@ -311,10 +313,13 @@ export function MaterialEditDialog({
                           <p className="mt-2 text-xs text-slate-500">{question.explanation}</p>
                         )}
                         {question.imageId && (
-                          <img
+                          <Image
                             alt={image?.label ?? "Figura de la pregunta"}
-                            className="mt-3 max-h-32 rounded-xl border border-slate-200"
+                            className="mt-3 max-h-32 w-auto rounded-xl border border-slate-200"
+                            height={480}
                             src={assetUrl(`/materials/${material.id}/images/${question.imageId}`)}
+                            unoptimized
+                            width={640}
                           />
                         )}
                         {confirmingQuestionId === question.id ? (
@@ -371,16 +376,19 @@ export function MaterialEditDialog({
             )}
           </div>
         ) : (
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 pt-4 sm:grid-cols-2">
             {images.length === 0 ? (
               <p className="text-sm text-slate-500">Este material no tiene figuras extraídas.</p>
             ) : (
               images.map((image) => (
                 <figure className="rounded-2xl border border-slate-100 bg-slate-50 p-3" key={image.id}>
-                  <img
+                  <Image
                     alt={image.label}
-                    className="w-full rounded-xl"
+                    className="h-auto w-full rounded-xl"
+                    height={480}
                     src={assetUrl(`/materials/${material.id}/images/${image.id}`)}
+                    unoptimized
+                    width={640}
                   />
                   <figcaption className="mt-2 text-xs font-medium text-slate-600">
                     {image.label}
