@@ -17,9 +17,11 @@ sources:
   - apps/api/src/infrastructure/ai/openrouter/openrouter.mapper.ts
   - apps/api/src/infrastructure/ai/openrouter/openrouter.prompts.ts
   - apps/api/src/infrastructure/ai/openrouter/openrouter.schemas.ts
-synced: 36ec39f
+  - apps/web/components/dialogs/material-dialog.tsx
+synced: 6931a91
 related:
   - ../flows/figuras-embebidas.md
+  - ../flows/procesamiento-de-material.md
   - ../decisions/proveedor-ia.md
 ---
 
@@ -55,6 +57,20 @@ Los prompts piden un objeto JSON con un formato fijado en el propio prompt
 "nunca inventes ids" para que el modelo solo elija del catálogo que se le pasa. En las llamadas de
 DeepSeek se pide además `response_format: json_object`
 (`apps/api/src/infrastructure/ai/deepseek/deepseek.client.ts:31`).
+
+**Un prompt es contrato con el modelo, no sugerencia, y la diferencia se nota en los datos.** Decirle
+al modelo que el título es "opcional" y que lo deje vacío "si el material ya tiene uno claro" no es
+flexibilidad: es medir que el modelo se toma esa puerta unas 3 de cada 4 veces, y como el diálogo
+precarga el campo con el nombre del archivo
+(`apps/web/components/dialogs/material-dialog.tsx:199`), el resultado es un material titulado
+`IMG-20240315-WA0037.jpg`. La regla ahora exige inferirlo siempre y prohíbe copiar el nombre del
+archivo (`apps/api/src/infrastructure/ai/deepseek/deepseek.prompts.ts:59`); la tasa de vacíos bajó de
+1 de 4 a 0 de 8. El detalle del síntoma está en
+[Procesamiento de un material de estudio](../flows/procesamiento-de-material.md).
+
+La lección que se lleva la página: el schema tolerante de abajo acepta el campo ausente, así que
+**una regla floja del prompt se traduce en datos malos que la validación no detecta**, porque no hay
+nada que validar. Cuando un campo de la respuesta importe, el prompt tiene que exigirlo.
 
 Aun así **nada se fía de la salida**: `parseModelJson` quita las vallas ``` que los modelos añaden,
 hace `JSON.parse` y valida con Zod (`apps/api/src/infrastructure/ai/model-output.ts:10`). Un JSON

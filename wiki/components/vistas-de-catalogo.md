@@ -77,7 +77,7 @@ quizzes; está documentado en `docs/ToDo/confirmar-borrado-en-cascada.md`.
 `UserOnboardingDialog` (`apps/web/components/dialogs/user-onboarding-dialog.tsx:7`) es la excepción
 al patrón: no usa `Dialog` sino un overlay propio, porque no se cierra —no hay `×` ni cancelar— y
 aparece incluso mientras carga la lista. La página lo muestra cuando `isUserLoading` **o** el
-diálogo está abierto (`apps/web/app/page.tsx:50`), de modo que bloquea la app entera mientras
+diálogo está abierto (`apps/web/app/page.tsx:49`), de modo que bloquea la app entera mientras
 resuelve quién es el usuario. Solo pide un nombre, y ese nombre es el único perfil que existe en
 el MVP (ver [Sin identidad en el MVP](../decisions/authentico.md)).
 

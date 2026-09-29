@@ -94,3 +94,34 @@ ninguna de las que ya existían más que para enlazarlas y reclamar dos archivos
   (este último ya reclamado desde `architecture.md`). Los cinco `packages/*` son placeholders vacíos:
   no merecen página mientras estén como están, y su futuro ya está decidido en
   `docs/ToDo/paquetes-compartidos-vacios.md`.
+
+## 2026-09-28 · wikipoke-ingest
+
+Reconciliación con 11 commits (desde `b291b79`): el material se procesa al confirmar el popup, la IA
+deduce el título y el aviso de edición lo dice. Tres páginas reescritas, dos solo re-apuntadas.
+
+- `flows/procesamiento-de-material.md` — la separación guardar/procesar que daba por entendido la
+  apertura ya no es lo que hace la web: confirmar encadena el proceso y el popup cierra mientras
+  corre en segundo plano (`4fe2f8a`). Nueva sección sobre el título: el diálogo lo precarga con el
+  nombre del archivo, así que una sugerencia vacía lo dejaba guardar como `IMG-20240315-WA0037.jpg`,
+  y la causa era la regla del prompt que lo declaraba opcional y la puerta de salida que el modelo
+  tomaba 1 de cada 4 veces. Documentado con las dos mediciones (antes 1/4, después 0/8) y el aviso
+  que lo compensa (`e02b72e`). Corregido además que el título se sobrescribe sin condiciones, frente
+  al contenido que solo cambia si difiere.
+- `components/web.md` — `useMaterials` deja de ser solo el dueño del diálogo y pasa a serlo también
+  del procesamiento en vuelo y de la señal de recarga, con el porqué: el proceso ya no muere con el
+  popup, así que su estado no puede vivir en el componente que lo dispara. Documentado también el
+  **contador de materiales de las tarjetas como bug y no como dato pendiente**: existe código que
+  lo calcula y solo corre al crear un material desde la vista de Materiales, y es un N+1, así que el
+  arreglo en el cliente sería un parche. Cita al ToDo que ya lo recogió.
+- `components/ia.md` — nueva regla sobre los prompts como contrato: una regla floja se traduce en
+  datos malos que el schema tolerante no detecta, porque no hay nada que validar. Es la versión
+  general del caso del título.
+- `architecture.md` y `components/vistas-de-catalogo.md` — solo re-apuntadas (`page.tsx` se corrió una
+  línea al dejar de declarar el contador de recarga en la página).
+- `synced:` elevado a `6931a91` en las 4 páginas tocadas; checkpoint del repo advancements al mismo
+  commit. Cero páginas nuevas, cero archivos nuevos reclamados más allá de los leídos.
+- Queda pendiente y **no se escribió**: los cinco requerimientos de `docs/ToDo/` que el usuario
+  encajó en la misma sesión (roles tutor/alumno, nivel de quiz, contador de tarjetas, historial de
+  quizzes, promedio de progreso) no tienen página. Son comportamiento futuro, no código, y las páginas
+  describen lo que el código hace.

@@ -6,7 +6,7 @@
 
 ## flow
 
-- [Procesamiento de un material de estudio](./flows/procesamiento-de-material.md) — Cómo un material pasa de foto o texto a material procesado con preguntas generadas, desde el diálogo de la web hasta los casos de uso de materiales.
+- [Procesamiento de un material de estudio](./flows/procesamiento-de-material.md) — Cómo un material pasa de foto o texto a material procesado con preguntas generadas y título deducido, encadenando el diálogo, el proceso en segundo plano y los casos de uso de materiales.
 - [Figuras embebidas en una foto de apuntes](./flows/figuras-embebidas.md) — Cómo una foto de apuntes con banderas, mapas o diagramas acaba con esas figuras recortadas, guardadas y referenciadas por preguntas de imagen.
 - [Generar y resolver un quiz](./flows/generar-y-resolver-quiz.md) — Cómo se arma un quiz desde las preguntas ya generadas, cómo se resuelve y cómo se puntúa el intento, desde la vista Quiz hasta los casos de uso de quizzes.
 
