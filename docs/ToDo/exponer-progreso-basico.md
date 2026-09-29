@@ -42,3 +42,18 @@ Que el estudiante vea el progreso real por tema y por materia (aciertos, intento
 - Hallazgo del wiki: `wiki/components/quizzes.md`, `wiki/components/web.md`, `wiki/log.md` ("decisión sobre el progreso básico").
 - Coherencia con AGENTS.md: el MVP sí incluye "progreso básico"; hoy se escribe y no se enseña.
 - Distinto de `docs/ToDo/generacion-inteligente-quiz.md`: aquel cambia la selección de preguntas; este solo expone lo ya guardado.
+
+## Definición del porcentaje de la tarjeta (decidido)
+
+El `progress` de la tarjeta de materia es el **promedio simple de los porcentajes de los quizzes intentados de esa materia**: se suman los `score` de los intentos completados y se dividen por su número.
+
+Se descarta el `masteryScore` que hoy calcula `saveAttempt` para este cálculo, por dos motivos: `masteryScore` es la media de aciertos por tema, así que un quiz de 10 preguntas pesa igual que uno de 3, mientras que el porcentaje por quiz no; y al agregar por materia habría que decidir cómo se combinan los `masteryScore` de cada tema, que es una media de medias. El promedio de los `score` no tiene esa ambigüedad.
+
+`TopicProgress` sigue siendo útil por tema y en la vista Progreso: el cambio afecta solo al número agregado de la tarjeta.
+
+Dos consecuencias que hay que decidir antes de codificar:
+
+- **Qué cuenta como "intentado"**: solo intentos con `completedAt` y `score` no nulos (`QuizAttempt.score` es `Float?`). Un quiz generado y nunca respondido no debe entrar en el denominador ni contar como 0.
+- **Materia sin intentos**: hoy la tarjeta muestra `0` y el mensaje "Tu materia está lista para estudiar ✨" (`apps/web/lib/subjects.ts:28`). Con un promedio sin datos, ese 0% afirma un rendimiento que no se midió. Opciones: no pintar la barra, o pintar un estado "aún no hay quizzes". Es la misma pregunta que ya planteaba el alcance de este requerimiento.
+
+Relacionado: `docs/ToDo/listado-quizzes-con-resultado.md` (de dónde salen los `score` que se promedian; conviene que ambos lean el mismo agregado) y `docs/ToDo/contador-materiales-tarjetas.md` (el `materials: 0` de la misma tarjeta viene del mismo `decorateSubject` que el `progress: 0`).
