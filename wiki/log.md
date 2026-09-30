@@ -125,3 +125,18 @@ deduce el título y el aviso de edición lo dice. Tres páginas reescritas, dos 
   encajó en la misma sesión (roles tutor/alumno, nivel de quiz, contador de tarjetas, historial de
   quizzes, promedio de progreso) no tienen página. Son comportamiento futuro, no código, y las páginas
   describen lo que el código hace.
+
+## 2026-09-30 · wikipoke-ingest
+
+Reconcile tras `2375f47`, que borró los tres paquetes compartidos del workspace.
+
+- `architecture.md` — el mapa afirmaba que el monorepo tenía «tres paquetes compartidos en
+  `packages/`»; ahora son dos aplicaciones y nada más. Diagrama, prosa y tabla de carpetas
+  corregidos. La cita de `NEXT_PUBLIC_API_URL` apuntaba a `apps/web/package.json:15`, que era
+  `@estudia/types` y nunca tuvo relación con la variable: re-apuntada a `apps/web/lib/api.ts:71`
+  y a `.env.example:6`. De paso se alineó el borde del diagrama, que estaba una columna desviado.
+- `components/web.md` — la duplicación del contrato se mantiene tal cual, pero se corrige que los
+  paquetes `@estudia/types` y `@estudia/validation` «existen en el workspace»: ya no. Queda escrito
+  por qué compartir el contrato en un paquete no lo habría arreglado (la API no lo importaría).
+- `index.md` sin cambios: ninguna página se añadió, se tituló ni cambió de `responsibility`.
+- `synced:` elevado a `2375f47` en las 2 páginas tocadas; checkpoint del repo al mismo commit.

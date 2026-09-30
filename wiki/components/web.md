@@ -14,7 +14,7 @@ sources:
   - apps/web/components/views/materials-view.tsx
   - apps/web/components/dialogs/material-edit-dialog.tsx
   - apps/web/components/dialogs/material-delete-dialog.tsx
-synced: 6931a91
+synced: 2375f47
 related:
   - ../components/catalogo.md
   - ../flows/procesamiento-de-material.md
@@ -130,9 +130,13 @@ deduzca siempre el título.
 ## Dos decisiones que se notan
 
 **Los tipos del contrato están duplicados.** `ApiSubject`, `ApiMaterial`, `ApiQuiz`… se declaran en
-`lib/api.ts` a mano, y los paquetes compartidos `@estudia/types` y `@estudia/validation` existen en
-el workspace pero no los importa nadie todavía: son placeholders vacíos. Cambiar un DTO de la API
-exige ajustar también este archivo.
+`lib/api.ts` a mano, en paralelo con los DTOs de NestJS, y nada detecta que los dos se separen:
+cambiar un DTO de la API exige ajustar también este archivo. Hasta `2375f47` el workspace declaraba
+además los paquetes compartidos `@estudia/types` y `@estudia/validation`, que no importaba
+nadie y eran placeholders vacíos. Ese commit los borró, y con ellos el `zod` de la web, que era una
+dependencia directa sin un solo import. La duplicación del contrato sigue exactamente igual: la
+opción de compartirlo en un paquete se descartó porque la API no lo importaría, y eso no habría
+eliminado la copia, solo la habría movido de sitio.
 
 **Lo que enseñan las tarjetas de materia es decorativo, y los dos ceros vienen del mismo sitio.**
 `decorateSubject` fija `progress: 0` y `materials: 0` para cada materia

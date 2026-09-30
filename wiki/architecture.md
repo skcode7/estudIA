@@ -12,11 +12,13 @@ sources:
   - apps/web/app/layout.tsx
   - package.json
   - apps/api/package.json
-  - apps/web/package.json
   - apps/web/app/globals.css
+  - apps/web/lib/api.ts
+  - apps/web/package.json
+  - pnpm-workspace.yaml
   - docker-compose.yml
   - .env.example
-synced: 6931a91
+synced: 2375f47
 ---
 
 # Arquitectura de estudIA
@@ -35,12 +37,20 @@ apps/web (Next.js 16, React 19)          apps/api (NestJS 12)
         │                                       │                ├── Prisma ──► PostgreSQL
         │                                       │                ├── ObjectStorage ──► MinIO (S3)
         │                                       │                └── AI port ──► DeepSeek / OpenRouter
-packages/types · packages/validation (zod) ────┘
+────────└───────────────────────────────────────┘
 ```
 
-Es un monorepo pnpm con Turborepo: dos aplicaciones en `apps/` y tres paquetes compartidos en
-`packages/` (`package.json:11` orquesta todo con `turbo`). La regla del proyecto es *Modular
-Monolith* antes que microservicios: un solo proceso de API, dividido en módulos NestJS.
+Es un monorepo pnpm con Turborepo: dos aplicaciones en `apps/` y nada más (`package.json:11`
+orquesta todo con `turbo`). La regla del proyecto es *Modular Monolith* antes que microservicios: un
+solo proceso de API, dividido en módulos NestJS.
+
+Hubo además una carpeta `packages/` con `types`, `validation` y `config`, y hasta `2375f47` el
+workspace declaraba esos tres paquetes: nadie los importaba, dos estaban literalmente vacíos y el
+tercero solo re-exportaba `z`. Se borraron y con ellos el `zod` de la web, que era una dependencia
+directa sin un solo import. El glob `- packages/*` de `pnpm-workspace.yaml` se conservó: no promete
+una fuente de verdad compartida, solo mantiene la convención de layout por si un paquete real
+aparece. El contrato de la API sigue declarado a mano en `apps/web/lib/api.ts`, en paralelo con los
+DTOs de NestJS; moverlo a un paquete no lo habría resuelto, porque la API no lo importaría.
 
 ## Las capas de `apps/api`
 
@@ -72,7 +82,8 @@ arranca desde `dist/`, así que `process.env` no se rellena solo.
 **Web.** No hay router de páginas: una única página client-side, `apps/web/app/page.tsx:20`, decide
 qué vista renderiza según la navegación (`apps/web/app/page.tsx:64`) y monta los diálogos globales.
 El layout fija el idioma de la interfaz en español (`apps/web/app/layout.tsx:13`). La web habla solo
-con `NEXT_PUBLIC_API_URL` (`apps/web/package.json:15`), sin cookies ni sesión. El diseño no usa
+con `NEXT_PUBLIC_API_URL` (`apps/web/lib/api.ts:71`, declarada en `.env.example:6`), sin cookies ni
+sesión. El diseño no usa
 librería de componentes: Tailwind con clases escritas a mano y tres colores base en
 `apps/web/app/globals.css:3` (fondo `#f8f7fc`, texto `#1e1b2e` y el morado `#6d4aff` que se repite
 literalmente en cada archivo, sin token de Tailwind).
@@ -96,7 +107,6 @@ modo que producción cambia de proveedor sin tocar código.
 | `apps/api/src/infrastructure/ai` | los adaptadores de IA: cliente DeepSeek, cliente OpenRouter y el registro de proveedor |
 | `apps/api/src/infrastructure/database`, `object-storage`, `images` | Prisma, S3 y el recorte de figuras con sharp |
 | `apps/web/components`, `hooks`, `lib` | la interfaz: armazón, vistas, diálogos, primitivas, hooks de datos y el cliente HTTP |
-| `packages/types`, `packages/validation` | tipos compartidos y esquemas Zod (`packages/validation/src/index.ts` re-exporta `z`) |
 | `apps/api/prisma/schema.prisma` | el modelo de datos; las migraciones son generadas y no se documentan |
 
 ## Las páginas de este mapa
