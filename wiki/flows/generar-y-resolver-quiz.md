@@ -26,10 +26,10 @@ quiz se genera en milisegundos y el coste de IA ya se pagó al procesar.
 
 ## 1 · Generar: selección aleatoria
 
-La vista pide materia y, opcionalmente, tema
-(`apps/web/components/views/quiz-view.tsx:141`); al pulsar "Generar quiz" llama a
-`POST /api/v1/quizzes/generate` (`apps/web/components/views/quiz-view.tsx:76`) y guarda el
-instante de inicio del intento (`apps/web/components/views/quiz-view.tsx:81`), que es lo que
+La vista pide materia, tema y duración
+(`apps/web/components/views/quiz-view.tsx:144`); al pulsar "Generar quiz" llama a
+`POST /api/v1/quizzes/generate` (`apps/web/components/views/quiz-view.tsx:78`) y guarda el
+instante de inicio del intento (`apps/web/components/views/quiz-view.tsx:83`), que es lo que
 después permite medir cuánto tardó el estudiante.
 
 `GenerateQuizUseCase` decide de dónde salen las preguntas:
@@ -50,6 +50,11 @@ defecto) que hoy ya no existe. El quiz se guarda con esos ids
 (`apps/api/src/modules/quizzes/application/use-cases/generate-quiz.use-case.ts:79`).
 `topicId: null` significa "quiz de toda la materia".
 
+La duración se elige en un tercer select junto a Materia y Tema
+(`apps/web/components/views/quiz-view.tsx:185`), etiquetado Corta / Media / Larga y en `MEDIUM` por
+defecto, que es justo lo que la API aplica cuando `size` no viene. La web no muestra el porcentaje
+porque depende de cuántas preguntas hay en el alcance, y eso no se sabe antes de generar.
+
 ## 2 · Presentar: el orden lo pone el DTO
 
 El mismo `shuffle` compartido (`apps/api/src/shared/random.utils.ts:1`) se aplica dos veces al
@@ -61,13 +66,13 @@ estudiante no puede memorizar "la b es la buena".
 Las preguntas con imagen llevan una URL relativa construida con el material de origen
 (`apps/api/src/modules/quizzes/presentation/controllers/quizzes.controller.ts:75`); la web la
 resuelve contra la API con `assetUrl` y la pinta con un `<img>` plano
-(`apps/web/components/views/quiz-view.tsx:230`), sin optimizador de Next.
+(`apps/web/components/views/quiz-view.tsx:251`), sin optimizador de Next.
 
 ## 3 · Responder: la web exige completitud, la API la revalida
 
 La vista solo habilita "Enviar respuestas" cuando **todas** las preguntas tienen opción elegida
-(`apps/web/components/views/quiz-view.tsx:91`) y vuelve a comprobarlo antes de enviar
-(`apps/web/components/views/quiz-view.tsx:97`). La API no confía en eso:
+(`apps/web/components/views/quiz-view.tsx:94`) y vuelve a comprobarlo antes de enviar
+(`apps/web/components/views/quiz-view.tsx:100`). La API no confía en eso:
 `SubmitQuizAttemptUseCase` exige al menos una respuesta y exactamente una por pregunta
 (`apps/api/src/modules/quizzes/application/use-cases/submit-quiz-attempt.use-case.ts:43`), rechaza
 preguntas ajenas al quiz o repetidas
@@ -94,7 +99,7 @@ La respuesta trae un *feedback* por pregunta — la correcta, la elegida y la ex
 la IA al procesar el material
 (`apps/api/src/modules/quizzes/application/use-cases/submit-quiz-attempt.use-case.ts:85`) — y la
 vista de resultado las repasa una a una marcando correcta/incorrecta, resaltando la opción correcta
-y mostrando la explicación (`apps/web/components/views/quiz-view.tsx:353`).
+y mostrando la explicación (`apps/web/components/views/quiz-view.tsx:369`).
 
 ## Lo que este flujo deja fuera
 
