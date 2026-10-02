@@ -23,7 +23,8 @@ Que en la pantalla Quiz haya un listado de los quizzes ya jugados con su porcent
 - Porcentaje sourced del intento. **Decidir cuál cuando hay varios intentos del mismo quiz** (último, mejor o promedio) y dejarlo escrito: es la decisión que más se nota si se cambia después.
 - Estado explícito para el quiz sin intento terminado, distinto de `0%`.
 - Popup de detalle con el repaso por pregunta: enunciado, opciones, la marcada, la correcta y la explicación. Es la misma forma que `QuizAnswerFeedbackDto` ya devuelve tras enviar, así que el DTO se reutiliza en vez de inventar otro.
-- El CTA de generar nuevo conserva el formulario actual (materia, tema y el nivel de `docs/ToDo/selector-nivel-quiz.md`).
+- El CTA de generar nuevo conserva el formulario actual: materia, tema y el selector de duración
+  (corto / medio / largo), que ya está implementado.
 
 ## Cambios implicados
 

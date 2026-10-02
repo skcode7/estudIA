@@ -4,7 +4,9 @@
 
 No hay validación de entorno al arrancar: una API sin `DEEPSEEK_API_KEY` levanta sana y solo falla al procesar el primer material (`wiki/concepts/configuracion-por-entorno.md`). El `.env` se carga a mano desde `apps/api/.env` (`apps/api/src/main.ts`); si falta, la app arranca igual.
 
-`.env.example` no lista `QUIZ_QUESTIONS_COUNT`, que `quizzes.module.ts` sí lee (`parsePositiveInt(process.env.QUIZ_QUESTIONS_COUNT, 3)`). Descubrirlo exige mirar el código.
+`.env.example` no lista todas las variables que el código lee: `QUIZ_QUESTIONS_COUNT` era una de ellas
+y desapareció cuando el selector de duración sustituyó el número fijo de preguntas por un porcentaje
+sobre el pool. Descubrir el resto exige mirar el código.
 
 Los números mal escritos no tumban la API (`parsePositiveInt` cae al defecto); las claves de IA y S3 se leen en momentos distintos (arranque vs cada llamada), lo que ya confunde en despliegue.
 
@@ -14,7 +16,9 @@ Que un arranque local o un deploy falle pronto y con el nombre de la variable qu
 
 ## Alcance propuesto
 
-- Documentar en `.env.example` `QUIZ_QUESTIONS_COUNT` (y cualquier otra variable que el código lea y el ejemplo omita).
+- Auditar `.env.example` contra lo que el código lee de verdad, y documentar lo que falte. Con
+  `QUIZ_QUESTIONS_COUNT` ya no hay una variable conocida que falte: el trabajo es comprobar que no
+  quede ninguna por encontrar, no rellenar un hueco conocido.
 - Validación mínima al bootstrap de las variables que, si faltan, hacen inútil el proceso en ese entorno (p. ej. `DATABASE_URL`; opcionalmente avisar si `AI_PROVIDER=deepseek` y no hay `DEEPSEEK_API_KEY`).
 - No exigir claves de IA en entornos que solo levantan CRUD (el MVP local debe poder arrancar sin DeepSeek si no se procesa).
 - Mensajes que nombren la variable exacta, como ya hacen los clientes de IA al llamar.
