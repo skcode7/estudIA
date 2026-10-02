@@ -35,28 +35,31 @@ después permite medir cuánto tardó el estudiante.
 `GenerateQuizUseCase` decide de dónde salen las preguntas:
 
 - **Con tema**: el tema debe existir y pertenecer a la materia; si no, `404` o `400`
-  (`apps/api/src/modules/quizzes/application/use-cases/generate-quiz.use-case.ts:42`).
+  (`apps/api/src/modules/quizzes/application/use-cases/generate-quiz.use-case.ts:56`).
 - **Sin tema**: se usan todos los temas de la materia; una materia sin temas es un `400` con un
-  mensaje que dice qué hacer (`apps/api/src/modules/quizzes/application/use-cases/generate-quiz.use-case.ts:51`).
+  mensaje que dice qué hacer (`apps/api/src/modules/quizzes/application/use-cases/generate-quiz.use-case.ts:54`).
 - **Sin preguntas**: si ningún tema tiene preguntas generadas, el `400` dice "Procesa materiales
-  con IA para generarlas" (`apps/api/src/modules/quizzes/application/use-cases/generate-quiz.use-case.ts:61`).
+  con IA para generarlas" (`apps/api/src/modules/quizzes/application/use-cases/generate-quiz.use-case.ts:74`).
   Es el error más común al empezar: tener materiales sin procesar no basta.
 
-De las preguntas disponibles se baraja y se recortan a `QUIZ_QUESTIONS_COUNT` (por defecto 3,
-inyectado como config en `apps/api/src/modules/quizzes/quizzes.module.ts:25`), y el quiz se guarda
-con esos ids (`apps/api/src/modules/quizzes/application/use-cases/generate-quiz.use-case.ts:65`).
+De las preguntas disponibles se baraja el pool entero y se recorta según la duración elegida
+(`SHORT` 30%, `MEDIUM` 50%, `LONG` 70%): la cuenta la saca `countForSize` en
+`apps/api/src/modules/quizzes/application/use-cases/generate-quiz.use-case.ts:28`, con un suelo de
+1 pregunta y sin poder superar el pool. Antes era un número fijo (`QUIZ_QUESTIONS_COUNT`, 3 por
+defecto) que hoy ya no existe. El quiz se guarda con esos ids
+(`apps/api/src/modules/quizzes/application/use-cases/generate-quiz.use-case.ts:79`).
 `topicId: null` significa "quiz de toda la materia".
 
 ## 2 · Presentar: el orden lo pone el DTO
 
 El mismo `shuffle` compartido (`apps/api/src/shared/random.utils.ts:1`) se aplica dos veces al
 montar la respuesta: a las preguntas y a las opciones de cada pregunta
-(`apps/api/src/modules/quizzes/presentation/controllers/quizzes.controller.ts:54`). Ninguno de los
+(`apps/api/src/modules/quizzes/presentation/controllers/quizzes.controller.ts:59`). Ninguno de los
 dos órdenes se guarda: cada petición puede presentar el mismo quiz de forma distinta, y el
 estudiante no puede memorizar "la b es la buena".
 
 Las preguntas con imagen llevan una URL relativa construida con el material de origen
-(`apps/api/src/modules/quizzes/presentation/controllers/quizzes.controller.ts:70`); la web la
+(`apps/api/src/modules/quizzes/presentation/controllers/quizzes.controller.ts:75`); la web la
 resuelve contra la API con `assetUrl` y la pinta con un `<img>` plano
 (`apps/web/components/views/quiz-view.tsx:230`), sin optimizador de Next.
 

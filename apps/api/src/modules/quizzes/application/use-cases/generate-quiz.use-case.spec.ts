@@ -7,7 +7,7 @@ import {
 } from "../../../subjects/application/ports/subject.repository";
 import { TopicRecord, TopicRepository } from "../../../topics/application/ports/topic.repository";
 import { QuizRecord, QuizRepository } from "../ports/quiz.repository";
-import { GenerateQuizUseCase } from "./generate-quiz.use-case";
+import { countForSize, GenerateQuizUseCase } from "./generate-quiz.use-case";
 
 function subjectRepositoryMock(): SubjectRepository {
   return {
@@ -103,8 +103,8 @@ describe("GenerateQuizUseCase", () => {
     const quiz = baseQuiz();
     vi.mocked(quizzes.createQuiz).mockResolvedValue(quiz);
 
-    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes, { questionsCount: 3 });
-    const result = await useCase.execute({ subjectId: "subject-1", topicId: "topic-1" });
+    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes);
+    const result = await useCase.execute({ subjectId: "subject-1", topicId: "topic-1", size: "MEDIUM" });
 
     expect(result).toEqual(quiz);
     expect(quizzes.createQuiz).toHaveBeenCalledWith(
@@ -114,9 +114,10 @@ describe("GenerateQuizUseCase", () => {
         topicId: "topic-1"
       })
     );
+    // 4 preguntas en el alcance y MEDIUM se lleva el 50%: 2, no las 4 ni las 3 de antes.
     const questionIds = vi.mocked(quizzes.createQuiz).mock.calls[0]![0].questionIds;
-    expect(questionIds).toHaveLength(3);
-    expect(new Set(questionIds).size).toBe(3);
+    expect(questionIds).toHaveLength(2);
+    expect(new Set(questionIds).size).toBe(2);
     expect(questionIds.every((id) => ["question-1", "question-2", "question-3", "question-4"].includes(id))).toBe(
       true
     );
@@ -134,8 +135,8 @@ describe("GenerateQuizUseCase", () => {
     vi.mocked(quizzes.findQuestionIdsByTopics).mockResolvedValue(["question-1", "question-2"]);
     vi.mocked(quizzes.createQuiz).mockResolvedValue(baseQuiz({ topicId: null, topicName: null }));
 
-    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes, { questionsCount: 3 });
-    const result = await useCase.execute({ subjectId: "subject-1" });
+    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes);
+    const result = await useCase.execute({ subjectId: "subject-1", size: "MEDIUM" });
 
     expect(result.topicId).toBeNull();
     expect(topics.findAll).toHaveBeenCalledWith({ subjectId: "subject-1" });
@@ -151,9 +152,9 @@ describe("GenerateQuizUseCase", () => {
     const quizzes = quizRepositoryMock();
     vi.mocked(subjects.findById).mockResolvedValue(null);
 
-    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes, { questionsCount: 3 });
+    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes);
 
-    await expect(useCase.execute({ subjectId: "missing" })).rejects.toThrow(
+    await expect(useCase.execute({ subjectId: "missing", size: "MEDIUM" })).rejects.toThrow(
       'Materia con id "missing" no encontrada.'
     );
     expect(quizzes.createQuiz).not.toHaveBeenCalled();
@@ -166,9 +167,9 @@ describe("GenerateQuizUseCase", () => {
     vi.mocked(subjects.findById).mockResolvedValue(baseSubject());
     vi.mocked(topics.findById).mockResolvedValue(null);
 
-    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes, { questionsCount: 3 });
+    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes);
 
-    await expect(useCase.execute({ subjectId: "subject-1", topicId: "missing" })).rejects.toThrow(
+    await expect(useCase.execute({ subjectId: "subject-1", topicId: "missing", size: "MEDIUM" })).rejects.toThrow(
       'Tema con id "missing" no encontrado.'
     );
   });
@@ -180,10 +181,10 @@ describe("GenerateQuizUseCase", () => {
     vi.mocked(subjects.findById).mockResolvedValue(baseSubject());
     vi.mocked(topics.findById).mockResolvedValue(baseTopic({ subjectId: "subject-9" }));
 
-    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes, { questionsCount: 3 });
+    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes);
 
     await expect(
-      useCase.execute({ subjectId: "subject-1", topicId: "topic-1" })
+      useCase.execute({ subjectId: "subject-1", topicId: "topic-1", size: "MEDIUM" })
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
@@ -194,9 +195,9 @@ describe("GenerateQuizUseCase", () => {
     vi.mocked(subjects.findById).mockResolvedValue(baseSubject());
     vi.mocked(topics.findAll).mockResolvedValue([]);
 
-    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes, { questionsCount: 3 });
+    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes);
 
-    await expect(useCase.execute({ subjectId: "subject-1" })).rejects.toThrow(
+    await expect(useCase.execute({ subjectId: "subject-1", size: "MEDIUM" })).rejects.toThrow(
       "no tiene temas"
     );
   });
@@ -209,33 +210,54 @@ describe("GenerateQuizUseCase", () => {
     vi.mocked(topics.findById).mockResolvedValue(baseTopic());
     vi.mocked(quizzes.findQuestionIdsByTopics).mockResolvedValue([]);
 
-    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes, { questionsCount: 3 });
+    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes);
 
     await expect(
-      useCase.execute({ subjectId: "subject-1", topicId: "topic-1" })
+      useCase.execute({ subjectId: "subject-1", topicId: "topic-1", size: "MEDIUM" })
     ).rejects.toBeInstanceOf(BadRequestException);
     expect(quizzes.createQuiz).not.toHaveBeenCalled();
   });
 
-  it("respects the configured question count for the number of selected questions", async () => {
+  it.each([
+    ["SHORT", 10, 3],
+    ["MEDIUM", 10, 5],
+    ["LONG", 10, 7]
+  ] as const)("takes the expected share of the pool for %s", async (size, pool, expected) => {
     const subjects = subjectRepositoryMock();
     const topics = topicRepositoryMock();
     const quizzes = quizRepositoryMock();
     vi.mocked(subjects.findById).mockResolvedValue(baseSubject());
     vi.mocked(topics.findById).mockResolvedValue(baseTopic());
-    vi.mocked(quizzes.findQuestionIdsByTopics).mockResolvedValue(["q1", "q2", "q3"]);
+    vi.mocked(quizzes.findQuestionIdsByTopics).mockResolvedValue(
+      Array.from({ length: pool }, (_, index) => `q${index}`)
+    );
     vi.mocked(quizzes.createQuiz).mockResolvedValue(baseQuiz());
 
-    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes, { questionsCount: 2 });
-    await useCase.execute({ subjectId: "subject-1", topicId: "topic-1" });
+    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes);
+    await useCase.execute({ subjectId: "subject-1", topicId: "topic-1", size });
 
     const questionIds = vi.mocked(quizzes.createQuiz).mock.calls[0]![0].questionIds;
-    expect(questionIds).toHaveLength(2);
-    expect(new Set(questionIds).size).toBe(2);
-    expect(questionIds.every((id) => ["q1", "q2", "q3"].includes(id))).toBe(true);
+    expect(questionIds).toHaveLength(expected);
+    expect(new Set(questionIds).size).toBe(expected);
   });
 
-  it("uses at most the available questions when there are fewer than the configured count", async () => {
+  it("never returns a zero-question quiz when the percentage rounds below one", async () => {
+    const subjects = subjectRepositoryMock();
+    const topics = topicRepositoryMock();
+    const quizzes = quizRepositoryMock();
+    vi.mocked(subjects.findById).mockResolvedValue(baseSubject());
+    vi.mocked(topics.findById).mockResolvedValue(baseTopic());
+    vi.mocked(quizzes.findQuestionIdsByTopics).mockResolvedValue(["q1", "q2"]);
+    vi.mocked(quizzes.createQuiz).mockResolvedValue(baseQuiz());
+
+    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes);
+    await useCase.execute({ subjectId: "subject-1", topicId: "topic-1", size: "SHORT" });
+
+    const questionIds = vi.mocked(quizzes.createQuiz).mock.calls[0]![0].questionIds;
+    expect(questionIds).toHaveLength(1);
+  });
+
+  it("uses at most the available questions when the pool is smaller than the percentage", async () => {
     const subjects = subjectRepositoryMock();
     const topics = topicRepositoryMock();
     const quizzes = quizRepositoryMock();
@@ -244,10 +266,31 @@ describe("GenerateQuizUseCase", () => {
     vi.mocked(quizzes.findQuestionIdsByTopics).mockResolvedValue(["q1"]);
     vi.mocked(quizzes.createQuiz).mockResolvedValue(baseQuiz());
 
-    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes, { questionsCount: 2 });
-    await useCase.execute({ subjectId: "subject-1", topicId: "topic-1" });
+    const useCase = new GenerateQuizUseCase(subjects, topics, quizzes);
+    await useCase.execute({ subjectId: "subject-1", topicId: "topic-1", size: "LONG" });
 
     const questionIds = vi.mocked(quizzes.createQuiz).mock.calls[0]![0].questionIds;
     expect(questionIds).toEqual(["q1"]);
+  });
+});
+
+describe("countForSize", () => {
+  it("returns 0 for an empty pool instead of the floor of 1", () => {
+    expect(countForSize(0, "MEDIUM")).toBe(0);
+  });
+
+  it.each([
+    [1, "SHORT", 1],
+    [2, "SHORT", 1],
+    [3, "SHORT", 1],
+    [4, "SHORT", 1],
+    [10, "SHORT", 3],
+    [10, "MEDIUM", 5],
+    [5, "SHORT", 2],
+    [10, "LONG", 7],
+    [2, "LONG", 1],
+    [1, "LONG", 1]
+  ] as const)("maps pool and size to the clamped count (%i / %s / %i)", (pool, size, expected) => {
+    expect(countForSize(pool, size)).toBe(expected);
   });
 });

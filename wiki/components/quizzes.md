@@ -9,7 +9,7 @@ sources:
   - apps/api/src/modules/quizzes/presentation/dto/quizzes.dto.ts
   - apps/api/src/modules/materials/infrastructure/prisma-material-question.repository.ts
   - apps/api/prisma/schema.prisma
-synced: 9c5e777
+synced: 1e5aca6
 related:
   - ../flows/generar-y-resolver-quiz.md
   - ../components/materiales.md
@@ -30,8 +30,20 @@ copian: se leen de la pregunta cada vez que hace falta — `findQuizForGrading` 
 dos quizzes distintos pueden compartir preguntas y por eso el quiz no se puede editar.
 
 La presentación se baraja al servir, no al guardar
-(`apps/api/src/modules/quizzes/presentation/controllers/quizzes.controller.ts:54`): el `order` de
+(`apps/api/src/modules/quizzes/presentation/controllers/quizzes.controller.ts:59`): el `order` de
 `QuizQuestion` es el orden de creación, no el que ve el estudiante.
+
+## Cuántas preguntas entra: un porcentaje del pool, no un número fijo
+
+`countForSize` (`apps/api/src/modules/quizzes/application/use-cases/generate-quiz.use-case.ts:28`)
+decide cuántas preguntas se toman del alcance según la duración que elige el cliente: `SHORT` 30%,
+`MEDIUM` 50%, `LONG` 70%. Redondea y acota entre 1 y el tamaño del pool, así que un pool de 2 con
+`SHORT` (0.6) da 1 y nunca un quiz vacío. Es una función pura y exportada, sin configuración ni
+entorno: el módulo de quizzes ya no inyecta nada por token. Antes era un número fijo
+(`QUIZ_QUESTIONS_COUNT`, 3 por defecto).
+
+`size` es la duración del quiz y no tiene nada que ver con `Question.difficulty`
+(`easy|medium|hard`), que es un atributo de la pregunta y que este selector no filtra.
 
 ## Corregir escribe progreso
 
@@ -77,6 +89,6 @@ lo pidió, y si la página se recarga se pierde (la web lo reconoce y ofrece gen
 hay deduplicación de intentos ni caducidad: cada envío crea un `QuizAttempt` nuevo.
 
 El contrato de entrada está en los DTOs: un intento exige `startedAt` y un array de respuestas
-validado elemento a elemento (`apps/api/src/modules/quizzes/presentation/dto/quizzes.dto.ts:39`),
+validado elemento a elemento (`apps/api/src/modules/quizzes/presentation/dto/quizzes.dto.ts:69`),
 que es lo que permite anidar `SubmitAnswerDto` con su par `questionId` / `selectedOptionId` sin
 volver a declarar la validación en el controller.

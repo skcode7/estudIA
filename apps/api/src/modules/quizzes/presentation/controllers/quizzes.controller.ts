@@ -8,6 +8,7 @@ import {
   QuizAnswerFeedbackDto,
   QuizAttemptResultDto,
   QuizDto,
+  QuizSizeDto,
   SubmitAttemptDto
 } from "../dto/quizzes.dto";
 import { shuffle } from "../../../../shared/random.utils";
@@ -22,7 +23,11 @@ export class QuizzesController {
   @Post("generate")
   generate(@Body() dto: GenerateQuizDto): Promise<QuizDto> {
     return this.generateQuizUseCase
-      .execute({ subjectId: dto.subjectId, topicId: dto.topicId })
+      .execute({
+        subjectId: dto.subjectId,
+        topicId: dto.topicId,
+        size: dto.size ?? QuizSizeDto.MEDIUM
+      })
       .then(toQuizDto);
   }
 

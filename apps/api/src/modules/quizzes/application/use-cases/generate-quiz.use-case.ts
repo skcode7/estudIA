@@ -1,19 +1,34 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
 import { SubjectRepository } from "../../../subjects/application/ports/subject.repository";
 import { TopicRepository } from "../../../topics/application/ports/topic.repository";
 import { QuizRecord, QuizRepository } from "../ports/quiz.repository";
 import { shuffle } from "../../../../shared/random.utils";
 
+export type QuizSize = "SHORT" | "MEDIUM" | "LONG";
+
 export interface GenerateQuizInput {
   subjectId: string;
   topicId?: string | null;
+  size: QuizSize;
 }
 
-export const GENERATE_QUIZ_CONFIG = "GENERATE_QUIZ_CONFIG";
+/** Porción del pool que cada duración se lleva. */
+const SIZE_RATIOS: Record<QuizSize, number> = {
+  SHORT: 0.3,
+  MEDIUM: 0.5,
+  LONG: 0.7
+};
 
-export interface GenerateQuizConfig {
-  questionsCount: number;
+/**
+ * Cuántas preguntas se toman del pool para la duración elegida, como porcentaje
+ * del alcance. El suelo en 1 importa: con un pool de 2, el 30% da 0.6 y un
+ * quiz de cero preguntas es un resultado inválido, no uno fácil.
+ */
+export function countForSize(poolSize: number, size: QuizSize): number {
+  if (poolSize <= 0) return 0;
+  const count = Math.round(poolSize * SIZE_RATIOS[size]);
+  return Math.min(Math.max(count, 1), poolSize);
 }
 
 @Injectable()
@@ -21,8 +36,7 @@ export class GenerateQuizUseCase {
   constructor(
     private readonly subjectRepository: SubjectRepository,
     private readonly topicRepository: TopicRepository,
-    private readonly quizRepository: QuizRepository,
-    @Inject(GENERATE_QUIZ_CONFIG) private readonly config: GenerateQuizConfig
+    private readonly quizRepository: QuizRepository
   ) {}
 
   async execute(input: GenerateQuizInput): Promise<QuizRecord> {
@@ -62,7 +76,7 @@ export class GenerateQuizUseCase {
       );
     }
 
-    const selectedIds = shuffle(questionIds).slice(0, this.config.questionsCount);
+    const selectedIds = shuffle(questionIds).slice(0, countForSize(questionIds.length, input.size));
     return this.quizRepository.createQuiz({
       title,
       subjectId: subject.id,

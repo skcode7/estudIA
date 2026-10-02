@@ -8,12 +8,24 @@ import {
   IsArray,
   IsBoolean,
   IsDateString,
+  IsEnum,
   IsNumber,
   IsOptional,
   IsString,
   IsUUID,
   ValidateNested
 } from "class-validator";
+
+/**
+ * Cuán largo es el quiz, como porcentaje del pool de preguntas del alcance.
+ * No es la dificultad de la pregunta: `Question.difficulty` (`easy|medium|hard`)
+ * es un atributo distinto y esta duración no lo filtra.
+ */
+export enum QuizSizeDto {
+  SHORT = "SHORT",
+  MEDIUM = "MEDIUM",
+  LONG = "LONG"
+}
 
 export class GenerateQuizDto {
   @ApiProperty({ example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890", description: "UUID de la materia del quiz" })
@@ -24,6 +36,16 @@ export class GenerateQuizDto {
   @IsOptional()
   @IsUUID()
   topicId?: string;
+
+  @ApiPropertyOptional({
+    enum: QuizSizeDto,
+    example: QuizSizeDto.MEDIUM,
+    description:
+      "Duración del quiz: SHORT 30%, MEDIUM 50%, LONG 70% de las preguntas del alcance (por defecto MEDIUM)"
+  })
+  @IsOptional()
+  @IsEnum(QuizSizeDto)
+  size?: QuizSizeDto;
 }
 
 export class SubmitAnswerDto {

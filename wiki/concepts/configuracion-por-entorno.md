@@ -43,13 +43,14 @@ Este es el matiz que más confusión causa, porque el código no es uniforme:
 
 ## Los números ajustables entran como config inyectada
 
-Los casos de uso no leen `process.env`: cada módulo define un token de config y lo construye con
-una fábrica — `PROCESS_MATERIAL_CONFIG` con las preguntas por material
-(`apps/api/src/modules/materials/materials.module.ts:54`) y `GENERATE_QUIZ_CONFIG` con las
-preguntas del quiz (`apps/api/src/modules/quizzes/quizzes.module.ts:23`). Eso los hace testeables
-sin tocar el entorno y hace del módulo el sitio donde se ve todo lo configurable.
+Los casos de uso no leen `process.env`: el módulo que lo necesita define un token de config y lo
+construye con una fábrica — `PROCESS_MATERIAL_CONFIG` con las preguntas por material
+(`apps/api/src/modules/materials/materials.module.ts:54`). Eso los hace testeables sin tocar el
+entorno y hace del módulo el sitio donde se ve todo lo configurable. El módulo de quizzes ya no
+tiene config: el número de preguntas lo decide la duración elegida por el cliente, como porcentaje
+del pool, en una función pura (`countForSize`) en vez de en el entorno.
 
-Ambos usan `parsePositiveInt` (`apps/api/src/shared/env.utils.ts:1`), que cae al valor por defecto
+`parsePositiveInt` (`apps/api/src/shared/env.utils.ts:1`), que cae al valor por defecto
 ante ausencia, texto o números no positivos: `AI_QUESTIONS_PER_MATERIAL=abc` no rompe el arranque,
 da 3. Es una regla pequeña y constante — **un valor mal escrito nunca tumba la API, usa el
 defecto** — que conviene no romper al añadir variables nuevas.
@@ -57,5 +58,5 @@ defecto** — que conviene no romper al añadir variables nuevas.
 ## Lo que la configuración no cubre todavía
 
 No hay validación de entorno al arrancar: una API sin `DEEPSEEK_API_KEY` levanta sana y solo falla
-al procesar el primer material. Y `.env.example` no lista `QUIZ_QUESTIONS_COUNT`, que el módulo de
-quizzes sí lee: descubrirlo exige mirar el código.
+al procesar el primer material. Y `.env.example` no es aún la lista completa de lo que el código
+lee, así que descubrir una variable exige mirar el código.
