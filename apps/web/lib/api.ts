@@ -303,9 +303,16 @@ export interface ApiQuiz {
   updatedAt: string;
 }
 
+/**
+ * Duración del quiz. La API la traduce a un porcentaje del pool de preguntas
+ * del alcance (30% / 50% / 70%). No es la dificultad de la pregunta.
+ */
+export type QuizSize = "SHORT" | "MEDIUM" | "LONG";
+
 export interface GenerateQuizInput {
   subjectId: string;
   topicId?: string;
+  size?: QuizSize;
 }
 
 export interface ApiQuizAnswerFeedback {

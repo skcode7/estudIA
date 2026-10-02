@@ -9,7 +9,8 @@ import {
   submitQuizAnswers,
   type ApiQuiz,
   type ApiQuizAttemptResult,
-  type ApiTopic
+  type ApiTopic,
+  type QuizSize
 } from "../../lib/api";
 import { type Subject } from "../../lib/subjects";
 import { EmptyPanel, ErrorPanel, LoadingPanel } from "../ui/state-panels";
@@ -26,6 +27,7 @@ export function QuizView({ subjects }: { subjects: Subject[] }) {
   const [result, setResult] = useState<ApiQuizAttemptResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadError, setLoadError] = useState("");
+  const [size, setSize] = useState<QuizSize>("MEDIUM");
 
   const activeSubjectId = subjectId || subjects[0]?.id || "";
 
@@ -75,6 +77,7 @@ export function QuizView({ subjects }: { subjects: Subject[] }) {
     try {
       const created = await generateQuiz({
         subjectId: activeSubjectId,
+        size,
         ...(topicId ? { topicId } : {})
       });
       setQuiz(created);
@@ -86,7 +89,7 @@ export function QuizView({ subjects }: { subjects: Subject[] }) {
     } finally {
       setIsGenerating(false);
     }
-  }, [activeSubjectId, topicId]);
+  }, [activeSubjectId, topicId, size]);
 
   const allAnswered = quiz
     ? quiz.questions.every((question) => Boolean(answers[question.id]))
@@ -137,7 +140,7 @@ export function QuizView({ subjects }: { subjects: Subject[] }) {
 
       {!quiz && !result && (
         <>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          <div className="mt-6 grid gap-4 sm:grid-cols-3">
             <label className="block text-sm font-semibold">
               Materia
               <select
@@ -175,6 +178,19 @@ export function QuizView({ subjects }: { subjects: Subject[] }) {
                     ))}
                   </>
                 )}
+              </select>
+            </label>
+
+            <label className="block text-sm font-semibold">
+              Duración
+              <select
+                className="mt-2 min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 text-base outline-none focus:border-[#6d4aff] focus:ring-2 focus:ring-[#f1eeff]"
+                onChange={(event) => setSize(event.target.value as QuizSize)}
+                value={size}
+              >
+                <option value="SHORT">Corta</option>
+                <option value="MEDIUM">Media</option>
+                <option value="LONG">Larga</option>
               </select>
             </label>
           </div>
