@@ -339,12 +339,13 @@ export interface SubmitQuizAnswerInput {
 }
 
 export function generateQuiz(input: GenerateQuizInput): Promise<ApiQuiz> {
+  // Se serializa el input entero, campo a campo: reconstruir la lista a mano
+  // aquí ya dejó fuera `size` una vez y la duración elegida se ignoraba en
+  // silencio, con la API aplicando siempre su valor por defecto. `undefined`
+  // no se serializa, así que los opcionales ausentes no viajan.
   return request<ApiQuiz>("/quizzes/generate", {
     method: "POST",
-    body: JSON.stringify({
-      subjectId: input.subjectId,
-      ...(input.topicId ? { topicId: input.topicId } : {})
-    })
+    body: JSON.stringify(input)
   });
 }
 
