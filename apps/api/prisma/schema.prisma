@@ -20,9 +20,18 @@ enum MaterialProcessingStatus {
   FAILED
 }
 
+enum EvaluationProcessingStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
 enum QuestionType {
   MULTIPLE_CHOICE
   OPEN_ANSWER
+  TRUE_FALSE
+  FILL_BLANK
 }
 
 model Subject {
@@ -32,10 +41,9 @@ model Subject {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  topics Topic[]
-  quizzes Quiz[]
+  topics   Topic[]
+  quizzes  Quiz[]
 }
-
 model Topic {
   id          String   @id @default(uuid())
   subjectId   String
@@ -44,11 +52,12 @@ model Topic {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  subject  Subject       @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  subject  Subject         @relation(fields: [subjectId], references: [id], onDelete: Cascade)
   materials Material[]
   questions Question[]
   quizzes   Quiz[]
   progress  TopicProgress?
+  evaluations Evaluation[]
 
   @@index([subjectId])
 }
@@ -88,28 +97,66 @@ model MaterialImage {
   @@index([materialId])
 }
 
-model Question {
-  id               String       @id @default(uuid())
+model Evaluation {
+  id               String                    @id @default(uuid())
   topicId          String
-  type             QuestionType @default(MULTIPLE_CHOICE)
-  statement        String       @db.Text
-  explanation      String?      @db.Text
-  difficulty       String       @default("medium")
-  sourceMaterialId String?
-  imageId          String?
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
+  title            String
+  dateTaken        DateTime?
+  processingStatus EvaluationProcessingStatus @default(PENDING)
+  processingError  String?                   @db.Text
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
 
-  topic          Topic            @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  sourceMaterial Material?        @relation("SourceMaterial", fields: [sourceMaterialId], references: [id], onDelete: SetNull)
-  image          MaterialImage?   @relation(fields: [imageId], references: [id], onDelete: SetNull)
-  options        QuestionOption[]
-  quizQuestions  QuizQuestion[]
-  answers        Answer[]
+  topic     Topic             @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  images    EvaluationImage[]
+  questions Question[]         @relation("SourceEvaluation")
+
+  @@index([topicId])
+}
+
+model EvaluationImage {
+  id           String   @id @default(uuid())
+  evaluationId String
+  storageKey   String
+  label        String
+  order        Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  evaluation Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  questions  Question[]
+
+  @@index([evaluationId])
+}
+
+model Question {
+  id                 String       @id @default(uuid())
+  topicId            String
+  type               QuestionType @default(MULTIPLE_CHOICE)
+  statement          String       @db.Text
+  explanation        String?      @db.Text
+  difficulty         String       @default("medium")
+  sourceMaterialId   String?
+  imageId            String?
+  sourceEvaluationId String?
+  evaluationImageId  String?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  topic            Topic            @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  sourceMaterial   Material?        @relation("SourceMaterial", fields: [sourceMaterialId], references: [id], onDelete: SetNull)
+  image            MaterialImage?   @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  sourceEvaluation Evaluation?      @relation("SourceEvaluation", fields: [sourceEvaluationId], references: [id], onDelete: SetNull)
+  evaluationImage  EvaluationImage? @relation(fields: [evaluationImageId], references: [id], onDelete: SetNull)
+  options          QuestionOption[]
+  quizQuestions    QuizQuestion[]
+  answers          Answer[]
 
   @@index([topicId])
   @@index([sourceMaterialId])
   @@index([imageId])
+  @@index([sourceEvaluationId])
+  @@index([evaluationImageId])
 }
 
 model QuestionOption {
