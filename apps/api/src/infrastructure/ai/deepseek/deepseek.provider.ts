@@ -2,7 +2,11 @@ import { Injectable } from "@nestjs/common";
 
 import {
   AIProvider,
+  AnalyzeEvaluationDraftInput,
   AnalyzeMaterialInput,
+  EvaluationDraft,
+  ExtractEvaluationQuestionsInput,
+  ExtractedEvaluationQuestion,
   GenerateHintInput,
   GenerateQuestionsInput,
   ExplainAnswerInput,
@@ -12,14 +16,23 @@ import {
   MaterialAnalysis
 } from "../../../modules/ai/application/ports/ai-provider";
 import { DeepSeekClient } from "./deepseek.client";
-import { toGeneratedQuestions, toMaterialAnalysis } from "./deepseek.mapper";
 import {
+  toEvaluationDraft,
+  toExtractedEvaluationQuestions,
+  toGeneratedQuestions,
+  toMaterialAnalysis
+} from "./deepseek.mapper";
+import {
+  analyzeEvaluationDraftMessages,
   analyzeMessages,
+  extractEvaluationQuestionsMessages,
   explainMessages,
   generateQuestionsMessages,
   hintMessages
 } from "./deepseek.prompts";
 import {
+  evaluationDraftSchema,
+  extractedEvaluationQuestionsSchema,
   generatedQuestionsSchema,
   materialAnalysisSchema
 } from "./deepseek.schemas";
@@ -56,6 +69,32 @@ export class DeepSeekProvider implements AIProvider {
     );
     if (questions.length === 0) {
       throw new Error("El modelo no devolvió preguntas válidas (ninguna con exactamente una respuesta correcta).");
+    }
+    return questions;
+  }
+
+  async analyzeEvaluationDraft(input: AnalyzeEvaluationDraftInput): Promise<EvaluationDraft> {
+    const raw = await this.client.chat(analyzeEvaluationDraftMessages(input));
+    return toEvaluationDraft(parseModelJson(evaluationDraftSchema, raw));
+  }
+
+  async extractEvaluationQuestions(
+    input: ExtractEvaluationQuestionsInput
+  ): Promise<ExtractedEvaluationQuestion[]> {
+    const raw = await this.client.chat(
+      extractEvaluationQuestionsMessages({
+        subjectName: input.subjectName,
+        title: input.title,
+        images: input.images
+      })
+    );
+    const validated = parseModelJson(extractedEvaluationQuestionsSchema, raw);
+    const validImageIndexes = new Set(input.images.map((_, index) => index));
+    const questions = toExtractedEvaluationQuestions(validated).filter(
+      (question) => question.imageIndex === undefined || validImageIndexes.has(question.imageIndex)
+    );
+    if (questions.length === 0) {
+      throw new Error("El modelo no devolvió preguntas válidas de la evaluación.");
     }
     return questions;
   }

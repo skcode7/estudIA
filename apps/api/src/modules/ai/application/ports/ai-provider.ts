@@ -74,6 +74,48 @@ export interface GeneratedQuestion {
   options: GeneratedQuestionOption[];
 }
 
+export interface AnalyzeEvaluationDraftInput {
+  /** Fotografías de la evaluación, en orden de lectura. */
+  images: { mimeType: string; body: Buffer }[];
+  /** Catálogo de materias y temas existentes para que el modelo sugiera ids válidos. */
+  catalog?: MaterialCatalogSubject[];
+}
+
+export interface EvaluationDraft {
+  suggestedTitle?: string;
+  suggestedSubjectId?: string | null;
+  suggestedTopicId?: string | null;
+}
+
+/**
+ * Tipos que una evaluación de papel puede traer y que el quiz sabe calificar.
+ * Las respuestas abiertas quedan fuera: no hay forma automática de corregirlas.
+ */
+export type ExtractedQuestionType = "MULTIPLE_CHOICE" | "TRUE_FALSE" | "FILL_BLANK";
+
+export interface ExtractEvaluationQuestionsInput {
+  /** Nombre de la materia a la que pertenece la evaluación. */
+  subjectName: string;
+  title?: string;
+  /** Fotografías de la evaluación, en orden de lectura. */
+  images: { mimeType: string; body: Buffer }[];
+}
+
+export interface ExtractedEvaluationQuestion {
+  type: ExtractedQuestionType;
+  statement: string;
+  explanation?: string;
+  difficulty: "easy" | "medium" | "hard";
+  /**
+   * Opciones para `MULTIPLE_CHOICE` y `TRUE_FALSE` (en este último caso,
+   * "Verdadero" y "Falso" con una marcada). Para `FILL_BLANK` son las
+   * respuestas aceptadas y todas van marcadas como correctas.
+   */
+  options: GeneratedQuestionOption[];
+  /** Índice de la foto de la evaluación donde aparece la pregunta. */
+  imageIndex?: number;
+}
+
 export interface ExplainAnswerInput {
   question: string;
   options: string[];
@@ -97,6 +139,10 @@ export interface Hint {
 export abstract class AIProvider {
   abstract analyzeMaterial(input: AnalyzeMaterialInput): Promise<MaterialAnalysis>;
   abstract generateQuestions(input: GenerateQuestionsInput): Promise<GeneratedQuestion[]>;
+  abstract analyzeEvaluationDraft(input: AnalyzeEvaluationDraftInput): Promise<EvaluationDraft>;
+  abstract extractEvaluationQuestions(
+    input: ExtractEvaluationQuestionsInput
+  ): Promise<ExtractedEvaluationQuestion[]>;
   abstract explainAnswer(input: ExplainAnswerInput): Promise<Explanation>;
   abstract generateHint(input: GenerateHintInput): Promise<Hint>;
 }
