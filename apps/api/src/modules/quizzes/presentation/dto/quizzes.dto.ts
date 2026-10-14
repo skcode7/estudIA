@@ -27,6 +27,12 @@ export enum QuizSizeDto {
   LONG = "LONG"
 }
 
+export enum QuizQuestionTypeDto {
+  MULTIPLE_CHOICE = "MULTIPLE_CHOICE",
+  TRUE_FALSE = "TRUE_FALSE",
+  FILL_BLANK = "FILL_BLANK"
+}
+
 export class GenerateQuizDto {
   @ApiProperty({ example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890", description: "UUID de la materia del quiz" })
   @IsUUID()
@@ -53,9 +59,23 @@ export class SubmitAnswerDto {
   @IsUUID()
   questionId!: string;
 
-  @ApiProperty({ example: "d4e5f6a7-b8c9-0123-def0-123456789013", description: "UUID de la opción elegida" })
+  @ApiPropertyOptional({
+    example: "d4e5f6a7-b8c9-0123-def0-123456789013",
+    description: "UUID de la opción elegida (opción múltiple / verdadero-falso)",
+    nullable: true
+  })
+  @IsOptional()
   @IsUUID()
-  selectedOptionId!: string;
+  selectedOptionId?: string | null;
+
+  @ApiPropertyOptional({
+    example: "París",
+    description: "Texto escrito por el estudiante (preguntas para completar)",
+    nullable: true
+  })
+  @IsOptional()
+  @IsString()
+  answerText?: string | null;
 }
 
 export class SubmitAttemptDto {
@@ -85,6 +105,10 @@ export class QuizQuestionDto {
   @ApiProperty({ example: "c3d4e5f6-a7b8-9012-cdef-123456789012", description: "UUID de la pregunta" })
   @IsUUID()
   id!: string;
+
+  @ApiProperty({ enum: QuizQuestionTypeDto, description: "Tipo de pregunta" })
+  @IsEnum(QuizQuestionTypeDto)
+  type!: QuizQuestionTypeDto;
 
   @ApiProperty({ example: "¿Qué convierte la luz en energía química?", description: "Enunciado de la pregunta" })
   @IsString()
@@ -157,13 +181,23 @@ export class QuizAnswerFeedbackDto {
   @IsString()
   statement!: string;
 
-  @ApiProperty({ example: "d4e5f6a7-b8c9-0123-def0-123456789013", description: "UUID de la opción elegida" })
+  @ApiPropertyOptional({
+    example: "d4e5f6a7-b8c9-0123-def0-123456789013",
+    description: "UUID de la opción elegida (opción múltiple / verdadero-falso)",
+    nullable: true
+  })
+  @IsOptional()
   @IsUUID()
-  selectedOptionId!: string;
+  selectedOptionId!: string | null;
 
-  @ApiProperty({ example: "e5f6a7b8-c9d0-1123-ef0a-123456789014", description: "UUID de la opción correcta" })
+  @ApiPropertyOptional({
+    example: "e5f6a7b8-c9d0-1123-ef0a-123456789014",
+    description: "UUID de la opción correcta (opción múltiple / verdadero-falso)",
+    nullable: true
+  })
+  @IsOptional()
   @IsUUID()
-  correctOptionId!: string;
+  correctOptionId!: string | null;
 
   @ApiProperty({ example: true, description: "Indica si la respuesta fue correcta" })
   @IsBoolean()

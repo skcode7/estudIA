@@ -22,6 +22,7 @@ function baseGradingQuiz(overrides: Partial<QuizGradingRecord> = {}): QuizGradin
       {
         id: "question-1",
         topicId: "topic-1",
+        type: "MULTIPLE_CHOICE",
         statement: "¿Qué convierte la luz en energía química?",
         explanation: "La clorofila capta la luz.",
         options: [
@@ -32,6 +33,7 @@ function baseGradingQuiz(overrides: Partial<QuizGradingRecord> = {}): QuizGradin
       {
         id: "question-2",
         topicId: "topic-1",
+        type: "MULTIPLE_CHOICE",
         statement: "¿Qué gas libera la fotosíntesis?",
         explanation: "Libera oxígeno.",
         options: [
@@ -73,8 +75,8 @@ describe("SubmitQuizAttemptUseCase", () => {
         score: 50,
         startedAt: new Date("2026-09-11T12:00:00.000Z"),
         answers: [
-          { questionId: "question-1", selectedOptionId: "option-1", isCorrect: true },
-          { questionId: "question-2", selectedOptionId: "option-3", isCorrect: false }
+          { questionId: "question-1", selectedOptionId: "option-1", answerText: null, isCorrect: true },
+          { questionId: "question-2", selectedOptionId: "option-3", answerText: null, isCorrect: false }
         ]
       })
     );

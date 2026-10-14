@@ -1,13 +1,13 @@
 import { Body, Controller, Param, Post } from "@nestjs/common";
 
 import { GenerateQuizUseCase } from "../../application/use-cases/generate-quiz.use-case";
-import { SubmitQuizAttemptUseCase } from "../../application/use-cases/submit-quiz-attempt.use-case";
+import { SubmitQuizAttemptUseCase, QuizAnswerFeedback } from "../../application/use-cases/submit-quiz-attempt.use-case";
 import { QuizRecord } from "../../application/ports/quiz.repository";
 import {
   GenerateQuizDto,
-  QuizAnswerFeedbackDto,
   QuizAttemptResultDto,
   QuizDto,
+  QuizQuestionTypeDto,
   QuizSizeDto,
   SubmitAttemptDto
 } from "../dto/quizzes.dto";
@@ -39,7 +39,8 @@ export class QuizzesController {
         startedAt: new Date(dto.startedAt),
         answers: dto.answers.map((answer) => ({
           questionId: answer.questionId,
-          selectedOptionId: answer.selectedOptionId
+          selectedOptionId: answer.selectedOptionId ?? null,
+          answerText: answer.answerText ?? null
         }))
       })
       .then(toAttemptResultDto);
@@ -58,6 +59,7 @@ function toQuizDto(quiz: QuizRecord): QuizDto {
     updatedAt: quiz.updatedAt.toISOString(),
     questions: shuffle(quiz.questions).map((question) => ({
       id: question.id,
+      type: question.type as QuizQuestionTypeDto,
       statement: question.statement,
       imageUrl: toQuestionImageUrl(question),
       options: shuffle(question.options)
@@ -68,16 +70,21 @@ function toQuizDto(quiz: QuizRecord): QuizDto {
 function toQuestionImageUrl(question: {
   imageId: string | null;
   sourceMaterialId: string | null;
+  evaluationImageId: string | null;
+  sourceEvaluationId: string | null;
 }): string | null {
-  if (!question.imageId || !question.sourceMaterialId) {
-    return null;
+  if (question.imageId && question.sourceMaterialId) {
+    return `/materials/${question.sourceMaterialId}/images/${question.imageId}`;
   }
-  return `/materials/${question.sourceMaterialId}/images/${question.imageId}`;
+  if (question.evaluationImageId && question.sourceEvaluationId) {
+    return `/evaluations/${question.sourceEvaluationId}/images/${question.evaluationImageId}`;
+  }
+  return null;
 }
 
 function toAttemptResultDto(result: {
   attempt: { id: string; quizId: string; startedAt: Date; completedAt: Date; score: number };
-  answers: QuizAnswerFeedbackDto[];
+  answers: QuizAnswerFeedback[];
 }): QuizAttemptResultDto {
   return {
     attemptId: result.attempt.id,
@@ -85,6 +92,13 @@ function toAttemptResultDto(result: {
     score: result.attempt.score,
     startedAt: result.attempt.startedAt.toISOString(),
     completedAt: result.attempt.completedAt.toISOString(),
-    answers: result.answers
+    answers: result.answers.map((answer) => ({
+      questionId: answer.questionId,
+      statement: answer.statement,
+      selectedOptionId: answer.selectedOptionId ?? null,
+      correctOptionId: answer.correctOptionId ?? null,
+      isCorrect: answer.isCorrect,
+      explanation: answer.explanation
+    }))
   };
 }

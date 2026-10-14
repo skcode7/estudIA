@@ -3,13 +3,19 @@ export interface QuizOptionPresentation {
   text: string;
 }
 
+export type QuizQuestionType = "MULTIPLE_CHOICE" | "TRUE_FALSE" | "FILL_BLANK";
+
 export interface QuizQuestionPresentation {
   id: string;
+  type: QuizQuestionType;
   statement: string;
   /** Imagen del enunciado (null si la pregunta no tiene imagen). */
   imageId: string | null;
   /** Material del que se extrajo la imagen (null si la pregunta no tiene imagen). */
   sourceMaterialId: string | null;
+  /** Foto de la evaluación de la que sale la pregunta (null si viene de un material). */
+  evaluationImageId: string | null;
+  sourceEvaluationId: string | null;
   options: QuizOptionPresentation[];
 }
 
@@ -41,6 +47,7 @@ export interface QuizGradingOption {
 export interface QuizGradingQuestion {
   id: string;
   topicId: string;
+  type: QuizQuestionType;
   statement: string;
   explanation: string | null;
   options: QuizGradingOption[];
@@ -55,7 +62,9 @@ export interface QuizGradingRecord {
 
 export interface SaveAttemptAnswer {
   questionId: string;
-  selectedOptionId: string;
+  selectedOptionId?: string | null;
+  /** Texto escrito por el estudiante en las preguntas para completar. */
+  answerText?: string | null;
   isCorrect: boolean;
 }
 

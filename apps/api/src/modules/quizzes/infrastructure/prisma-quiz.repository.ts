@@ -46,9 +46,12 @@ export class PrismaQuizRepository implements QuizRepository {
               question: {
                 select: {
                   id: true,
+                  type: true,
                   statement: true,
                   imageId: true,
                   sourceMaterialId: true,
+                  evaluationImageId: true,
+                  sourceEvaluationId: true,
                   options: { select: { id: true, text: true } }
                 }
               }
@@ -68,9 +71,12 @@ export class PrismaQuizRepository implements QuizRepository {
         updatedAt: quiz.updatedAt,
         questions: quiz.questions.map((quizQuestion) => ({
           id: quizQuestion.question.id,
+          type: quizQuestion.question.type as "MULTIPLE_CHOICE" | "TRUE_FALSE" | "FILL_BLANK",
           statement: quizQuestion.question.statement,
           imageId: quizQuestion.question.imageId,
           sourceMaterialId: quizQuestion.question.sourceMaterialId,
+          evaluationImageId: quizQuestion.question.evaluationImageId,
+          sourceEvaluationId: quizQuestion.question.sourceEvaluationId,
           options: quizQuestion.question.options.map((option) => ({
             id: option.id,
             text: option.text
@@ -91,6 +97,7 @@ export class PrismaQuizRepository implements QuizRepository {
               select: {
                 id: true,
                 topicId: true,
+                type: true,
                 statement: true,
                 explanation: true,
                 options: { select: { id: true, text: true, isCorrect: true } }
@@ -110,6 +117,7 @@ export class PrismaQuizRepository implements QuizRepository {
       questions: quiz.questions.map((quizQuestion) => ({
         id: quizQuestion.question.id,
         topicId: quizQuestion.question.topicId,
+        type: quizQuestion.question.type as "MULTIPLE_CHOICE" | "TRUE_FALSE" | "FILL_BLANK",
         statement: quizQuestion.question.statement,
         explanation: quizQuestion.question.explanation,
         options: quizQuestion.question.options.map((option) => ({
@@ -133,6 +141,7 @@ export class PrismaQuizRepository implements QuizRepository {
             create: input.answers.map((answer) => ({
               questionId: answer.questionId,
               selectedOptionId: answer.selectedOptionId,
+              answerText: answer.answerText,
               isCorrect: answer.isCorrect
             }))
           }
