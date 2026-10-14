@@ -9,6 +9,8 @@ function aiProviderMock(): AIProvider {
   return {
     analyzeMaterial: vi.fn(),
     generateQuestions: vi.fn(),
+    analyzeEvaluationDraft: vi.fn(),
+    extractEvaluationQuestions: vi.fn(),
     explainAnswer: vi.fn(),
     generateHint: vi.fn()
   };

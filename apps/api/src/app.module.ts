@@ -3,6 +3,7 @@ import { Module } from "@nestjs/common";
 import { PrismaModule } from "./infrastructure/database/prisma.module";
 import { ObjectStorageModule } from "./modules/storage/object-storage.module";
 import { AIModule } from "./modules/ai/ai.module";
+import { EvaluationsModule } from "./modules/evaluations/evaluations.module";
 import { HealthModule } from "./modules/health/health.module";
 import { MaterialsModule } from "./modules/materials/materials.module";
 import { QuizzesModule } from "./modules/quizzes/quizzes.module";
@@ -19,6 +20,7 @@ import { UsersModule } from "./modules/users/users.module";
     SubjectsModule,
     TopicsModule,
     MaterialsModule,
+    EvaluationsModule,
     QuizzesModule,
     UsersModule
   ]
