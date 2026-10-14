@@ -29,7 +29,8 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /app/deploy/api ./
+COPY --from=build /app/apps/api/prisma ./prisma
 
 EXPOSE 3001
 
-CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy --schema=prisma/schema.prisma && node dist/main"]
+CMD ["sh", "-c", "pnpm --filter @estudia/api db:deploy && node dist/main"]
