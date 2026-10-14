@@ -7,6 +7,7 @@ import { DeleteSubjectDialog } from "../components/dialogs/delete-subject-dialog
 import { MaterialDialog } from "../components/dialogs/material-dialog";
 import { SubjectDialog } from "../components/dialogs/subject-dialog";
 import { UserOnboardingDialog } from "../components/dialogs/user-onboarding-dialog";
+import { EvaluationsView } from "../components/views/evaluations-view";
 import { HomeView } from "../components/views/home-view";
 import { MaterialsView } from "../components/views/materials-view";
 import { PlaceholderView } from "../components/views/placeholder-view";
@@ -95,6 +96,8 @@ export default function HomePage() {
           />
         ) : activeView === "quiz" ? (
           <QuizView subjects={subjects.subjects} />
+        ) : activeView === "evaluations" ? (
+          <EvaluationsView subjects={subjects.subjects} />
         ) : (
           <PlaceholderView title={navLabel(activeView)} />
         )}

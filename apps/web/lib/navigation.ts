@@ -3,7 +3,7 @@ export const navItems = [
   ["subjects", "▤", "Mis materias"],
   ["materials", "📄", "Materiales"],
   ["quiz", "?", "Quiz"],
-  ["review", "↻", "Repaso"],
+  ["evaluations", "📝", "Evaluaciones"],
   ["progress", "▥", "Progreso"],
   ["badges", "♜", "Insignias"]
 ] as const;

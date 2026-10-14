@@ -274,6 +274,115 @@ export function listMaterialImages(materialId: string): Promise<ApiMaterialImage
   return request<ApiMaterialImage[]>(`/materials/${encodeURIComponent(materialId)}/images`);
 }
 
+export type EvaluationProcessingStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+
+export interface ApiEvaluation {
+  id: string;
+  subjectId: string;
+  title: string;
+  dateTaken: string | null;
+  processingStatus: EvaluationProcessingStatus;
+  processingError: string | null;
+  imageCount: number;
+  questionCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export function createEvaluation(input: {
+  subjectId: string;
+  title: string;
+  dateTaken?: string;
+  files: File[];
+}): Promise<ApiEvaluation> {
+  const form = new FormData();
+  form.set("subjectId", input.subjectId);
+  form.set("title", input.title);
+  if (input.dateTaken) form.set("dateTaken", input.dateTaken);
+  // Varias fotos en el mismo campo: el backend las lee en orden de subida.
+  for (const file of input.files) {
+    form.append("files", file);
+  }
+
+  return request<ApiEvaluation>("/evaluations/upload", {
+    method: "POST",
+    body: form
+  });
+}
+
+export function listEvaluations(subjectId: string): Promise<ApiEvaluation[]> {
+  return request<ApiEvaluation[]>(`/evaluations?subjectId=${encodeURIComponent(subjectId)}`);
+}
+
+export function processEvaluation(id: string): Promise<ApiEvaluation> {
+  return request<ApiEvaluation>(`/evaluations/${encodeURIComponent(id)}/process`, {
+    method: "POST"
+  });
+}
+
+export function deleteEvaluation(id: string): Promise<void> {
+  return request<void>(`/evaluations/${encodeURIComponent(id)}`, {
+    method: "DELETE"
+  });
+}
+
+export interface ApiEvaluationQuestionOption {
+  id: string;
+  text: string;
+  isCorrect: boolean;
+}
+
+export interface ApiEvaluationQuestion {
+  id: string;
+  topicId: string;
+  statement: string;
+  explanation: string | null;
+  difficulty: string;
+  evaluationImageId: string | null;
+  options: ApiEvaluationQuestionOption[];
+}
+
+export interface ApiEvaluationQuestionEditInput {
+  topicId?: string;
+  statement: string;
+  explanation: string | null;
+  difficulty: string;
+  evaluationImageId: string | null;
+  options: Array<{ text: string; isCorrect: boolean }>;
+}
+
+export function listEvaluationQuestions(evaluationId: string): Promise<ApiEvaluationQuestion[]> {
+  return request<ApiEvaluationQuestion[]>(
+    `/evaluations/${encodeURIComponent(evaluationId)}/questions`
+  );
+}
+
+export function updateEvaluationQuestion(
+  evaluationId: string,
+  questionId: string,
+  input: ApiEvaluationQuestionEditInput
+): Promise<ApiEvaluationQuestion> {
+  return request<ApiEvaluationQuestion>(
+    `/evaluations/${encodeURIComponent(evaluationId)}/questions/${encodeURIComponent(questionId)}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(input)
+    }
+  );
+}
+
+export function deleteEvaluationQuestion(
+  evaluationId: string,
+  questionId: string
+): Promise<void> {
+  return request<void>(
+    `/evaluations/${encodeURIComponent(evaluationId)}/questions/${encodeURIComponent(questionId)}`,
+    {
+      method: "DELETE"
+    }
+  );
+}
+
 export interface ApiQuizOption {
   id: string;
   text: string;
