@@ -95,6 +95,20 @@ Antes de modificar código:
 
 Nunca rehacer arquitectura existente sin justificarlo.
 
+## Validación de deploy
+
+Antes de pushear cambios en `apps/api/Dockerfile`, scripts de deploy o migraciones, ejecutar:
+
+```bash
+pnpm verify:deploy
+```
+
+Este script (`scripts/verify-deploy.sh`) construye la imagen de producción, arranca un contenedor contra una base de datos desechable del entorno local y verifica que `GET /api/v1/health` responda `200`. Es la única validación que atrapa errores en el CMD del contenedor (por ejemplo, binarios no disponibles en el stage `runtime`). Lint, typecheck y tests no detectan este tipo de falla porque ocurren solo en runtime.
+
+Trampas conocidas:
+- El stage `runtime` de `apps/api/Dockerfile` no tiene `pnpm`; los comandos del CMD deben usar binarios que existan en la imagen final (p. ej. `./node_modules/.bin/prisma`).
+- `pnpm --filter @estudia/api ...` funciona en el workspace de desarrollo, pero el paquete deployado en la imagen final no conserva la misma estructura de workspace.
+
 ## Documentación de sesiones (docs/history)
 Solo cuando el usuario lo pida explícitamente ("guarda un resumen de la sesión", "registra lo hecho hoy", similar):
 1. Revisar `docs/history/` para respetar el formato, estilo y numeración de archivos existentes.
