@@ -14,7 +14,7 @@ sources:
   - apps/web/components/views/materials-view.tsx
   - apps/web/components/dialogs/material-edit-dialog.tsx
   - apps/web/components/dialogs/material-delete-dialog.tsx
-synced: 5e9017a
+synced: 6d3cfec
 related:
   - ../components/catalogo.md
   - ../flows/procesamiento-de-material.md
@@ -46,8 +46,9 @@ La misma vista que lista materiales también puede crear uno, y para eso la pág
 materia y el tema que ya están filtrados, así que `useMaterials.open` acepta opciones de
 preselección en vez de no admitir argumentos
 (`apps/web/hooks/use-materials.ts:19`) y el diálogo las aplica al cargar los temas
-(`apps/web/components/dialogs/material-dialog.tsx:83`). El botón global del FAB sigue funcionando
-igual: la preselección solo se aplica cuando viene.
+(`apps/web/components/dialogs/material-dialog.tsx:83`). El botón global de «Agregar material»
+—en la barra lateral y en el menú móvil— sigue funcionando igual: la preselección solo se aplica
+cuando viene. Hasta `6d3cfec` ese botón global era el FAB que sobresalía de la barra inferior.
 
 El alta vive en un diálogo de la página, no en la vista, y la vista no se entera del resultado. Se
 resuelve con un contador, hoy propiedad de `useMaterials`: la página lo incrementa al crear
@@ -76,9 +77,9 @@ el error a propósito (`apps/web/hooks/use-materials.ts:46`): el fallo habitual 
 `FAILED` y lo enseña la propia lista, y swallowar aquí evita un rechazo sin manejar en un `void`.
 
 La navegación (`apps/web/lib/navigation.ts:1`) anuncia ya siete destinos; dos de ellos —
-Progreso e Insignias (`apps/web/lib/navigation.ts:7`) — caen en un placeholder
+Progreso e Insignias (`apps/web/lib/navigation.ts:6`) — caen en un placeholder
 (`apps/web/app/page.tsx:102`) porque aún no hay nada que mostrar. Evaluaciones reemplazó a Repaso
-(`apps/web/lib/navigation.ts:6`) y tiene vista propia.
+(`apps/web/lib/navigation.ts:5`) y tiene vista propia; `ba4dd59` la movió delante de Quiz.
 
 ## El cliente HTTP
 

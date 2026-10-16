@@ -32,7 +32,7 @@ related:
 
 El módulo de evaluaciones permite subir fotos de un examen o prueba y extraer de ellas preguntas
 con IA para añadirlas al mismo pool que usa el quiz. Reemplazó a la vista de "Repaso"
-(`apps/web/lib/navigation.ts:6`) y sigue el mismo patrón de capas que el resto de la API.
+(`apps/web/lib/navigation.ts:5`) y sigue el mismo patrón de capas que el resto de la API.
 
 ## Qué es una Evaluation
 

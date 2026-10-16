@@ -5,13 +5,14 @@ responsibility: Dueño del esqueleto que rodea a todas las vistas —el armazón
 sources:
   - apps/web/components/layout/app-shell.tsx
   - apps/web/components/layout/sidebar.tsx
-  - apps/web/components/layout/mobile-nav.tsx
+  - apps/web/components/layout/mobile-menu.tsx
+  - apps/web/components/layout/nav-shared.tsx
   - apps/web/components/dialogs/dialog.tsx
   - apps/web/components/ui/state-panels.tsx
   - apps/web/components/ui/feedback.tsx
   - apps/web/components/ui/material-status-badge.tsx
   - apps/web/components/ui/stat.tsx
-synced: 3fe7ee4
+synced: 6d3cfec
 related:
   - ./web.md
   - ./vistas-de-catalogo.md
@@ -23,22 +24,44 @@ Lo que hay alrededor de las vistas y por debajo de ellas: dónde vive el menú, 
 qué tres estados tiene cualquier lista de datos. Ninguna de estas piezas habla con la API; todas
 reciben datos y funciones ya cerrados.
 
-## Un armazón, dos navegaciones
+## Un armazón, dos navegaciones que comparten sus piezas
 
 `AppShell` (`apps/web/components/layout/app-shell.tsx:9`) es la única pieza que decide la
-estructura: fondo `#f8f7fc`, columna de contenido y las dos navegaciones. No conoce las vistas —
-recibe `children`— y solo reenvía `activeView`, `onNavigate` y `openMaterialDialog`.
+estructura: fondo `#f8f7fc`, cabecera móvil, columna de contenido y las dos navegaciones. No conoce
+las vistas —recibe `children`— y solo reenvía `activeView`, `onNavigate`, `openMaterialDialog` y
+`userName`. Desde `6d3cfec` es una columna (`apps/web/components/layout/app-shell.tsx:23`) y no una
+fila con hueco inferior: la cabecera del menú móvil va encima, y el `pb-24` que reservaba sitio para
+la barra de abajo se fue con ella.
 
-La duplicación de navegación es deliberada y son **las dos misma lista**: `navItems`
-(`apps/web/lib/navigation.ts:1`). `Sidebar` la usa entera; `MobileNav` corta a los cuatro
-primeros con `navItems.slice(0, 4)` (`apps/web/components/layout/mobile-nav.tsx:17`). El orden de
-esa constante es una decisión de producto, no un detalle: los destinos que se esconden en móvil
-(Repaso, Progreso, Insignias) son los últimos porque son los que aún no tienen pantalla.
+Las dos navegaciones son **la misma lista**, `navItems` (`apps/web/lib/navigation.ts:1`), y desde
+`6d3cfec` también **las mismas piezas**: `Sidebar` (`apps/web/components/layout/sidebar.tsx:16`) y
+`MobileMenu` (`apps/web/components/layout/mobile-menu.tsx:8`) componen `NavLinks`
+(`apps/web/components/layout/nav-shared.tsx:34`), `BrandLockup`
+(`apps/web/components/layout/nav-shared.tsx:6`), `AddMaterialButton`
+(`apps/web/components/layout/nav-shared.tsx:64`) y `UserCard`
+(`apps/web/components/layout/nav-shared.tsx:85`). Lo único que cambia entre una y otra es el
+envoltorio y el tamaño del logo, que entran por `className` y `textClassName`.
 
-Solo hay una acción global: **Agregar material**. En escritorio es un botón más en la barra lateral
-(`apps/web/components/layout/sidebar.tsx:51`) y en móvil es el FAB circular que sobresale de la barra
-(`apps/web/components/layout/mobile-nav.tsx:30`). Es la misma función entrando por dos puertas, y
-las dos se desactivan por `lg`, así que nunca coexisten.
+`nav-shared.tsx` nació en `6d3cfec` porque antes no existía: cada navegación repetía el markup de
+las opciones, de la tarjeta de usuario y del botón de material. El menú móvil era una **barra
+inferior** (`mobile-nav.tsx`, borrado en `6d3cfec`) que recortaba la lista con
+`navItems.slice(0, 4)`: el móvil veía cuatro destinos y los otros tres solo existían en escritorio.
+Eso hacía que el orden de `navItems` decidiera qué desaparecía del móvil y no solo dónde iba cada
+cosa; hoy el panel muestra las siete igual que la barra lateral, y el orden de la constante vuelve a
+ser solo una decisión de producto (los que aún no tienen pantalla —Progreso e Insignias— siguen al
+final). `ba4dd59` movió Evaluaciones delante de Quiz.
+
+Navegar cierra el panel (`apps/web/components/layout/mobile-menu.tsx:40`), y lo mismo hacen el fondo
+y el botón `×` (`apps/web/components/layout/mobile-menu.tsx:65`); Escape lo cierra
+(`apps/web/components/layout/mobile-menu.tsx:21`) y el fondo deja de desplazarse mientras está
+abierto (`apps/web/components/layout/mobile-menu.tsx:31`). Lo que **no** tiene —igual que el
+`Dialog`— es foco atrapado.
+
+Solo hay una acción global: **Agregar material**. En escritorio es un botón más de la barra lateral
+(`apps/web/components/layout/sidebar.tsx:22`) y en móvil un ítem del panel
+(`apps/web/components/layout/mobile-menu.tsx:92`), que además cierra el panel antes de abrirlo. Es
+la misma función entrando por dos puertas, y las dos se desactivan por `lg`, así que nunca
+coexisten.
 
 ## El diálogo base
 

@@ -210,3 +210,26 @@ cubrir). El módulo tenía ya una página de altitud de módulo; el hueco era su
   cotejo de respuestas de rellenar, que es de la corrección del quiz) y `scripts/verify-deploy.sh`.
 - Este pase **no** mueve el checkpoint: cerrar cobertura no dice nada sobre el repositorio indexado
   hasta HEAD.
+
+## 2026-10-16 · wikipoke-ingest
+
+Reconciliación con 4 commits (desde `5e9017a`): el menú móvil deja de ser una barra inferior y pasa
+a ser un panel hamburguesa con todas las opciones (`ba4dd59`, `6d3cfec`).
+
+- `components/armazon-y-primitivas.md` — sección «Un armazón, dos navegaciones» reescrita: el armazón
+  pasa a columna y pierde el `pb-24` que reservaba sitio a la barra, `Sidebar` y `MobileMenu`
+  componen las mismas piezas de `nav-shared.tsx` (`NavLinks`, `BrandLockup`, `AddMaterialButton`,
+  `UserCard`), y el móvil ya no recorta `navItems` con `slice(0, 4)`. Se dice qué era antes —barra
+  inferior con los cuatro primeros destinos, `mobile-nav.tsx` borrado en `6d3cfec`— y cómo se cierra
+  el panel hoy (navegar, fondo, `×`, Escape) más el bloqueo del scroll. Fuentes: se reclaman
+  `mobile-menu.tsx` y `nav-shared.tsx`; se retira `mobile-nav.tsx`, que ya no existe.
+- `components/web.md` — citas re-apuntadas (`ba4dd59` corrió las líneas de `navigation.ts`) y se
+  corrige la frase que daba por vivo el FAB de la barra inferior: la acción global es la misma, pero
+  vive en la barra lateral y en el menú móvil.
+- `components/evaluaciones.md` — solo la cita de `navigation.ts` re-apuntada; la página estaba fresca
+  y no se le toca `synced:`.
+- Sin páginas nuevas: el hueco era de dos archivos, `mobile-menu.tsx` y `nav-shared.tsx`, que ya
+  tienen dueño. El backlog sigue en 2 archivos sin cubrir
+  (`apps/api/src/shared/text.utils.ts`, `scripts/verify-deploy.sh`), los mismos que dejó el pase
+  anterior.
+- `synced:` elevado a `6d3cfec` en las 2 páginas reescritas; checkpoint del repo al mismo commit.
