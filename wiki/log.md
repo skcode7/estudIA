@@ -187,3 +187,26 @@ detalle del intento (`6191d10`, `47b1862`, `5e9017a`).
   reclamados como fuentes (los dos casos de uso y los tres componentes de la web); el backlog baja de
   20 a 15 archivos sin cubrir.
 - `synced:` elevado a `5e9017a` en las 6 páginas tocadas; checkpoint del repo al mismo commit.
+
+## 2026-10-16 · wikipoke-ingest apps/api/src/modules/evaluations
+
+Pase sobre el cluster `apps/api/src/modules/evaluations` (el mayor del backlog, 13 archivos sin
+cubrir). El módulo tenía ya una página de altitud de módulo; el hueco era su segunda mitad.
+
+- new: `components/preguntas-de-evaluacion.md` — el puerto y el repositorio de las preguntas
+  extraídas, por qué `replaceForEvaluation` crea una por una (cada pregunta trae su `topicId`), las
+  reglas de `assertValidQuestionOptions` por tipo (2–6 con una correcta, dos en verdadero/falso,
+  1–6 todas correctas en rellenar), los `404` de pertenencia y el reemplazo de opciones en cada
+  guardado. Anotado sin arreglar: el diálogo de revisión no manda `type` y su radio de opción
+  correcta no puede representar una pregunta de rellenar con varias respuestas aceptadas.
+- `components/evaluaciones.md` — se corrige una afirmación incorrecta desde que el módulo aterrizó
+  (`4acb4ef`): «No hay análisis de borrador» pasa a «el endpoint existe (`POST /evaluations/analyze`)
+  pero ningún cliente lo llama». El detalle de la revisión se mueve a la página nueva; se reclaman
+  como fuentes el caso de uso del borrador, el borrado, el puerto y el repositorio de imágenes y los
+  DTOs.
+- `index.md` y `architecture.md` — enlazan la página nueva; `architecture.md` sin `synced:` nuevo
+  (ya estaba en `5e9017a`).
+- El backlog baja de 15 a 2 archivos sin cubrir: quedan `apps/api/src/shared/text.utils.ts` (el
+  cotejo de respuestas de rellenar, que es de la corrección del quiz) y `scripts/verify-deploy.sh`.
+- Este pase **no** mueve el checkpoint: cerrar cobertura no dice nada sobre el repositorio indexado
+  hasta HEAD.

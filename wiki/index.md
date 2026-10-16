@@ -16,6 +16,7 @@
 - [Módulo de quizzes](./components/quizzes.md) — Dueño del quiz como instantánea de preguntas, de los intentos y su corrección, y del progreso por tema que se acumula al corregir.
 - [Módulo de IA y sus adaptadores](./components/ia.md) — Dueño de la frontera con los modelos: qué puertos exponen los casos de uso, qué proveedor responde a cada trabajo y cómo se valida lo que el modelo devuelve.
 - [Módulo de evaluaciones](./components/evaluaciones.md) — Subida multi-foto de exámenes, extracción de preguntas con IA y revisión antes de incluirlas en el pool de quizzes.
+- [Preguntas extraídas de una evaluación](./components/preguntas-de-evaluacion.md) — Dueño del ciclo de vida de las preguntas que salen de un examen — extracción, revisión antes de publicarlas y las reglas de opciones por tipo de pregunta.
 - [Capa de persistencia (Prisma)](./components/persistencia.md) — Dueño de la conexión a PostgreSQL y de cómo los repositorios Prisma traducen los puertos del dominio a tablas, con las convenciones de orden y reemplazo de las que depende la API.
 - [La forma del CRUD de catálogo](./components/crud-de-catalogo.md) — Cómo están construidos los módulos de materias, temas y usuarios — un caso de uso por operación, validación en el DTO y bindings repetidos — y las asimetrías entre ellos.
 - [Módulos de materias, temas y usuarios](./components/catalogo.md) — Dueños de la jerarquía de catálogo (materia → tema) y del registro mínimo de usuario, con las reglas de borrado que arrastran todo lo demás.

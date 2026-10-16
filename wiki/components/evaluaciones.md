@@ -6,11 +6,17 @@ sources:
   - apps/api/prisma/schema.prisma
   - apps/api/src/modules/evaluations/evaluations.module.ts
   - apps/api/src/modules/evaluations/presentation/controllers/evaluations.controller.ts
+  - apps/api/src/modules/evaluations/presentation/dto/evaluations.dto.ts
   - apps/api/src/modules/evaluations/application/ports/evaluation.repository.ts
+  - apps/api/src/modules/evaluations/application/ports/evaluation-image.repository.ts
   - apps/api/src/modules/evaluations/infrastructure/prisma-evaluation.repository.ts
+  - apps/api/src/modules/evaluations/infrastructure/prisma-evaluation-image.repository.ts
   - apps/api/src/modules/evaluations/application/use-cases/create-evaluation.use-case.ts
   - apps/api/src/modules/evaluations/application/use-cases/process-evaluation.use-case.ts
   - apps/api/src/modules/evaluations/application/use-cases/list-evaluations.use-case.ts
+  - apps/api/src/modules/evaluations/application/use-cases/delete-evaluation.use-case.ts
+  - apps/api/src/modules/evaluations/application/use-cases/analyze-evaluation-draft.use-case.ts
+  - apps/api/src/modules/evaluations/application/use-cases/get-evaluation-image.use-case.ts
   - apps/api/src/modules/ai/application/ports/ai-provider.ts
   - apps/web/components/views/evaluations-view.tsx
   - apps/web/components/dialogs/evaluation-dialog.tsx
@@ -18,6 +24,7 @@ synced: a9c3163
 related:
   - ../components/ia.md
   - ../components/quizzes.md
+  - ./preguntas-de-evaluacion.md
   - ../flows/generar-y-resolver-quiz.md
 ---
 
@@ -56,13 +63,27 @@ lee las fotos del storage, las envía al modelo con `AIProvider.extractEvaluatio
 con `EvaluationQuestionRepository.replaceForEvaluation`. El modelo recibe el nombre de la materia y
 el título de la evaluación para contextualizar la extracción.
 
+## Clasificar antes de guardar: un endpoint sin cliente en la web
+
+Antes de crear la evaluación, `POST /evaluations/analyze` acepta las mismas fotos y devuelve una
+propuesta de materia, tema y título. `AnalyzeEvaluationDraftUseCase` limita la propuesta al catálogo
+real —si el modelo sugiere un id que no existe, lo devuelve como `null`
+(`apps/api/src/modules/evaluations/application/use-cases/analyze-evaluation-draft.use-case.ts:110`)—,
+acota los temas a la materia ya elegida si llega `subjectId`, y traduce un fallo del proveedor en un
+`503` con mensaje para la pantalla
+(`apps/api/src/modules/evaluations/application/use-cases/analyze-evaluation-draft.use-case.ts:64`).
+
+**La web no usa este endpoint**: no hay `analyzeEvaluationDraft` en `apps/web/lib/api.ts` y el
+diálogo de subida pide materia, tema y título a mano. Es un caso de uso implementado y sin cliente,
+como `AIProvider.generateHint`; por eso la evaluación no se presenta como "elegí una foto y confirmá
+lo que propone la IA" sino como un formulario.
+
 ## Revisión antes de incluir
 
 Las preguntas extraídas no entran directamente en los quizzes: la vista ofrece un diálogo de
-revisión donde se pueden editar o eliminar antes de que el estudiante las vea. El endpoint
-`GET /evaluations/:id/questions` devuelve las preguntas con sus opciones y la respuesta correcta,
-y `PATCH /evaluations/:id/questions/:questionId` permite reclasificar la pregunta a otro tema de la
-misma materia, cambiar su tipo (opción múltiple, verdadero/falso, rellenar), o ajustar opciones.
+revisión donde se pueden editar o eliminar antes de que el estudiante las vea. Las reglas de las
+opciones, los `404` de pertenencia y el funcionamiento del diálogo viven en
+[Preguntas extraídas de una evaluación](./preguntas-de-evaluacion.md).
 
 ## Integración con los quizzes
 
@@ -70,13 +91,24 @@ Una vez extraídas, las preguntas son `Question` como las demás: `GenerateQuizU
 en el pool a través de `findQuestionIdsByTopics`, que no distingue entre preguntas de materiales y
 preguntas de evaluaciones. Las preguntas con imagen de evaluación se sirven por
 `GET /evaluations/:id/images/:imageId` (`apps/api/src/modules/evaluations/presentation/controllers/evaluations.controller.ts:142`),
-usando la misma ruta relativa que el quiz resuelve con `assetUrl`.
+usando la misma ruta relativa que el quiz resuelve con `assetUrl`. Ese endpoint lee el objeto del
+storage con `ObjectStorage.getObject` y deduce el `Content-Type` de la extensión de la clave
+(`apps/api/src/modules/evaluations/application/use-cases/get-evaluation-image.use-case.ts:41`); una
+imagen que no existe —o cuyo objeto no se puede leer— es un `404`, y la imagen debe pertenecer a la
+evaluación de la ruta (`apps/api/src/modules/evaluations/application/use-cases/get-evaluation-image.use-case.ts:23`).
 
 ## Límites
 
 - Solo se aceptan imágenes (JPG, PNG, GIF, WebP), máximo 10 fotos y 10 MB cada una
   (`apps/api/src/modules/evaluations/presentation/controllers/evaluations.controller.ts:41-42`).
-- No hay análisis de borrador para evaluaciones: el usuario elige directamente materia, tema y
-  título.
-- Borrar una evaluación borra las fotos del storage (`DeleteEvaluationUseCase`) pero deja las
-  preguntas ya extraídas en el pool; el mensaje de confirmación lo advierte.
+- El análisis de borrador existe en la API (`POST /evaluations/analyze`) pero ningún cliente lo
+  llama: la web pide materia, tema y título a mano. La versión anterior de esta página afirmaba que
+  el análisis "no existía"; era inexacto desde que el módulo aterrizó (`4acb4ef`), porque confundía
+  "no está en la interfaz" con "no está implementado".
+- Borrar una evaluación borra las fotos del storage y deja las preguntas ya extraídas en el pool:
+  su `sourceEvaluationId` pasa a `null` por la cascada `SetNull` del esquema, así que siguen contando
+  como preguntas de la materia
+  (`apps/api/src/modules/evaluations/application/use-cases/delete-evaluation.use-case.ts:17`). El
+  mensaje de confirmación lo advierte. Si borrar una foto del storage falla, el borrado sigue: solo
+  deja un aviso en el log
+  (`apps/api/src/modules/evaluations/application/use-cases/delete-evaluation.use-case.ts:35`).
