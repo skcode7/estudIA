@@ -3,7 +3,7 @@
 import { type ReactNode } from "react";
 
 import { type NavItemId } from "../../lib/navigation";
-import { MobileNav } from "./mobile-nav";
+import { MobileMenu } from "./mobile-menu";
 import { Sidebar } from "./sidebar";
 
 export function AppShell({
@@ -20,8 +20,14 @@ export function AppShell({
   children: ReactNode;
 }) {
   return (
-    <main className="min-h-screen bg-[#f8f7fc] pb-24 text-[#1e1b2e] lg:pb-0">
-      <div className="mx-auto flex min-h-screen max-w-[1440px]">
+    <main className="flex min-h-screen flex-col bg-[#f8f7fc] text-[#1e1b2e]">
+      <MobileMenu
+        activeView={activeView}
+        onNavigate={onNavigate}
+        openMaterialDialog={openMaterialDialog}
+        userName={userName}
+      />
+      <div className="mx-auto flex w-full max-w-[1440px] flex-1">
         <Sidebar
           activeView={activeView}
           onNavigate={onNavigate}
@@ -32,11 +38,6 @@ export function AppShell({
           {children}
         </section>
       </div>
-      <MobileNav
-        activeView={activeView}
-        onNavigate={onNavigate}
-        openMaterialDialog={openMaterialDialog}
-      />
     </main>
   );
 }
