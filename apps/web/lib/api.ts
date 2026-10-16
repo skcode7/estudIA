@@ -469,6 +469,61 @@ export function submitQuizAnswers(
   });
 }
 
+/**
+ * Item del historial de quizzes. `score` es null si el quiz nunca se respondió
+ * (no es un 0%): en ese caso `attemptId` y `completedAt` también son null.
+ * Con varios intentos, el que se informa es el más reciente.
+ */
+export interface ApiQuizSummary {
+  id: string;
+  title: string;
+  topicId: string | null;
+  topicName: string | null;
+  questionCount: number;
+  attemptId: string | null;
+  score: number | null;
+  completedAt: string | null;
+  createdAt: string;
+}
+
+export function listQuizzes(subjectId: string): Promise<ApiQuizSummary[]> {
+  return request<ApiQuizSummary[]>(`/quizzes?subjectId=${encodeURIComponent(subjectId)}`);
+}
+
+export interface ApiQuizOptionReview {
+  id: string;
+  text: string;
+  isCorrect: boolean;
+}
+
+export interface ApiQuizAttemptAnswer {
+  questionId: string;
+  statement: string;
+  imageUrl: string | null;
+  options: ApiQuizOptionReview[];
+  selectedOptionId: string | null;
+  isCorrect: boolean;
+  explanation: string | null;
+}
+
+export interface ApiQuizAttemptDetail {
+  attemptId: string;
+  quizId: string;
+  quizTitle: string;
+  score: number;
+  completedAt: string;
+  answers: ApiQuizAttemptAnswer[];
+}
+
+export function getQuizAttempt(
+  quizId: string,
+  attemptId: string
+): Promise<ApiQuizAttemptDetail> {
+  return request<ApiQuizAttemptDetail>(
+    `/quizzes/${encodeURIComponent(quizId)}/attempts/${encodeURIComponent(attemptId)}`
+  );
+}
+
 export interface ApiUser {
   id: string;
   name: string;

@@ -5,15 +5,22 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   assetUrl,
   generateQuiz,
+  getQuizAttempt,
+  listQuizzes,
   listTopics,
   submitQuizAnswers,
   type ApiQuiz,
+  type ApiQuizAttemptDetail,
   type ApiQuizAttemptResult,
+  type ApiQuizSummary,
   type ApiTopic,
   type QuizSize
 } from "../../lib/api";
 import { type Subject } from "../../lib/subjects";
+import { QuizAttemptDetailDialog } from "../dialogs/quiz-attempt-detail-dialog";
 import { EmptyPanel, ErrorPanel, LoadingPanel } from "../ui/state-panels";
+import { QuizHistoryPanel } from "./quiz-history-panel";
+import { QuizQuestionReview } from "./quiz-question-review";
 
 export function QuizView({ subjects }: { subjects: Subject[] }) {
   const [subjectId, setSubjectId] = useState("");
@@ -28,6 +35,14 @@ export function QuizView({ subjects }: { subjects: Subject[] }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [size, setSize] = useState<QuizSize>("MEDIUM");
+  const [quizzes, setQuizzes] = useState<ApiQuizSummary[]>([]);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(true);
+  const [historyError, setHistoryError] = useState("");
+  const [historyVersion, setHistoryVersion] = useState(0);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [detail, setDetail] = useState<ApiQuizAttemptDetail | null>(null);
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState("");
 
   const activeSubjectId = subjectId || subjects[0]?.id || "";
 
@@ -55,6 +70,31 @@ export function QuizView({ subjects }: { subjects: Subject[] }) {
     };
   }, [activeSubjectId]);
 
+  // `historyVersion` no se lee dentro del efecto: es la señal para recargar el
+  // historial tras enviar un intento sin duplicar aquí la lógica de carga. El
+  // estado de "cargando" se levanta en los manejadores, no dentro del efecto.
+  useEffect(() => {
+    if (!activeSubjectId) return;
+    let cancelled = false;
+    listQuizzes(activeSubjectId)
+      .then((fetched) => {
+        if (!cancelled) setQuizzes(fetched);
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) {
+          setHistoryError(
+            error instanceof Error ? error.message : "No se pudieron cargar tus quizzes."
+          );
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setIsHistoryLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeSubjectId, historyVersion]);
+
   const selectedSubjectName = useMemo(
     () => subjects.find((subject) => subject.id === activeSubjectId)?.name ?? "",
     [subjects, activeSubjectId]
@@ -69,6 +109,12 @@ export function QuizView({ subjects }: { subjects: Subject[] }) {
     setResult(null);
     setAnswers({});
     setLoadError("");
+    setQuizzes([]);
+    setIsHistoryLoading(true);
+    setHistoryError("");
+    setIsDetailOpen(false);
+    setDetail(null);
+    setDetailError("");
   }, []);
 
   const handleGenerate = useCallback(async () => {
@@ -113,6 +159,7 @@ export function QuizView({ subjects }: { subjects: Subject[] }) {
         }))
       );
       setResult(attempt);
+      setHistoryVersion((current) => current + 1);
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : "No se pudo registrar el intento.");
     } finally {
@@ -125,6 +172,29 @@ export function QuizView({ subjects }: { subjects: Subject[] }) {
     setResult(null);
     setAnswers({});
     setLoadError("");
+  }, []);
+
+  const handleOpenDetail = useCallback(async (summary: ApiQuizSummary) => {
+    if (!summary.attemptId) return;
+    setIsDetailOpen(true);
+    setDetail(null);
+    setDetailError("");
+    setIsDetailLoading(true);
+    try {
+      setDetail(await getQuizAttempt(summary.id, summary.attemptId));
+    } catch (error) {
+      setDetailError(
+        error instanceof Error ? error.message : "No se pudo cargar el detalle del quiz."
+      );
+    } finally {
+      setIsDetailLoading(false);
+    }
+  }, []);
+
+  const handleCloseDetail = useCallback(() => {
+    setIsDetailOpen(false);
+    setDetail(null);
+    setDetailError("");
   }, []);
 
   return (
@@ -212,6 +282,15 @@ export function QuizView({ subjects }: { subjects: Subject[] }) {
           title="Listo para estudiar"
         />
       ) : null}
+
+      {!quiz && !result && activeSubjectId && (
+        <QuizHistoryPanel
+          error={historyError}
+          isLoading={isHistoryLoading}
+          onSelect={(summary) => void handleOpenDetail(summary)}
+          quizzes={quizzes}
+        />
+      )}
 
       {quiz && !result && (
         <section className="mt-6 space-y-5">
@@ -313,66 +392,18 @@ export function QuizView({ subjects }: { subjects: Subject[] }) {
             const feedback = result.answers.find(
               (answer) => answer.questionId === question.id
             );
-            const correctOption = question.options.find(
-              (option) => option.id === feedback?.correctOptionId
-            );
             return (
-              <article
-                className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"
+              <QuizQuestionReview
+                correctOptionId={feedback?.correctOptionId ?? null}
+                explanation={feedback?.explanation ?? null}
+                imageUrl={question.imageUrl}
+                index={questionIndex + 1}
+                isCorrect={Boolean(feedback?.isCorrect)}
                 key={question.id}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <h3 className="text-sm font-bold">
-                    {questionIndex + 1}. {question.statement}
-                  </h3>
-                  <span
-                    className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${
-                      feedback?.isCorrect
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "bg-rose-100 text-rose-700"
-                    }`}
-                  >
-                    {feedback?.isCorrect ? "Correcta" : "Incorrecta"}
-                  </span>
-                </div>
-                {question.imageUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element -- Imagen servida por la API propia (MinIO/S3), sin optimizador
-                  <img
-                    alt="Imagen de los apuntes usada en la pregunta"
-                    className="mt-3 max-h-72 w-full rounded-xl border border-slate-100 bg-white object-contain"
-                    src={assetUrl(question.imageUrl)}
-                  />
-                )}
-                <div className="mt-3 space-y-2">
-                  {question.options.map((option) => {
-                    const isCorrect = option.id === feedback?.correctOptionId;
-                    const isSelected = option.id === feedback?.selectedOptionId;
-                    const badge = isCorrect
-                      ? " bg-emerald-50 text-emerald-700"
-                      : isSelected
-                      ? " bg-rose-50 text-rose-600"
-                      : " text-slate-500";
-                    return (
-                      <div
-                        className={`rounded-xl border px-4 py-3 text-sm ${badge} ${
-                          isCorrect || isSelected ? "border-slate-200" : "border-transparent"
-                        }`}
-                        key={option.id}
-                      >
-                        {option.text}
-                        {isCorrect && <span className="ml-2">✓ Respuesta correcta</span>}
-                        {isSelected && !isCorrect && <span className="ml-2">Tu respuesta</span>}
-                      </div>
-                    );
-                  })}
-                </div>
-                {feedback?.explanation && (
-                  <p className="mt-4 rounded-xl bg-slate-50 px-4 py-3 text-xs text-slate-600">
-                    <span className="font-semibold">Explicación: </span>
-                    {feedback.explanation}
-                  </p>
-                )}
-              </article>
+                options={question.options}
+                selectedOptionId={feedback?.selectedOptionId ?? null}
+                statement={question.statement}
+              />
             );
           })}
 
@@ -384,6 +415,15 @@ export function QuizView({ subjects }: { subjects: Subject[] }) {
             Nuevo quiz
           </button>
         </section>
+      )}
+
+      {isDetailOpen && (
+        <QuizAttemptDetailDialog
+          detail={detail}
+          error={detailError}
+          isLoading={isDetailLoading}
+          onClose={handleCloseDetail}
+        />
       )}
     </>
   );
