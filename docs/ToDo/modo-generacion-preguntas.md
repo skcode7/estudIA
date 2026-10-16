@@ -92,4 +92,4 @@ Que al cargar un material el usuario elija cómo se generan sus preguntas:
 - El modo default reproduce literalmente el comportamiento actual (la regla "solo en el material"
   ya existe en el prompt), así que la migración es neutra para los materiales existentes.
 - Relacionados: `docs/ToDo/ciclo-vida-preguntas-material.md` (regeneración al editar), y
-  `docs/ToDo/modulo-evaluaciones.md` (el otro modo de enriquecer el pool de preguntas).
+  `docs/ToDo/ciclo-vida-preguntas-material.md` (preguntas sin material de origen, posible fuente de evaluaciones) y la sección Evaluaciones ya implementada.

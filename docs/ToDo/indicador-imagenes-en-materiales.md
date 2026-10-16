@@ -73,7 +73,7 @@ Que en el listado de Materiales, junto a la insignia de estado, se vea de un vis
 
 ## Notas
 
-- Coherente con AGENTS.md: el conteo se calcula en el backend, en la misma consulta que ya agrupa preguntas, y el cliente no inventa el dato. Es el mismo patrón que `questionCount` y que el `materialsCount` pendiente en `docs/ToDo/contador-materiales-tarjetas.md`.
+- Coherente con AGENTS.md: el conteo se calcula en el backend, en la misma consulta que ya agrupa preguntas, y el cliente no inventa el dato. Es el mismo patrón que `questionCount` y que el `materialsCount` pendiente en `docs/ToDo/tarjetas-materia-datos-reales.md`.
 - La insignia de imágenes y la de estado son datos distintos y complementarios: `COMPLETED` con `imageCount: 0` es un caso normal y no debe leerse como un fallo. `PROCESSING` todavía no tiene el conteo final, así que la insignia conviene aparecer solo con `imageCount > 0`.
 - `docs/ToDo/procesamiento-documentos-ia.md` cambiará este panorama: cuando los PDF se procesen página a página, `MaterialImage` pasará a ser el camino normal y no el caso excepcional, y esta insignia pasa de "curiosidad" a indicador principal del material.
 - Sin migraciones: `MaterialImage` ya tiene `@@index([materialId])` (`apps/api/prisma/schema.prisma:88`), así que el `groupBy` del listado no necesita índice nuevo.

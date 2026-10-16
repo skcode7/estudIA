@@ -75,7 +75,7 @@ grupo para que dos quizzes seguidos no sean idénticos.
   ordenado y el caso de uso conserva la regla, pero la frontera no se cruza.
 - La Difficulty ya existe como atributo (`schema.prisma`), pero el esquema no la indexa. Si algún día
   se filtra por ella, ese índice será necesario; hoy no se toca.
-- `docs/ToDo/exponer-progreso-basico.md` es el gemelo de este requerimiento en la UI: uno expone
+- `docs/ToDo/tarjetas-materia-datos-reales.md` es el gemelo de este requerimiento en la UI: uno expone
   `TopicProgress` en las tarjetas, este lo usa para elegir. Conviene que ambos lean el mismo agregado.
 - Precedente: `docs/ToDo/ciclo-vida-preguntas-material.md` acota el pool antes. Si el pool se
   reduce a lo que sigue en estudio, seleccionar por desempeño tiene mucho menos que resolver.
