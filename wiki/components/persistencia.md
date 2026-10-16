@@ -71,4 +71,4 @@ tocar el esquema.
 
 Y una ausencia deliberada: no hay transacciones que crucen puertos. Cuando hace falta — corregir un
 intento y recalcular el progreso — la transacción vive dentro de un repositorio
-(`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:133`), no en el caso de uso.
+(`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:135`), no en el caso de uso.

@@ -164,3 +164,26 @@ Reconcile tras `2375f47`, que borró los tres paquetes compartidos del workspace
   por qué compartir el contrato en un paquete no lo habría arreglado (la API no lo importaría).
 - `index.md` sin cambios: ninguna página se añadió, se tituló ni cambió de `responsibility`.
 - `synced:` elevado a `2375f47` en las 2 páginas tocadas; checkpoint del repo al mismo commit.
+
+## 2026-10-16 · wikipoke-ingest
+
+Reconciliación con 7 commits (desde `a9c3163`): historial de quizzes con su porcentaje y popup de
+detalle del intento (`6191d10`, `47b1862`, `5e9017a`).
+
+- `components/quizzes.md` — nueva sección «El historial: un resumen y un detalle que no son el mismo
+  DTO»: el agregado del último intento completado, el `score: null` del quiz sin intento, el detalle
+  con `isCorrect` a propósito y el `404` del intento ajeno o incompleto. «Lo que el módulo no tiene»
+  se corrige: antes afirmaba que no había listado de intentos; lo que sigue faltando es
+  `GET /quizzes/:id`, que es `docs/ToDo/persistir-quiz-en-curso.md`. Citas re-apuntadas.
+- `flows/generar-y-resolver-quiz.md` — sección nueva «Volver a mirar: el historial y el detalle»
+  (listado por materia, la señal `historyVersion`, el popup con el repaso compartido) y «Lo que deja
+  fuera» corregido: el historial ya es visible. Citas re-apuntadas; la del repaso pasa del bloque de
+  `quiz-view.tsx` al componente extraído `quiz-question-review.tsx`.
+- `architecture.md`, `components/web.md`, `concepts/configuracion-por-entorno.md` — solo `synced:`
+  elevado: el contrato de `lib/api.ts` y el módulo de quizzes cambiaron sin contradecir lo escrito.
+- `concepts/puertos-y-adapters.md` y `components/persistencia.md` — citas re-apuntadas a la línea
+  actual (la clase abstracta del puerto y la transacción de `saveAttempt`).
+- Sin páginas nuevas: el repaso y el historial viven en el flujo de quizzes. Cinco archivos nuevos
+  reclamados como fuentes (los dos casos de uso y los tres componentes de la web); el backlog baja de
+  20 a 15 archivos sin cubrir.
+- `synced:` elevado a `5e9017a` en las 6 páginas tocadas; checkpoint del repo al mismo commit.

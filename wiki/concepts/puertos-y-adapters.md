@@ -9,7 +9,7 @@ sources:
   - apps/api/src/modules/ai/application/ports/ai-provider.ts
   - apps/api/src/modules/materials/materials.module.ts
   - apps/api/src/modules/ai/ai.module.ts
-synced: a9c3163
+synced: 5e9017a
 related:
   - ../components/ia.md
   - ../components/materiales.md
@@ -41,7 +41,7 @@ donde hay que mirar para saber qué implementación corre hoy.
 TypeScript borra las `interface` en compilación y no se pueden inyectar; una clase abstracta es a
 la vez el tipo y el token de DI. Por eso `MaterialRepository`
 (`apps/api/src/modules/materials/application/ports/material.repository.ts:35`), `QuizRepository`
-(`apps/api/src/modules/quizzes/application/ports/quiz.repository.ts:87`), `ObjectStorage`
+(`apps/api/src/modules/quizzes/application/ports/quiz.repository.ts:131`), `ObjectStorage`
 (`apps/api/src/modules/storage/application/ports/object-storage.ts:12`) y `AIProvider`
 (`apps/api/src/modules/ai/application/ports/ai-provider.ts:139`) son `abstract class`. Los tests los
 sustituyen por mocks del mismo tipo.

@@ -18,7 +18,7 @@ sources:
   - pnpm-workspace.yaml
   - docker-compose.yml
   - .env.example
-synced: a9c3163
+synced: 5e9017a
 ---
 
 # Arquitectura de estudIA
