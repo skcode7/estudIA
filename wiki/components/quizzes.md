@@ -9,7 +9,7 @@ sources:
   - apps/api/src/modules/quizzes/presentation/dto/quizzes.dto.ts
   - apps/api/src/modules/materials/infrastructure/prisma-material-question.repository.ts
   - apps/api/prisma/schema.prisma
-synced: 1e5aca6
+synced: a9c3163
 related:
   - ../flows/generar-y-resolver-quiz.md
   - ../components/materiales.md
@@ -23,14 +23,14 @@ a las preguntas, que pertenecen a otro módulo.
 
 ## El quiz es una instantánea, no una copia
 
-`QuizQuestion` guarda `questionId` + `order` (`apps/api/prisma/schema.prisma:143`): el quiz toma
-prestadas preguntas del pool de materiales y las ordena. Las opciones y la corrección no se
+`QuizQuestion` guarda `questionId` + `order` (`apps/api/prisma/schema.prisma:190`): el quiz toma
+prestadas preguntas del pool de materiales y evaluaciones y las ordena. Las opciones y la corrección no se
 copian: se leen de la pregunta cada vez que hace falta — `findQuizForGrading` las trae con su
-`isCorrect` (`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:96`). Por eso
+`isCorrect` (`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:103`). Por eso
 dos quizzes distintos pueden compartir preguntas y por eso el quiz no se puede editar.
 
 La presentación se baraja al servir, no al guardar
-(`apps/api/src/modules/quizzes/presentation/controllers/quizzes.controller.ts:59`): el `order` de
+(`apps/api/src/modules/quizzes/presentation/controllers/quizzes.controller.ts:60`): el `order` de
 `QuizQuestion` es el orden de creación, no el que ve el estudiante.
 
 ## Cuántas preguntas entra: un porcentaje del pool, no un número fijo
@@ -48,11 +48,11 @@ entorno: el módulo de quizzes ya no inyecta nada por token. Antes era un númer
 ## Corregir escribe progreso
 
 `saveAttempt` crea el intento con sus respuestas **y** recalcula `TopicProgress` en la misma
-transacción (`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:125`): una
+transacción (`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:133`): una
 fila por tema con intentos, aciertos, respuestas y `masteryScore` como media de aciertos
-(`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:185`). Como las preguntas
+(`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:194`). Como las preguntas
 pueden pertenecer a temas distintos en un quiz de toda la materia, el progreso se agrega por tema
-de cada pregunta, no por el tema del quiz (`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:158`).
+de cada pregunta, no por el tema del quiz (`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:167`).
 
 `TopicProgress` es el "progreso básico" del MVP y hoy es de solo escritura: ningún endpoint lo
 lee, y la vista no muestra nada acumulado. Es el lugar donde el progreso real ya se está
@@ -64,7 +64,7 @@ Las preguntas se reemplazan en bloque al procesar un material: `replaceForMateri
 las del material y crea las nuevas
 (`apps/api/src/modules/materials/infrastructure/prisma-material-question.repository.ts:47`). Como
 `QuizQuestion` y `Answer` referencian a la pregunta con `onDelete: Cascade`
-(`apps/api/prisma/schema.prisma:149` y `apps/api/prisma/schema.prisma:179`), **reprocesar un
+(`apps/api/prisma/schema.prisma:196` y `apps/api/prisma/schema.prisma:226`), **reprocesar un
 material destruye lo que sus preguntas antiguas sostenían**:
 
 - Un quiz generado antes pierde esas preguntas en silencio y queda con menos de las que nació.
@@ -89,6 +89,6 @@ lo pidió, y si la página se recarga se pierde (la web lo reconoce y ofrece gen
 hay deduplicación de intentos ni caducidad: cada envío crea un `QuizAttempt` nuevo.
 
 El contrato de entrada está en los DTOs: un intento exige `startedAt` y un array de respuestas
-validado elemento a elemento (`apps/api/src/modules/quizzes/presentation/dto/quizzes.dto.ts:69`),
+validado elemento a elemento (`apps/api/src/modules/quizzes/presentation/dto/quizzes.dto.ts:89`),
 que es lo que permite anidar `SubmitAnswerDto` con su par `questionId` / `selectedOptionId` sin
 volver a declarar la validación en el controller.

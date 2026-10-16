@@ -11,7 +11,7 @@ sources:
   - apps/web/components/dialogs/delete-subject-dialog.tsx
   - apps/web/components/dialogs/user-onboarding-dialog.tsx
   - apps/web/hooks/use-subjects.ts
-synced: 9c5e777
+synced: a9c3163
 related:
   - ./web.md
   - ./armazon-y-primitivas.md
@@ -55,8 +55,8 @@ Tres detalles que no se ven leyendo las firmas:
   `saveSubject` re-decora usando el índice en la lista
   (`apps/web/hooks/use-subjects.ts:129`), porque el color y el ícono se eligen por posición. Es
   decir: **el orden de la lista decide el color de cada materia**, y editar una cambia el color de
-  las siguientes. Un requerimiento abierto (`docs/ToDo/color-icono-materias.md`) elimina esa
-  dependencia.
+  las siguientes. Está registrado en `docs/ToDo/tarjetas-materia-datos-reales.md`, que unifica
+  color/ícono, contador de materiales y progreso real de las tarjetas.
 - **Cada operación escribe su propio aviso** en el estado `notice` de la página a través del
   `setNotice` recibido, así que el mismo banner sirve para alta, edición y borrado y se
   solapa con el que la vista muestra.
@@ -72,12 +72,12 @@ los campos no conserven el texto anterior.
 `DeleteSubjectDialog` (`apps/web/components/dialogs/delete-subject-dialog.tsx:7`) confirma y no
 recibe la materia como `Subject` sino lo que necesita para nombrarla. Avisa de que no se puede
 deshacer, pero no de lo que arrastra el borrado en cascada — están los temas, los materiales y los
-quizzes; está documentado en `docs/ToDo/confirmar-borrado-en-cascada.md`.
+quizzes; está documentado en `docs/ToDo/borrado-en-cascada-con-confirmacion-y-limpieza.md`.
 
 `UserOnboardingDialog` (`apps/web/components/dialogs/user-onboarding-dialog.tsx:7`) es la excepción
 al patrón: no usa `Dialog` sino un overlay propio, porque no se cierra —no hay `×` ni cancelar— y
 aparece incluso mientras carga la lista. La página lo muestra cuando `isUserLoading` **o** el
-diálogo está abierto (`apps/web/app/page.tsx:49`), de modo que bloquea la app entera mientras
+diálogo está abierto (`apps/web/app/page.tsx:50`), de modo que bloquea la app entera mientras
 resuelve quién es el usuario. Solo pide un nombre, y ese nombre es el único perfil que existe en
 el MVP (ver [Sin identidad en el MVP](../decisions/authentico.md)).
 
@@ -87,9 +87,9 @@ el MVP (ver [Sin identidad en el MVP](../decisions/authentico.md)).
 de racha, XP y diamantes, el «Reto de hoy» y el «Nivel 8» de la barra lateral son valores fijos sin
 origen en la API. Solo la rejilla de materias y los dos avisos de error son reales. Es la
 consecuencia de que el progreso exista en el backend pero todavía no se exponga
-(`docs/ToDo/exponer-progreso-basico.md`).
+(`docs/ToDo/tarjetas-materia-datos-reales.md`).
 
 `PlaceholderView` (`apps/web/components/views/placeholder-view.tsx:1`) es lo que se renderiza para
-Repaso, Progreso e Insignias: un recuadro con el nombre de la sección. La página decide entre
-`HomeView`, `SubjectsView`, `MaterialsView`, `QuizView` y este último con un ternario, así que
+Progreso e Insignias: un recuadro con el nombre de la sección. La página decide entre
+`HomeView`, `SubjectsView`, `MaterialsView`, `QuizView`, `EvaluationsView` y este último con un ternario, así que
 añadir una pantalla real es añadir un caso, no una ruta.

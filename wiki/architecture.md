@@ -18,7 +18,7 @@ sources:
   - pnpm-workspace.yaml
   - docker-compose.yml
   - .env.example
-synced: 2375f47
+synced: a9c3163
 ---
 
 # Arquitectura de estudIA
@@ -63,9 +63,9 @@ application/    use cases + ports (interfaces)             ← lógica de negoci
 infrastructure/ adaptadores (Prisma, S3, DeepSeek, sharp)  ← los proveedores concretos
 ```
 
-`apps/api/src/app.module.ts:13` es la raíz: importa la infraestructura compartida (`PrismaModule`,
+`apps/api/src/app.module.ts:14` es la raíz: importa la infraestructura compartida (`PrismaModule`,
 `ObjectStorageModule`, `AIModule`) y los módulos de dominio (`HealthModule`, `SubjectsModule`,
-`TopicsModule`, `MaterialsModule`, `QuizzesModule`, `UsersModule`) en `apps/api/src/app.module.ts:14`. Los
+`TopicsModule`, `MaterialsModule`, `EvaluationsModule`, `QuizzesModule`, `UsersModule`) en `apps/api/src/app.module.ts:15`. Los
 puertos viven dentro de cada módulo, en `application/ports/`, de modo que un caso de uso depende
 de una interfaz y no de Prisma ni de ningún SDK.
 
@@ -79,8 +79,8 @@ Swagger en `api/docs` (`apps/api/src/main.ts:19`) y el puerto de `API_PORT` (`ap
 El `.env` se carga a mano desde `apps/api/.env` (`apps/api/src/main.ts:10`): el binario compilado
 arranca desde `dist/`, así que `process.env` no se rellena solo.
 
-**Web.** No hay router de páginas: una única página client-side, `apps/web/app/page.tsx:20`, decide
-qué vista renderiza según la navegación (`apps/web/app/page.tsx:64`) y monta los diálogos globales.
+**Web.** No hay router de páginas: una única página client-side, `apps/web/app/page.tsx:21`, decide
+qué vista renderiza según la navegación (`apps/web/app/page.tsx:65`) y monta los diálogos globales.
 El layout fija el idioma de la interfaz en español (`apps/web/app/layout.tsx:13`). La web habla solo
 con `NEXT_PUBLIC_API_URL` (`apps/web/lib/api.ts:71`, declarada en `.env.example:6`), sin cookies ni
 sesión. El diseño no usa
@@ -103,7 +103,7 @@ modo que producción cambia de proveedor sin tocar código.
 
 | Carpeta | Dueña de |
 | --- | --- |
-| `apps/api/src/modules/*` | los casos de dominio: materias, temas, materiales, quizzes, usuarios, health |
+| `apps/api/src/modules/*` | los casos de dominio: materias, temas, materiales, evaluaciones, quizzes, usuarios, health |
 | `apps/api/src/infrastructure/ai` | los adaptadores de IA: cliente DeepSeek, cliente OpenRouter y el registro de proveedor |
 | `apps/api/src/infrastructure/database`, `object-storage`, `images` | Prisma, S3 y el recorte de figuras con sharp |
 | `apps/web/components`, `hooks`, `lib` | la interfaz: armazón, vistas, diálogos, primitivas, hooks de datos y el cliente HTTP |
@@ -118,6 +118,7 @@ modo que producción cambia de proveedor sin tocar código.
 | [Generar y resolver un quiz](./flows/generar-y-resolver-quiz.md) | selección de preguntas, intento, corrección y progreso |
 | [Módulo de materiales](./components/materiales.md) | `Material`, sus figuras, sus preguntas, su edición a mano y su borrado |
 | [Módulo de quizzes](./components/quizzes.md) | el quiz como instantánea, los intentos y `TopicProgress` |
+| [Módulo de evaluaciones](./components/evaluaciones.md) | subida de exámenes, extracción de preguntas y revisión |
 | [Módulo de IA y sus adaptadores](./components/ia.md) | puertos de IA, proveedores y validación de la salida |
 | [Capa de persistencia (Prisma)](./components/persistencia.md) | la conexión global y los repositorios que traducen los puertos a tablas |
 | [La forma del CRUD de catálogo](./components/crud-de-catalogo.md) | cómo están hechos los módulos de materias, temas y usuarios |

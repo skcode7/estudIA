@@ -10,7 +10,7 @@ sources:
   - apps/api/src/infrastructure/ai/deepseek/deepseek.client.ts
   - apps/api/src/infrastructure/object-storage/s3.object-storage.ts
   - .env.example
-synced: 95361be
+synced: a9c3163
 related:
   - ../components/ia.md
 ---

@@ -22,7 +22,7 @@ sources:
   - apps/api/src/modules/materials/infrastructure/prisma-material.repository.ts
   - apps/api/src/modules/materials/infrastructure/prisma-material-image.repository.ts
   - apps/api/prisma/schema.prisma
-synced: 95361be
+synced: a9c3163
 related:
   - ../flows/procesamiento-de-material.md
   - ../flows/figuras-embebidas.md
@@ -37,13 +37,13 @@ y de la verdad sobre el estado de procesamiento de cada material.
 
 ## Qué es un Material
 
-`Material` (`apps/api/prisma/schema.prisma:56`) es un apunte de un tema: `TEXT` (el usuario pegó el
+`Material` (`apps/api/prisma/schema.prisma:65`) es un apunte de un tema: `TEXT` (el usuario pegó el
 contenido) o `FILE` (un binario en el storage más una transcripción opcional). El tipo `LINK`
 existe en el enum (`apps/api/prisma/schema.prisma:10`) pero no tiene ruta de creación: nada lo
 produce hoy, y el procesamiento lo rechaza.
 
 Los dos atributos que gobiernan el ciclo de vida son `processingStatus`
-(`apps/api/prisma/schema.prisma:64`) y `hasEmbeddedFigures` (`apps/api/prisma/schema.prisma:63`).
+(`apps/api/prisma/schema.prisma:73`) y `hasEmbeddedFigures` (`apps/api/prisma/schema.prisma:72`).
 El primero es la máquina de estados `PENDING → PROCESSING → COMPLETED | FAILED` con
 `processingError` como mensaje legible para el usuario. El segundo decide si el procesamiento
 intenta extraer figuras de la foto.
@@ -87,9 +87,9 @@ que no se pueda borrar solo se loguea; la fila ya no existe y el material queda 
 formas — el storage puede quedar con huérfanos si MinIO/S3 falla.
 
 Las preguntas del material **sobreviven** al borrado: `sourceMaterialId` es `onDelete: SetNull`
-(`apps/api/prisma/schema.prisma:104`), así que siguen en el pool de generación de quizzes sin
+(`apps/api/prisma/schema.prisma:147`), así que siguen en el pool de generación de quizzes sin
 material de origen. Sus imágenes, en cambio, caen en cascada con el material
-(`apps/api/prisma/schema.prisma:85`) y la referencia de imagen de la pregunta queda en `null`.
+(`apps/api/prisma/schema.prisma:94`) y la referencia de imagen de la pregunta queda en `null`.
 Borrar un material no es borrar su contenido generado.
 
 ## Servir una figura

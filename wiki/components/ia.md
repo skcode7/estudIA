@@ -18,7 +18,7 @@ sources:
   - apps/api/src/infrastructure/ai/openrouter/openrouter.prompts.ts
   - apps/api/src/infrastructure/ai/openrouter/openrouter.schemas.ts
   - apps/web/components/dialogs/material-dialog.tsx
-synced: 6931a91
+synced: a9c3163
 related:
   - ../flows/figuras-embebidas.md
   - ../flows/procesamiento-de-material.md
@@ -28,7 +28,7 @@ related:
 # Módulo de IA y sus adaptadores
 
 Ningún caso de uso conoce DeepSeek ni OpenRouter: conoce `AIProvider` y `MaterialImageExtractor`,
-dos clases abstractas que funcionan como token de inyección (`apps/api/src/modules/ai/application/ports/ai-provider.ts:97`).
+dos clases abstractas que funcionan como token de inyección (`apps/api/src/modules/ai/application/ports/ai-provider.ts:139`).
 Esta es la frontera que AGENTS.md exige — Controller → Use Case → puerto → adaptador — y el motivo
 es el punto de fuga más caro del proyecto: cambiar de proveedor de IA no debe tocar el dominio.
 
@@ -53,7 +53,7 @@ uno puede estar configurado y el otro no.
 ## El contrato con el modelo es JSON, y se comprueba
 
 Los prompts piden un objeto JSON con un formato fijado en el propio prompt
-(`apps/api/src/infrastructure/ai/deepseek/deepseek.prompts.ts:45`), con reglas explícitas como
+(`apps/api/src/infrastructure/ai/deepseek/deepseek.prompts.ts:66`), con reglas explícitas como
 "nunca inventes ids" para que el modelo solo elija del catálogo que se le pasa. En las llamadas de
 DeepSeek se pide además `response_format: json_object`
 (`apps/api/src/infrastructure/ai/deepseek/deepseek.client.ts:31`).
@@ -64,7 +64,7 @@ flexibilidad: es medir que el modelo se toma esa puerta unas 3 de cada 4 veces, 
 precarga el campo con el nombre del archivo
 (`apps/web/components/dialogs/material-dialog.tsx:199`), el resultado es un material titulado
 `IMG-20240315-WA0037.jpg`. La regla ahora exige inferirlo siempre y prohíbe copiar el nombre del
-archivo (`apps/api/src/infrastructure/ai/deepseek/deepseek.prompts.ts:59`); la tasa de vacíos bajó de
+archivo (`apps/api/src/infrastructure/ai/deepseek/deepseek.prompts.ts:80`); la tasa de vacíos bajó de
 1 de 4 a 0 de 8. El detalle del síntoma está en
 [Procesamiento de un material de estudio](../flows/procesamiento-de-material.md).
 
@@ -80,7 +80,7 @@ Zod para la salida de IA y class-validator para los DTOs de entrada.
 
 Tras validar, el adaptador de DeepSeek todavía filtra lo que no cuadra: una pregunta cuyo
 `imageIndex` no corresponde a ninguna figura real se descarta y un juego sin ninguna pregunta
-válida es un error (`apps/api/src/infrastructure/ai/deepseek/deepseek.provider.ts:54`), de modo que
+válida es un error (`apps/api/src/infrastructure/ai/deepseek/deepseek.provider.ts:67`), de modo que
 una alucinación del modelo no llega a la base de datos.
 
 ## El borde del adaptador: schemas y mappers
@@ -90,7 +90,7 @@ desorden del modelo. Los schemas son deliberadamente tolerantes: un `""` donde s
 convierte en `null` y un título vacío desaparece (`apps/api/src/infrastructure/ai/deepseek/deepseek.schemas.ts:9`),
 en vez de rechazar la respuesta entera. Lo que sí es estricto es lo que no admite ambigüedad: 4 a 6
 opciones por pregunta y exactamente una correcta, que el mapper descarta si no se cumple
-(`apps/api/src/infrastructure/ai/deepseek/deepseek.mapper.ts:28`).
+(`apps/api/src/infrastructure/ai/deepseek/deepseek.mapper.ts:43`).
 
 En la visión, el mismo espíritu: las coordenadas se aceptan normalizadas (0–1) o en porcentaje
 (0–100) y las normaliza el mapper (`apps/api/src/infrastructure/ai/openrouter/openrouter.mapper.ts:31`),
@@ -117,8 +117,9 @@ arranque arregla las llamadas pero no cambia el extractor inyectado.
 ## Dos capacidades sin uso
 
 `AIProvider` declara `explainAnswer` y `generateHint`
-(`apps/api/src/modules/ai/application/ports/ai-provider.ts:100`) y DeepSeek los implementa
-(`apps/api/src/infrastructure/ai/deepseek/deepseek.provider.ts:63`), pero ningún caso de uso los
+(`apps/api/src/modules/ai/application/ports/ai-provider.ts:146`) y DeepSeek los implementa
+(`apps/api/src/infrastructure/ai/deepseek/deepseek.provider.ts:102`), pero ningún caso de uso los
 invoca hoy: solo aparecen en los mocks de los tests. Están para la explicación de respuestas y las
 pistas del quiz futuro; no confundir con la `explanation` de las preguntas, que sí se genera al
-procesar el material.
+procesar el material. El puerto creció además con `analyzeEvaluationDraft` y
+`extractEvaluationQuestions`, usados por el módulo de evaluaciones.

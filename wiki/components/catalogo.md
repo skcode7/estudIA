@@ -9,7 +9,7 @@ sources:
   - apps/api/src/modules/materials/application/use-cases/create-text-material.use-case.ts
   - apps/web/hooks/use-user.ts
   - apps/api/prisma/schema.prisma
-synced: 36ec39f
+synced: a9c3163
 related:
   - ../components/materiales.md
   - ../components/crud-de-catalogo.md
@@ -42,19 +42,20 @@ server-side; el filtrado de la lista lo hace la web.
 
 `DeleteSubjectUseCase` borra la fila y nada más
 (`apps/api/src/modules/subjects/application/use-cases/delete-subject.use-case.ts:14`); el resto lo
-hace la base de datos en cascada: temas (`apps/api/prisma/schema.prisma:47`), materiales
-(`apps/api/prisma/schema.prisma:69`), preguntas, quizzes e intentos. Con dos consecuencias que el
+hace la base de datos en cascada: temas (`apps/api/prisma/schema.prisma:55`), materiales
+(`apps/api/prisma/schema.prisma:78`), preguntas, quizzes e intentos. Con dos consecuencias que el
 código no señala:
 
 - **El object storage no se entera.** Solo `DeleteMaterialUseCase` limpia objetos; al borrar una
   materia, sus fotos y figuras quedan en MinIO/S3 para siempre. Es la vía más fácil de acumular
   basura en el bucket.
 - **No hay confirmación de lo que arrastra.** El diálogo de borrado de la web avisa de que se
-  perderán los materiales, pero el número real no se consulta antes de borrar.
+  perderán los materiales, pero el número real no se consulta antes de borrar. Ambos problemas
+  están registrados en `docs/ToDo/borrado-en-cascada-con-confirmacion-y-limpieza.md`.
 
 ## El usuario es un nombre, y el primero manda
 
-`User` (`apps/api/prisma/schema.prisma:197`) es solo `name` + fechas: sin contraseña, sin sesión,
+`User` (`apps/api/prisma/schema.prisma:244`) es solo `name` + fechas: sin contraseña, sin sesión,
 sin rol. La web decide cuál es "el usuario" con una convención, no con una regla: carga la lista y
 se queda con el primero (`apps/web/hooks/use-user.ts:21`); si la lista está vacía — o si la
 consulta falla — abre el diálogo de onboarding para crearlo

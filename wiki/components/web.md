@@ -14,7 +14,7 @@ sources:
   - apps/web/components/views/materials-view.tsx
   - apps/web/components/dialogs/material-edit-dialog.tsx
   - apps/web/components/dialogs/material-delete-dialog.tsx
-synced: 2375f47
+synced: a9c3163
 related:
   - ../components/catalogo.md
   - ../flows/procesamiento-de-material.md
@@ -30,10 +30,10 @@ es cliente y todo se pide a la API al montar cada vista.
 
 ## Una página, muchas vistas
 
-`HomePage` (`apps/web/app/page.tsx:20`) mantiene `activeView` y conmuta entre `HomeView`,
-`SubjectsView`, `MaterialsView` y `QuizView` (`apps/web/app/page.tsx:64`). Los diálogos — crear
+`HomePage` (`apps/web/app/page.tsx:21`) mantiene `activeView` y conmuta entre `HomeView`,
+`SubjectsView`, `MaterialsView`, `QuizView` y `EvaluationsView` (`apps/web/app/page.tsx:65`). Los diálogos — crear
 materia, editar, borrar, agregar material, onboarding de usuario — viven en el mismo nivel que las
-vistas y se abren por estado (`apps/web/app/page.tsx:103`), no por ruta.
+vistas y se abren por estado (`apps/web/app/page.tsx:106`), no por ruta.
 
 La consecuencia práctica: **la URL no dice dónde estás**. Recargar la página vuelve siempre a
 Inicio, y un quiz en curso o un borrador de material se pierden, porque su estado vive solo en el
@@ -42,7 +42,7 @@ componente. Es también lo que hace que la app funcione como app móvil: nada qu
 ## Dialogos que una vista abre desde dentro
 
 La misma vista que lista materiales también puede crear uno, y para eso la página le pasa el
-`openMaterialDialog` del hook (`apps/web/app/page.tsx:91`). Abrirlo desde Materiales lleva la
+`openMaterialDialog` del hook (`apps/web/app/page.tsx:92`). Abrirlo desde Materiales lleva la
 materia y el tema que ya están filtrados, así que `useMaterials.open` acepta opciones de
 preselección en vez de no admitir argumentos
 (`apps/web/hooks/use-materials.ts:19`) y el diálogo las aplica al cargar los temas
@@ -51,7 +51,7 @@ igual: la preselección solo se aplica cuando viene.
 
 El alta vive en un diálogo de la página, no en la vista, y la vista no se entera del resultado. Se
 resuelve con un contador, hoy propiedad de `useMaterials`: la página lo incrementa al crear
-(`apps/web/app/page.tsx:142`) y el propio hook lo vuelve a incrementar cuando termina cada proceso
+(`apps/web/app/page.tsx:145`) y el propio hook lo vuelve a incrementar cuando termina cada proceso
 (`apps/web/hooks/use-materials.ts:56`). `MaterialsView` lo usa como dependencia del efecto que lista
 (`apps/web/components/views/materials-view.tsx:100`). Es un patrón de recarga por señal, no un
 gestor de caché: la web no tiene invalidación de datos más allá de eso.
@@ -65,7 +65,7 @@ material que sigue procesándose.
 Tres hooks reúnen los datos y sus estados de carga y error: `useUser`, `useSubjects` y
 `useMaterials`. Cada uno expone funciones ya cerradas que las vistas disparan; la página es quien
 los compone (por ejemplo, crear una materia preselecciona esa materia en el diálogo de material,
-`apps/web/app/page.tsx:38`). No hay store global ni React Query: si dos vistas necesitan lo mismo,
+`apps/web/app/page.tsx:39`). No hay store global ni React Query: si dos vistas necesitan lo mismo,
 la página se lo pasa por props.
 
 Desde `4fe2f8a` `useMaterials` dejó de ser solo el dueño del diálogo: también lo es del **procesamiento
@@ -75,9 +75,10 @@ vivir por encima de la vista que lo dispara. `startProcessing` envuelve el `proc
 el error a propósito (`apps/web/hooks/use-materials.ts:46`): el fallo habitual ya viene como material
 `FAILED` y lo enseña la propia lista, y swallowar aquí evita un rechazo sin manejar en un `void`.
 
-La navegación (`apps/web/lib/navigation.ts:1`) anuncia ya siete destinos; tres de ellos — Repaso,
-Progreso e Insignias (`apps/web/lib/navigation.ts:6`) — caen en un placeholder
-(`apps/web/app/page.tsx:99`) porque aún no hay nada que mostrar.
+La navegación (`apps/web/lib/navigation.ts:1`) anuncia ya siete destinos; dos de ellos —
+Progreso e Insignias (`apps/web/lib/navigation.ts:7`) — caen en un placeholder
+(`apps/web/app/page.tsx:102`) porque aún no hay nada que mostrar. Evaluaciones reemplazó a Repaso
+(`apps/web/lib/navigation.ts:6`) y tiene vista propia.
 
 ## El cliente HTTP
 
@@ -94,7 +95,7 @@ un `response.json()` a secas rompía con el borrado de materiales
 `undefined` en vez de lanzar.
 
 Las imágenes de preguntas se resuelven con `assetUrl`, que solo antepone la base de la API
-(`apps/web/lib/api.ts:290`): la web nunca ve el bucket.
+(`apps/web/lib/api.ts:399`): la web nunca ve el bucket.
 
 ## Editar un material y lo que tiene debajo
 
@@ -114,7 +115,7 @@ Borrar el material entero tiene su propio diálogo
 (`apps/web/components/dialogs/material-delete-dialog.tsx:7`), que sigue el patrón de
 `DeleteSubjectDialog`: nombre de la materia, aviso de que no se puede deshacer, y un texto que sí
 es honesto sobre lo que sobrevive —las preguntas del tema se quedan— aunque el borrado en cascada
-de lo demás todavía no avisa de su tamaño (`docs/ToDo/confirmar-borrado-en-cascada.md`).
+de lo demás todavía no avisa de su tamaño (`docs/ToDo/borrado-en-cascada-con-confirmacion-y-limpieza.md`).
 
 Es el reverso de que reprocesar sea destructivo: corregir a mano es la salida que hoy no destruye
 el historial de intentos (ver [Módulo de quizzes](../components/quizzes.md)).
@@ -144,17 +145,17 @@ eliminado la copia, solo la habría movido de sitio.
 constantes.
 
 El del progreso ya está diagnosticado: el `TopicProgress` real se acumula en la API y no se expone
-(ver [Módulo de quizzes](../components/quizzes.md), `docs/ToDo/exponer-progreso-basico.md`).
+(ver [Módulo de quizzes](../components/quizzes.md), `docs/ToDo/tarjetas-materia-datos-reales.md`).
 
 El del contador de materiales es **un bug, no una decisión**: existe código que lo calcula
 (`refreshSubjectMaterialCount`, `apps/web/hooks/use-materials.ts:60`) y solo se dispara como efecto
 secundario de crear un material *desde la vista de Materiales*
-(`apps/web/app/page.tsx:141`). Al entrar en Inicio no se calcula nada, así que el número es 0 aunque
+(`apps/web/app/page.tsx:144`). Al entrar en Inicio no se calcula nada, así que el número es 0 aunque
 haya materiales, y se queda viejo en cualquier otro cambio. Además el cálculo es un N+1 —pide los
 temas y luego `listMaterials` por cada tema—, lo que explica que un arreglo en el cliente sea un
 parche: el dato tiene que venir de la API. Registrado en
-`docs/ToDo/contador-materiales-tarjetas.md`, que además señala que los dos ceros son el mismo
-defecto de diseño: decoration en el cliente donde debería haber dato.
+`docs/ToDo/tarjetas-materia-datos-reales.md`, que unifica contador, progreso y color/ícono de las
+tarjetas bajo el mismo defecto de diseño: decoration en el cliente donde debería haber dato.
 
 ## Límites de la interfaz
 

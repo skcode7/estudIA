@@ -16,7 +16,7 @@ sources:
   - apps/api/src/modules/ai/application/ports/ai-provider.ts
   - apps/api/src/infrastructure/ai/deepseek/deepseek.prompts.ts
   - apps/web/components/views/materials-view.tsx
-synced: 6931a91
+synced: a9c3163
 related:
   - ./figuras-embebidas.md
   - ../architecture.md
@@ -30,7 +30,7 @@ IA) y **procesar** (lento, con IA).
 
 En la web ya no lo son. Desde `4fe2f8a` confirmar el diálogo encadena el procesamiento y el popup
 cierra al guardar: el `POST /materials/:id/process` sigue en segundo plano
-(`apps/web/app/page.tsx:144`), porque puede tardar lo que tarde el proveedor. La página lo lanza
+(`apps/web/app/page.tsx:147`), porque puede tardar lo que tarde el proveedor. La página lo lanza
 con `void` y no espera, así que el usuario ve aparecer el material antes de que tenga preguntas.
 El botón "Procesar" de la lista sobrevive y sigue siendo la salida para reintentar un `PENDING` o un
 `FAILED`.

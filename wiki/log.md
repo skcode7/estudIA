@@ -126,6 +126,30 @@ deduce el título y el aviso de edición lo dice. Tres páginas reescritas, dos 
   quizzes, promedio de progreso) no tienen página. Son comportamiento futuro, no código, y las páginas
   describen lo que el código hace.
 
+## 2026-10-16 · wikipoke-ingest
+
+Reconciliación con 24 commits (desde `2375f47`): nuevo módulo de evaluaciones, extracción de
+preguntas de exámenes, tipos de pregunta `TRUE_FALSE`/`FILL_BLANK` y cambios menores de líneas.
+
+- new: `components/evaluaciones.md` — subida multi-foto, extracción de preguntas con
+  `AIProvider.extractEvaluationQuestions`, revisión antes de incluir en el pool y servicio de
+  imágenes de evaluación en el quiz.
+- `architecture.md` — incluye `EvaluationsModule` en el mapa y en la tabla de páginas.
+- `components/ia.md` — el puerto creció con `analyzeEvaluationDraft` y `extractEvaluationQuestions`;
+  citas re-apuntadas.
+- `components/catalogo.md`, `components/materiales.md`, `components/quizzes.md` — líneas del
+  `schema.prisma` re-apuntadas tras añadir `Evaluation` y `EvaluationImage`.
+- `components/web.md`, `components/vistas-de-catalogo.md` — Evaluaciones reemplazó a Repaso en la
+  navegación; citas re-apuntadas; referencias a ToDo unificados actualizadas.
+- `flows/generar-y-resolver-quiz.md`, `flows/procesamiento-de-material.md`,
+  `concepts/puertos-y-adapters.md`, `decisions/proveedor-ia.md`, `components/persistencia.md` —
+  citas re-apuntadas a las líneas actuales.
+- `index.md` — enlaza la nueva página de evaluaciones.
+- Referencias a ToDo eliminados o unificados actualizadas en las páginas que los citaban.
+- `synced:` elevado a `a9c3163` en todas las páginas tocadas.
+- Backlog: quedan 24 archivos sin reclamar, la mayoría del nuevo módulo de evaluaciones ya cubierto
+  por la página nueva y otros archivos de infraestructura/validación menores.
+
 ## 2026-09-30 · wikipoke-ingest
 
 Reconcile tras `2375f47`, que borró los tres paquetes compartidos del workspace.

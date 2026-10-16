@@ -10,7 +10,7 @@ sources:
   - apps/api/src/modules/subjects/infrastructure/prisma-subject.repository.ts
   - apps/api/src/modules/topics/infrastructure/prisma-topic.repository.ts
   - apps/api/src/modules/users/infrastructure/prisma-user.repository.ts
-synced: 36ec39f
+synced: a9c3163
 related:
   - ../concepts/puertos-y-adapters.md
   - ../components/materiales.md
@@ -71,4 +71,4 @@ tocar el esquema.
 
 Y una ausencia deliberada: no hay transacciones que crucen puertos. Cuando hace falta — corregir un
 intento y recalcular el progreso — la transacción vive dentro de un repositorio
-(`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:125`), no en el caso de uso.
+(`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:133`), no en el caso de uso.

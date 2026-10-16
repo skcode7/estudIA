@@ -13,7 +13,7 @@ sources:
   - apps/api/src/infrastructure/ai/openrouter/openrouter.image-extractor.ts
   - apps/api/src/infrastructure/images/sharp.image-cropper.ts
   - apps/api/src/modules/materials/presentation/controllers/materials.controller.ts
-synced: 95361be
+synced: a9c3163
 related:
   - ./procesamiento-de-material.md
   - ../decisions/proveedor-ia.md
