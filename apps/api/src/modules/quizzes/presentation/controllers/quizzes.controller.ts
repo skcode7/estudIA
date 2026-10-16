@@ -1,12 +1,20 @@
-import { Body, Controller, Param, Post } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
 
 import { GenerateQuizUseCase } from "../../application/use-cases/generate-quiz.use-case";
+import { GetQuizAttemptUseCase } from "../../application/use-cases/get-quiz-attempt.use-case";
+import { ListQuizzesUseCase } from "../../application/use-cases/list-quizzes.use-case";
 import { SubmitQuizAttemptUseCase, QuizAnswerFeedback } from "../../application/use-cases/submit-quiz-attempt.use-case";
-import { QuizRecord } from "../../application/ports/quiz.repository";
+import {
+  QuizAttemptDetailRecord,
+  QuizListItemRecord,
+  QuizRecord
+} from "../../application/ports/quiz.repository";
 import {
   GenerateQuizDto,
+  QuizAttemptDetailDto,
   QuizAttemptResultDto,
   QuizDto,
+  QuizListItemDto,
   QuizQuestionTypeDto,
   QuizSizeDto,
   SubmitAttemptDto
@@ -17,7 +25,9 @@ import { shuffle } from "../../../../shared/random.utils";
 export class QuizzesController {
   constructor(
     private readonly generateQuizUseCase: GenerateQuizUseCase,
-    private readonly submitQuizAttemptUseCase: SubmitQuizAttemptUseCase
+    private readonly submitQuizAttemptUseCase: SubmitQuizAttemptUseCase,
+    private readonly listQuizzesUseCase: ListQuizzesUseCase,
+    private readonly getQuizAttemptUseCase: GetQuizAttemptUseCase
   ) {}
 
   @Post("generate")
@@ -44,6 +54,23 @@ export class QuizzesController {
         }))
       })
       .then(toAttemptResultDto);
+  }
+
+  @Get()
+  async findAll(@Query("subjectId") subjectId: string): Promise<QuizListItemDto[]> {
+    if (!subjectId) {
+      throw new BadRequestException('El parámetro "subjectId" es obligatorio.');
+    }
+    const quizzes = await this.listQuizzesUseCase.execute(subjectId);
+    return quizzes.map(toQuizListItemDto);
+  }
+
+  @Get(":id/attempts/:attemptId")
+  findAttempt(
+    @Param("id") id: string,
+    @Param("attemptId") attemptId: string
+  ): Promise<QuizAttemptDetailDto> {
+    return this.getQuizAttemptUseCase.execute(id, attemptId).then(toQuizAttemptDetailDto);
   }
 }
 
@@ -97,6 +124,43 @@ function toAttemptResultDto(result: {
       statement: answer.statement,
       selectedOptionId: answer.selectedOptionId ?? null,
       correctOptionId: answer.correctOptionId ?? null,
+      isCorrect: answer.isCorrect,
+      explanation: answer.explanation
+    }))
+  };
+}
+
+function toQuizListItemDto(item: QuizListItemRecord): QuizListItemDto {
+  return {
+    id: item.id,
+    title: item.title,
+    topicId: item.topicId,
+    topicName: item.topicName,
+    questionCount: item.questionCount,
+    attemptId: item.lastAttempt?.id ?? null,
+    score: item.lastAttempt?.score ?? null,
+    completedAt: item.lastAttempt?.completedAt.toISOString() ?? null,
+    createdAt: item.createdAt.toISOString()
+  };
+}
+
+function toQuizAttemptDetailDto(detail: QuizAttemptDetailRecord): QuizAttemptDetailDto {
+  return {
+    attemptId: detail.attemptId,
+    quizId: detail.quizId,
+    quizTitle: detail.quizTitle,
+    score: detail.score,
+    completedAt: detail.completedAt.toISOString(),
+    answers: detail.answers.map((answer) => ({
+      questionId: answer.questionId,
+      statement: answer.statement,
+      imageUrl: toQuestionImageUrl(answer),
+      options: answer.options.map((option) => ({
+        id: option.id,
+        text: option.text,
+        isCorrect: option.isCorrect
+      })),
+      selectedOptionId: answer.selectedOptionId,
       isCorrect: answer.isCorrect,
       explanation: answer.explanation
     }))

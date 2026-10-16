@@ -84,9 +84,63 @@ export interface QuizAttemptRecord {
   score: number;
 }
 
+export interface QuizAttemptSummary {
+  id: string;
+  score: number;
+  completedAt: Date;
+}
+
+export interface QuizListItemRecord {
+  id: string;
+  title: string;
+  topicId: string | null;
+  topicName: string | null;
+  questionCount: number;
+  /**
+   * Último intento completado (mayor `completedAt`). Null si el quiz nunca se
+   * respondió: un quiz sin intento no tiene porcentaje, y mostrarlo como 0%
+   * sería mentir. Cuando hay varios intentos se lista el más reciente, no el
+   * mejor ni el promedio.
+   */
+  lastAttempt: QuizAttemptSummary | null;
+  createdAt: Date;
+}
+
+export interface QuizAttemptDetailAnswer {
+  questionId: string;
+  statement: string;
+  imageId: string | null;
+  sourceMaterialId: string | null;
+  evaluationImageId: string | null;
+  sourceEvaluationId: string | null;
+  options: QuizGradingOption[];
+  selectedOptionId: string | null;
+  isCorrect: boolean;
+  explanation: string | null;
+}
+
+export interface QuizAttemptDetailRecord {
+  attemptId: string;
+  quizId: string;
+  quizTitle: string;
+  score: number;
+  completedAt: Date;
+  answers: QuizAttemptDetailAnswer[];
+}
+
 export abstract class QuizRepository {
   abstract findQuestionIdsByTopics(topicIds: string[]): Promise<string[]>;
   abstract createQuiz(input: CreateQuizInput): Promise<QuizRecord>;
   abstract findQuizForGrading(id: string): Promise<QuizGradingRecord | null>;
   abstract saveAttempt(input: SaveAttemptInput): Promise<QuizAttemptRecord>;
+  /** Quizzes de una materia, más recientes primero, con su último intento completado. */
+  abstract listBySubject(subjectId: string): Promise<QuizListItemRecord[]>;
+  /**
+   * Detalle de un intento ya enviado, para el repaso posterior. Devuelve `null`
+   * si el intento no existe, no pertenece al quiz indicado, o está incompleto.
+   */
+  abstract findAttemptDetail(
+    quizId: string,
+    attemptId: string
+  ): Promise<QuizAttemptDetailRecord | null>;
 }

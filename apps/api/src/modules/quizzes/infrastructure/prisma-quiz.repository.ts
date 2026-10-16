@@ -4,8 +4,10 @@ import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import {
   CreateQuizInput,
+  QuizAttemptDetailRecord,
   QuizAttemptRecord,
   QuizGradingRecord,
+  QuizListItemRecord,
   QuizRecord,
   QuizRepository,
   SaveAttemptInput
@@ -158,6 +160,111 @@ export class PrismaQuizRepository implements QuizRepository {
         score: attempt.score ?? 0
       };
     });
+  }
+
+  async listBySubject(subjectId: string): Promise<QuizListItemRecord[]> {
+    const quizzes = await this.prisma.quiz.findMany({
+      where: { subjectId },
+      orderBy: { createdAt: "desc" },
+      include: {
+        topic: { select: { name: true } },
+        _count: { select: { questions: true } },
+        attempts: {
+          where: { completedAt: { not: null }, score: { not: null } },
+          orderBy: { completedAt: "desc" },
+          take: 1
+        }
+      }
+    });
+
+    return quizzes.map((quiz) => {
+      const lastAttempt = quiz.attempts[0];
+      return {
+        id: quiz.id,
+        title: quiz.title,
+        topicId: quiz.topicId,
+        topicName: quiz.topic?.name ?? null,
+        questionCount: quiz._count.questions,
+        lastAttempt:
+          lastAttempt?.completedAt && lastAttempt.score !== null
+            ? {
+                id: lastAttempt.id,
+                score: lastAttempt.score,
+                completedAt: lastAttempt.completedAt
+              }
+            : null,
+        createdAt: quiz.createdAt
+      };
+    });
+  }
+
+  async findAttemptDetail(
+    quizId: string,
+    attemptId: string
+  ): Promise<QuizAttemptDetailRecord | null> {
+    const attempt = await this.prisma.quizAttempt.findUnique({
+      where: { id: attemptId },
+      include: {
+        quiz: { select: { title: true } },
+        answers: {
+          include: {
+            question: {
+              select: {
+                id: true,
+                statement: true,
+                explanation: true,
+                imageId: true,
+                sourceMaterialId: true,
+                evaluationImageId: true,
+                sourceEvaluationId: true,
+                options: { select: { id: true, text: true, isCorrect: true } },
+                quizQuestions: { where: { quizId }, select: { order: true } }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (
+      !attempt ||
+      attempt.quizId !== quizId ||
+      attempt.score === null ||
+      attempt.completedAt === null
+    ) {
+      return null;
+    }
+
+    // El repaso sigue el orden en que el estudiante vio las preguntas, no el de
+    // inserción de las respuestas.
+    const answers = [...attempt.answers].sort(
+      (a, b) =>
+        (a.question.quizQuestions[0]?.order ?? 0) - (b.question.quizQuestions[0]?.order ?? 0)
+    );
+
+    return {
+      attemptId: attempt.id,
+      quizId: attempt.quizId,
+      quizTitle: attempt.quiz.title,
+      score: attempt.score,
+      completedAt: attempt.completedAt,
+      answers: answers.map((answer) => ({
+        questionId: answer.questionId,
+        statement: answer.question.statement,
+        imageId: answer.question.imageId,
+        sourceMaterialId: answer.question.sourceMaterialId,
+        evaluationImageId: answer.question.evaluationImageId,
+        sourceEvaluationId: answer.question.sourceEvaluationId,
+        options: answer.question.options.map((option) => ({
+          id: option.id,
+          text: option.text,
+          isCorrect: option.isCorrect
+        })),
+        selectedOptionId: answer.selectedOptionId,
+        isCorrect: answer.isCorrect,
+        explanation: answer.question.explanation
+      }))
+    };
   }
 
   private async updateTopicProgress(

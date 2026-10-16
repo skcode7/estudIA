@@ -236,3 +236,143 @@ export class QuizAttemptResultDto {
   @Type(() => QuizAnswerFeedbackDto)
   answers!: QuizAnswerFeedbackDto[];
 }
+
+/**
+ * Item del historial. No devuelve preguntas ni opciones: es un resumen.
+ * `score` es null cuando el quiz nunca se respondió (no es un 0%), y en ese caso
+ * `attemptId` también es null. Con varios intentos se informa el más reciente.
+ */
+export class QuizListItemDto {
+  @ApiProperty({ example: "f6a7b8c9-d0e1-2234-ab01-23456789015", description: "UUID del quiz" })
+  @IsUUID()
+  id!: string;
+
+  @ApiProperty({ example: "Quiz de Biología", description: "Título del quiz" })
+  @IsString()
+  title!: string;
+
+  @ApiPropertyOptional({ example: "b2c3d4e5-f6a7-8901-bcde-f12345678901", description: "UUID del tema (null si abarca la materia completa)", nullable: true })
+  @IsOptional()
+  @IsUUID()
+  topicId!: string | null;
+
+  @ApiPropertyOptional({ example: "Fotosíntesis", description: "Nombre del tema (null si abarca la materia completa)", nullable: true })
+  @IsOptional()
+  @IsString()
+  topicName!: string | null;
+
+  @ApiProperty({ example: 5, description: "Cantidad de preguntas del quiz" })
+  @IsNumber()
+  questionCount!: number;
+
+  @ApiPropertyOptional({ example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890", description: "UUID del último intento (null si nunca se respondió)", nullable: true })
+  @IsOptional()
+  @IsUUID()
+  attemptId!: string | null;
+
+  @ApiPropertyOptional({ example: 67, description: "Porcentaje del último intento (null si nunca se respondió)", nullable: true })
+  @IsOptional()
+  @IsNumber()
+  score!: number | null;
+
+  @ApiPropertyOptional({ example: "2026-09-11T12:03:00.000Z", description: "Fin del último intento (null si nunca se respondió)", nullable: true })
+  @IsOptional()
+  @IsDateString()
+  completedAt!: string | null;
+
+  @ApiProperty({ example: "2026-09-11T12:00:00.000Z", description: "Fecha de creación del quiz" })
+  @IsDateString()
+  createdAt!: string;
+}
+
+export class QuizOptionReviewDto {
+  @ApiProperty({ example: "e5f6a7b8-c9d0-1123-ef0a-123456789014", description: "UUID de la opción" })
+  @IsUUID()
+  id!: string;
+
+  @ApiProperty({ example: "La fotosíntesis", description: "Texto de la opción" })
+  @IsString()
+  text!: string;
+
+  @ApiProperty({ example: true, description: "Indica si es la opción correcta" })
+  @IsBoolean()
+  isCorrect!: boolean;
+}
+
+/**
+ * Respuesta de un intento en el repaso posterior. A diferencia de
+ * `QuizAnswerFeedbackDto`, incluye el texto de las opciones y la imagen: el
+ * popup de detalle no tiene el quiz en memoria (no existe `GET /quizzes/:id`),
+ * así que la respuesta tiene que traer todo lo que necesita pintar. El `isCorrect`
+ * es la frontera intencional: es revisión de un intento ya enviado, no una fuga.
+ */
+export class QuizAttemptAnswerDto {
+  @ApiProperty({ example: "c3d4e5f6-a7b8-9012-cdef-123456789012", description: "UUID de la pregunta" })
+  @IsUUID()
+  questionId!: string;
+
+  @ApiProperty({ example: "¿Qué convierte la luz en energía química?", description: "Enunciado de la pregunta" })
+  @IsString()
+  statement!: string;
+
+  @ApiPropertyOptional({
+    example: "/materials/abc-123/images/def-456",
+    description: "Ruta de la imagen del enunciado (null si la pregunta no tiene imagen)",
+    nullable: true
+  })
+  @IsOptional()
+  @IsString()
+  imageUrl!: string | null;
+
+  @ApiProperty({ type: () => [QuizOptionReviewDto], description: "Opciones con la correcta marcada" })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => QuizOptionReviewDto)
+  options!: QuizOptionReviewDto[];
+
+  @ApiPropertyOptional({
+    example: "d4e5f6a7-b8c9-0123-def0-123456789013",
+    description: "UUID de la opción elegida (null en preguntas para completar)",
+    nullable: true
+  })
+  @IsOptional()
+  @IsUUID()
+  selectedOptionId!: string | null;
+
+  @ApiProperty({ example: true, description: "Indica si la respuesta fue correcta" })
+  @IsBoolean()
+  isCorrect!: boolean;
+
+  @ApiPropertyOptional({ example: "La luz se convierte en energía química mediante la clorofila.", description: "Explicación de la respuesta", nullable: true })
+  @IsOptional()
+  @IsString()
+  explanation!: string | null;
+}
+
+export class QuizAttemptDetailDto {
+  @ApiProperty({ example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890", description: "UUID del intento" })
+  @IsUUID()
+  attemptId!: string;
+
+  @ApiProperty({ example: "f6a7b8c9-d0e1-2234-ab01-23456789015", description: "UUID del quiz" })
+  @IsUUID()
+  quizId!: string;
+
+  @ApiProperty({ example: "Quiz de Biología", description: "Título del quiz" })
+  @IsString()
+  quizTitle!: string;
+
+  @ApiProperty({ example: 67, description: "Porcentaje de aciertos del intento (0-100)" })
+  @IsNumber()
+  score!: number;
+
+  @ApiProperty({ example: "2026-09-11T12:03:00.000Z", description: "Fin del intento" })
+  @IsDateString()
+  completedAt!: string;
+
+  @ApiProperty({ type: () => [QuizAttemptAnswerDto], description: "Repaso por pregunta del intento" })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => QuizAttemptAnswerDto)
+  answers!: QuizAttemptAnswerDto[];
+}
