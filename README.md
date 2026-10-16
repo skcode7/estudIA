@@ -48,6 +48,24 @@ Modular Monolith:
 - DeepSeek como primer proveedor mediante adapter.
 - Object Storage S3-compatible preparado, pero incorporar solo cuando el MVP lo necesite.
 
+## Wiki de código
+
+El repo mantiene un wiki de código en `wiki/` con wikipoke. Está instalado como dependencia de desarrollo **a nivel de repo**, no global, así que el CLI se invoca desde la raíz con `pnpm exec` (o `node_modules/.bin/`):
+
+```bash
+pnpm exec wikipoke check          # lint + drift + cobertura
+pnpm exec wikipoke check drift    # solo lo que quedó desfasado desde el checkpoint
+pnpm exec wikipoke hooks          # hooks instalados
+```
+
+`wikipoke-ingest` no es un subcomando del CLI: es un skill del repo (`.agents/skills/wikipoke-ingest`), que se ejecuta desde el agente.
+
+- `/wikipoke-ingest` — crea o reconcilia `wiki/` con el código. Sin argumentos reconcilia lo cambiado desde `wiki/.wikipoke-state.json`; con una ruta o tema documenta esa parte; con `all`, todo lo pendiente.
+- `/wikipoke-query` — responde preguntas sobre el código desde el wiki.
+- `/wikipoke-lint` — revisa la salud del wiki.
+
+Al abrir una sesión, `sh wiki/.wikipoke-hook.sh` avisa si el wiki quedó atrás (es silencioso cuando está al día).
+
 ## Evolución prevista
 Etapa 2:
 - Integración con Authentico.
