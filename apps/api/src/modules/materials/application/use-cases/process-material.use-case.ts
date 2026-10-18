@@ -12,6 +12,8 @@ import {
   MaterialImageExtractor
 } from "../../../ai/application/ports/image-extractor";
 import { ObjectStorage } from "../../../storage/application/ports/object-storage";
+import { SubjectRepository } from "../../../subjects/application/ports/subject.repository";
+import { TopicRepository } from "../../../topics/application/ports/topic.repository";
 import { ImageCropper } from "../ports/image-cropper";
 import { MaterialImageRepository } from "../ports/material-image.repository";
 import { MaterialRecord, MaterialRepository } from "../ports/material.repository";
@@ -59,7 +61,9 @@ export class ProcessMaterialUseCase {
     @Inject(PROCESS_MATERIAL_CONFIG) private readonly config: ProcessMaterialConfig,
     private readonly imageExtractor: MaterialImageExtractor,
     private readonly imageCropper: ImageCropper,
-    private readonly imageRepository: MaterialImageRepository
+    private readonly imageRepository: MaterialImageRepository,
+    private readonly topicRepository: TopicRepository,
+    private readonly subjectRepository: SubjectRepository
   ) {}
 
   async execute(materialId: string): Promise<ProcessMaterialResult> {
@@ -123,6 +127,9 @@ export class ProcessMaterialUseCase {
 
     const extractedImages = await this.extractEmbeddedImages(material, image, hasEmbeddedFigures);
 
+    const topic = await this.topicRepository.findById(material.topicId);
+    const subject = topic ? await this.subjectRepository.findById(topic.subjectId) : null;
+
     let questionsCount: number;
     try {
       questionsCount = this.config.questionsCount;
@@ -131,6 +138,9 @@ export class ProcessMaterialUseCase {
         content: extractedContent ?? "",
         analysis,
         count: questionsCount,
+        questionMode: material.questionMode,
+        subjectName: subject?.name,
+        topicName: topic?.name,
         ...(extractedImages.hints.length > 0 ? { images: extractedImages.hints } : {})
       });
       questionsCount = await this.questionRepository.replaceForMaterial(

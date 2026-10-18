@@ -48,11 +48,23 @@ export interface MaterialImageHint {
   label: string;
 }
 
+/** Modo de generación de preguntas a partir de un material (ver MaterialQuestionMode). */
+export type QuestionGenerationMode = "BASED_ON_MATERIAL" | "SIMILAR_QUESTIONS";
+
 export interface GenerateQuestionsInput {
   title?: string;
   content: string;
   analysis?: MaterialAnalysis;
   count: number;
+  /**
+   * Modo de generación de preguntas: preguntas sobre el contenido del material
+   * o preguntas nuevas con la misma estructura (guía de ejercicios).
+   */
+  questionMode?: QuestionGenerationMode;
+  /** Nombre de la materia, usado para anclar la mecánica en modo "preguntas similares". */
+  subjectName?: string;
+  /** Nombre del tema, contexto adicional para la generación. */
+  topicName?: string;
   /**
    * Imágenes extraídas del material disponibles para preguntas del tipo
    * "¿A qué corresponde esta imagen?".

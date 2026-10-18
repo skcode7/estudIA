@@ -1,5 +1,6 @@
 export type { ChatMessage, UserContentBlock } from "../chat.types";
 import type { ChatMessage } from "../chat.types";
+import type { QuestionGenerationMode } from "../../../modules/ai/application/ports/ai-provider";
 
 export interface AnalyzePromptInput {
   title?: string;
@@ -16,6 +17,7 @@ export interface AnalyzePromptInput {
 }
 
 export interface GenerateQuestionsPromptInput {
+  questionMode: QuestionGenerationMode;
   title?: string;
   content: string;
   analysis: {
@@ -24,6 +26,8 @@ export interface GenerateQuestionsPromptInput {
     objectives: string[];
   };
   count: number;
+  subjectName?: string;
+  topicName?: string;
   images?: {
     index: number;
     label: string;
@@ -83,7 +87,7 @@ Reglas:
 - "hasEmbeddedFigures": true si DENTRO de los apuntes hay alguna figura o imagen propia (banderas, mapas, dibujos, diagramas, esquemas visuales); false si solo hay texto escrito. No hace falta contarlas.
 - No añadas explicaciones fuera del JSON.`;
 
-const GENERATE_QUESTIONS_SYSTEM_PROMPT = `Eres un asistente que genera preguntas de opción múltiple a partir de apuntes escolares.
+const GENERATE_QUESTIONS_INTRO = `Eres un asistente que genera preguntas de opción múltiple a partir de apuntes escolares.
 Responde ÚNICAMENTE con un objeto JSON válido con este formato:
 {
   "questions": [
@@ -101,15 +105,36 @@ Responde ÚNICAMENTE con un objeto JSON válido con este formato:
     }
   ]
 }
-Reglas:
-- Genera exactamente la cantidad de preguntas pedida.
+Reglas:`;
+
+const GENERATE_QUESTIONS_COMMON_RULES = `- Genera exactamente la cantidad de preguntas pedida.
 - Cada pregunta: exactamente 4 opciones y exactamente 1 correcta.
-- Basa las preguntas solo en el material proporcionado, nunca en conocimiento externo.
 - Usa el idioma del material.
 - No repitas preguntas entre sí.
 - "imageIndex" es opcional: inclúyelo solo en preguntas del tipo "¿A qué corresponde esta imagen?" cuando el mensaje incluya una lista de imágenes, usando el número exacto ("index") de esa lista. Nunca inventes números de imagen.
 - Si el mensaje incluye imágenes, genera como máximo 2 preguntas sobre ellas; el resto sobre el texto.
 - No añadas explicaciones fuera del JSON.`;
+
+const GENERATE_QUESTIONS_BASED_MODE_RULES = `- Basa las preguntas solo en el material proporcionado, nunca en conocimiento externo.`;
+
+const GENERATE_QUESTIONS_SIMILAR_MODE_RULES = `- El material es una GUÍA DE EJERCICIOS, no el contenido a preguntar: úsalo SOLO como referencia de la estructura, la mecánica y la dificultad de las preguntas.
+- Genera preguntas NUEVAS con la misma estructura y mecánica que las del material, pero con enunciados y datos distintos.
+- Nunca preguntes por los valores concretos del material: si la guía muestra "456 + 735 = 1191", no preguntes por ese resultado; genera otra suma de tres cifras con la misma mecánica.
+- Usa conocimiento general de la materia para crear datos nuevos que sean verificables y tengan una única respuesta correcta.`;
+
+/**
+ * Construye el system prompt de generación de preguntas según el modo.
+ * El bloque común (formato JSON, cantidad, 4 opciones/1 correcta, idioma,
+ * imagen e index) es compartido; el bloque por modo cambia la regla de origen
+ * de las preguntas (sobre el material o como guía de ejercicios).
+ */
+export function generateQuestionsSystemPrompt(mode: QuestionGenerationMode): string {
+  const modeRules =
+    mode === "SIMILAR_QUESTIONS"
+      ? GENERATE_QUESTIONS_SIMILAR_MODE_RULES
+      : GENERATE_QUESTIONS_BASED_MODE_RULES;
+  return `${GENERATE_QUESTIONS_INTRO}\n${GENERATE_QUESTIONS_COMMON_RULES}\n${modeRules}`;
+}
 
 const ANALYZE_EVALUATION_DRAFT_SYSTEM_PROMPT = `Eres un asistente que identifica de qué trata una evaluación escolar a partir de sus fotos.
 Responde ÚNICAMENTE con un objeto JSON válido con este formato:
@@ -221,6 +246,8 @@ function catalogLines(catalog: NonNullable<AnalyzePromptInput["catalog"]>): stri
 
 export function generateQuestionsMessages(input: GenerateQuestionsPromptInput): ChatMessage[] {
   const context = [
+    input.subjectName ? `Materia: ${input.subjectName}` : null,
+    input.topicName ? `Tema: ${input.topicName}` : null,
     input.title ? `Título: ${input.title}` : null,
     `Resumen: ${input.analysis.summary}`,
     input.analysis.concepts.length > 0 ? `Conceptos: ${input.analysis.concepts.join(", ")}` : null,
@@ -236,7 +263,7 @@ export function generateQuestionsMessages(input: GenerateQuestionsPromptInput): 
     .join("\n");
 
   return [
-    { role: "system", content: GENERATE_QUESTIONS_SYSTEM_PROMPT },
+    { role: "system", content: generateQuestionsSystemPrompt(input.questionMode) },
     { role: "user", content: `Genera ${input.count} preguntas de opción múltiple.\n\n${context}` }
   ];
 }

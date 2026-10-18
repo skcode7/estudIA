@@ -51,6 +51,7 @@ export class DeepSeekProvider implements AIProvider {
     const content = input.analysis?.extractedContent ?? input.content;
     const raw = await this.client.chat(
       generateQuestionsMessages({
+        questionMode: input.questionMode ?? "BASED_ON_MATERIAL",
         title: input.title,
         content,
         analysis: {
@@ -59,6 +60,8 @@ export class DeepSeekProvider implements AIProvider {
           objectives: input.analysis?.objectives ?? []
         },
         count: input.count,
+        subjectName: input.subjectName,
+        topicName: input.topicName,
         images: input.images
       })
     );
