@@ -41,6 +41,7 @@ import {
   MaterialDto,
   MaterialImageDto,
   MaterialQuestionDto,
+  MaterialQuestionModeDto,
   MaterialTypeDto,
   UpdateMaterialDto,
   UpdateMaterialQuestionDto,
@@ -90,7 +91,8 @@ export class MaterialsController {
         topicId: dto.topicId,
         type: MaterialTypeDto.TEXT,
         title: dto.title,
-        content: dto.content
+        content: dto.content,
+        questionMode: dto.questionMode
       })
       .then((material) => toMaterialDto({ material, questionCount: 0 }));
   }
@@ -112,7 +114,8 @@ export class MaterialsController {
         contentType: file.mimetype,
         body: file.buffer,
         content: dto.content?.trim() || undefined,
-        hasEmbeddedFigures: dto.hasEmbeddedFigures ?? false
+        hasEmbeddedFigures: dto.hasEmbeddedFigures ?? false,
+        questionMode: dto.questionMode
       })
       .then((material) => toMaterialDto({ material, questionCount: 0 }));
   }
@@ -216,6 +219,7 @@ function toMaterialDto({ material, questionCount }: MaterialWithQuestionCount): 
     hasEmbeddedFigures: material.hasEmbeddedFigures,
     processingStatus: material.processingStatus,
     processingError: material.processingError,
+    questionMode: material.questionMode as MaterialQuestionModeDto,
     questionCount,
     createdAt: material.createdAt.toISOString(),
     updatedAt: material.updatedAt.toISOString()

@@ -6,6 +6,7 @@ import { ObjectStorage } from "../../../storage/application/ports/object-storage
 import { TopicRepository } from "../../../topics/application/ports/topic.repository";
 import {
   CreateMaterialInput,
+  MaterialQuestionMode,
   MaterialRecord,
   MaterialRepository
 } from "../ports/material.repository";
@@ -20,6 +21,8 @@ export interface CreateFileMaterialInput {
   content?: string | null;
   /** Marca si la foto contiene figuras propias (según el análisis del borrador). */
   hasEmbeddedFigures?: boolean;
+  /** Modo de generación de preguntas para este material. */
+  questionMode?: MaterialQuestionMode;
 }
 
 @Injectable()
@@ -56,7 +59,8 @@ export class CreateFileMaterialUseCase {
       title: input.title,
       content: input.content?.trim() || null,
       storageKey: stored.key,
-      hasEmbeddedFigures: input.hasEmbeddedFigures ?? false
+      hasEmbeddedFigures: input.hasEmbeddedFigures ?? false,
+      questionMode: input.questionMode ?? ("BASED_ON_MATERIAL" as MaterialQuestionMode)
     };
     return this.repository.create(createInput);
   }

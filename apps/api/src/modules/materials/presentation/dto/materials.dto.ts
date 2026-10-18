@@ -23,6 +23,11 @@ export enum MaterialTypeDto {
   LINK = "LINK"
 }
 
+export enum MaterialQuestionModeDto {
+  BASED_ON_MATERIAL = "BASED_ON_MATERIAL",
+  SIMILAR_QUESTIONS = "SIMILAR_QUESTIONS"
+}
+
 export class CreateTextMaterialDto {
   @ApiProperty({ example: "b2c3d4e5-f6a7-8901-bcde-f12345678901", description: "UUID del tema al que pertenece el material" })
   @IsUUID()
@@ -38,6 +43,14 @@ export class CreateTextMaterialDto {
   @IsString()
   @MinLength(1)
   content!: string;
+
+  @ApiPropertyOptional({
+    enum: MaterialQuestionModeDto,
+    description: "Modo de generación de preguntas. Por defecto pregunta sobre el contenido del material."
+  })
+  @IsOptional()
+  @IsEnum(MaterialQuestionModeDto)
+  questionMode?: MaterialQuestionModeDto;
 }
 
 export class UploadMaterialDto {
@@ -70,6 +83,14 @@ export class UploadMaterialDto {
   @Transform(({ value }) => value === true || value === "true")
   @IsBoolean()
   hasEmbeddedFigures?: boolean;
+
+  @ApiPropertyOptional({
+    enum: MaterialQuestionModeDto,
+    description: "Modo de generación de preguntas. Por defecto pregunta sobre el contenido del material."
+  })
+  @IsOptional()
+  @IsEnum(MaterialQuestionModeDto)
+  questionMode?: MaterialQuestionModeDto;
 }
 
 export class AnalyzeMaterialDraftDto {
@@ -177,6 +198,10 @@ export class MaterialDto {
   @IsOptional()
   @IsString()
   processingError!: string | null;
+
+  @ApiProperty({ enum: MaterialQuestionModeDto, description: "Modo de generación de preguntas del material" })
+  @IsEnum(MaterialQuestionModeDto)
+  questionMode!: MaterialQuestionModeDto;
 
   @ApiProperty({ example: 3, description: "Cantidad de preguntas generadas (0 si no hay procesamiento completado)" })
   questionCount!: number;
