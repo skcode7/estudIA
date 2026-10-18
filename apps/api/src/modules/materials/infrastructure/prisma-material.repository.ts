@@ -22,6 +22,7 @@ export class PrismaMaterialRepository implements MaterialRepository {
         content: input.content ?? null,
         storageKey: input.storageKey ?? null,
         hasEmbeddedFigures: input.hasEmbeddedFigures ?? false,
+        questionMode: input.questionMode ?? "BASED_ON_MATERIAL",
         processingStatus: "PENDING" as MaterialProcessingStatus
       }
     });

@@ -44,6 +44,7 @@ function baseMaterial(overrides: Partial<MaterialRecord> = {}): MaterialRecord {
     content: null,
     storageKey: "topics/topic-1/materials/abc.jpg",
     hasEmbeddedFigures: false,
+    questionMode: "BASED_ON_MATERIAL",
     processingStatus: "PENDING",
     processingError: null,
     createdAt: new Date("2026-09-10T00:00:00.000Z"),
@@ -91,7 +92,8 @@ describe("CreateFileMaterialUseCase", () => {
       title: "Foto apunte 1.jpg",
       content: null,
       storageKey: "topics/topic-1/materials/abc.jpg",
-      hasEmbeddedFigures: false
+      hasEmbeddedFigures: false,
+      questionMode: "BASED_ON_MATERIAL"
     });
     expect(result).toEqual(created);
   });

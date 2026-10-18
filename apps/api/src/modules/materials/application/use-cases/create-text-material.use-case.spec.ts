@@ -34,6 +34,7 @@ function baseMaterial(overrides: Partial<MaterialRecord> = {}): MaterialRecord {
     content: "Contenido del apunte",
     storageKey: null,
     hasEmbeddedFigures: false,
+    questionMode: "BASED_ON_MATERIAL",
     processingStatus: "PENDING",
     processingError: null,
     createdAt: new Date("2026-09-10T00:00:00.000Z"),

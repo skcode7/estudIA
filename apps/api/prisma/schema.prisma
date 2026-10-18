@@ -20,6 +20,11 @@ enum MaterialProcessingStatus {
   FAILED
 }
 
+enum MaterialQuestionMode {
+  BASED_ON_MATERIAL
+  SIMILAR_QUESTIONS
+}
+
 enum EvaluationProcessingStatus {
   PENDING
   PROCESSING
@@ -70,6 +75,7 @@ model Material {
   content           String?                  @db.Text
   storageKey        String?
   hasEmbeddedFigures Boolean                @default(false)
+  questionMode      MaterialQuestionMode    @default(BASED_ON_MATERIAL)
   processingStatus  MaterialProcessingStatus @default(PENDING)
   processingError   String?                  @db.Text
   createdAt         DateTime                 @default(now())

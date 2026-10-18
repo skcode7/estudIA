@@ -6,6 +6,8 @@ import {
   MaterialImageExtractor
 } from "../../../ai/application/ports/image-extractor";
 import { ObjectStorage } from "../../../storage/application/ports/object-storage";
+import { SubjectRepository } from "../../../subjects/application/ports/subject.repository";
+import { TopicRepository } from "../../../topics/application/ports/topic.repository";
 import { ImageCropper } from "../ports/image-cropper";
 import {
   MaterialImageRecord,
@@ -78,6 +80,26 @@ function imageRepositoryMock(): MaterialImageRepository {
   };
 }
 
+function topicRepositoryMock(): TopicRepository {
+  return {
+    create: vi.fn(),
+    findAll: vi.fn(),
+    findById: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn()
+  };
+}
+
+function subjectRepositoryMock(): SubjectRepository {
+  return {
+    create: vi.fn(),
+    findAll: vi.fn(),
+    findById: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn()
+  };
+}
+
 function baseMaterial(overrides: Partial<MaterialRecord> = {}): MaterialRecord {
   return {
     id: "uuid-1",
@@ -87,6 +109,7 @@ function baseMaterial(overrides: Partial<MaterialRecord> = {}): MaterialRecord {
     content: "La fotosíntesis convierte la luz en energía química.",
     storageKey: null,
     hasEmbeddedFigures: false,
+    questionMode: "BASED_ON_MATERIAL",
     processingStatus: "PENDING",
     processingError: null,
     createdAt: new Date("2026-09-10T00:00:00.000Z"),
@@ -167,6 +190,8 @@ function buildUseCase(deps: {
   imageExtractor: MaterialImageExtractor;
   imageCropper: ImageCropper;
   imageRepository: MaterialImageRepository;
+  topicRepository: TopicRepository;
+  subjectRepository: SubjectRepository;
 }): ProcessMaterialUseCase {
   return new ProcessMaterialUseCase(
     deps.repository,
@@ -176,7 +201,9 @@ function buildUseCase(deps: {
     { questionsCount: 3 },
     deps.imageExtractor,
     deps.imageCropper,
-    deps.imageRepository
+    deps.imageRepository,
+    deps.topicRepository,
+    deps.subjectRepository
   );
 }
 
@@ -188,8 +215,20 @@ function buildMocks() {
   const imageExtractor = imageExtractorMock();
   const imageCropper = imageCropperMock();
   const imageRepository = imageRepositoryMock();
+  const topicRepository = topicRepositoryMock();
+  const subjectRepository = subjectRepositoryMock();
   setupProcessingStatus(repository);
-  return { repository, questionRepository, ai, storage, imageExtractor, imageCropper, imageRepository };
+  return {
+    repository,
+    questionRepository,
+    ai,
+    storage,
+    imageExtractor,
+    imageCropper,
+    imageRepository,
+    topicRepository,
+    subjectRepository
+  };
 }
 
 describe("ProcessMaterialUseCase", () => {
@@ -235,6 +274,45 @@ describe("ProcessMaterialUseCase", () => {
       contentType: "application/json"
     });
     expect(mocks.imageExtractor.extractRegions).not.toHaveBeenCalled();
+  });
+
+  it("passes the material question mode and subject/topic names to the provider", async () => {
+    const mocks = buildMocks();
+    const { repository, questionRepository, ai } = mocks;
+    const material = baseMaterial({ questionMode: "SIMILAR_QUESTIONS" });
+    vi.mocked(repository.findById).mockResolvedValue(material);
+    vi.mocked(mocks.topicRepository.findById).mockResolvedValue({
+      id: "topic-1",
+      subjectId: "subject-1",
+      name: "Álgebra",
+      description: null,
+      createdAt: new Date("2026-09-10T00:00:00.000Z"),
+      updatedAt: new Date("2026-09-10T00:00:00.000Z")
+    });
+    vi.mocked(mocks.subjectRepository.findById).mockResolvedValue({
+      id: "subject-1",
+      name: "Matemáticas",
+      description: null,
+      createdAt: new Date("2026-09-10T00:00:00.000Z"),
+      updatedAt: new Date("2026-09-10T00:00:00.000Z")
+    });
+    vi.mocked(ai.analyzeMaterial).mockResolvedValue(baseAnalysis());
+    vi.mocked(ai.generateQuestions).mockResolvedValue(generatedQuestionPayload());
+    vi.mocked(questionRepository.replaceForMaterial).mockResolvedValue(1);
+    vi.mocked(mocks.storage.upload).mockResolvedValue({ key: "analysis.json", contentType: "application/json" });
+
+    const useCase = buildUseCase(mocks);
+    await useCase.execute("uuid-1");
+
+    expect(mocks.topicRepository.findById).toHaveBeenCalledWith("topic-1");
+    expect(mocks.subjectRepository.findById).toHaveBeenCalledWith("subject-1");
+    expect(ai.generateQuestions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        questionMode: "SIMILAR_QUESTIONS",
+        subjectName: "Matemáticas",
+        topicName: "Álgebra"
+      })
+    );
   });
 
   it("processes a supported FILE image (JPG) sending the image to the provider", async () => {

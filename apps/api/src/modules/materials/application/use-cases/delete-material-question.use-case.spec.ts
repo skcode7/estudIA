@@ -35,6 +35,7 @@ function baseMaterial(): MaterialRecord {
     content: "Texto",
     storageKey: null,
     hasEmbeddedFigures: false,
+    questionMode: "BASED_ON_MATERIAL",
     processingStatus: "COMPLETED",
     processingError: null,
     createdAt: new Date("2026-09-10T00:00:00.000Z"),
