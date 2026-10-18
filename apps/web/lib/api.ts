@@ -33,6 +33,7 @@ export interface CreateTopicInput {
 
 export type MaterialType = "TEXT" | "FILE" | "LINK";
 export type MaterialProcessingStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+export type MaterialQuestionMode = "BASED_ON_MATERIAL" | "SIMILAR_QUESTIONS";
 
 export interface ApiMaterial {
   id: string;
@@ -44,6 +45,7 @@ export interface ApiMaterial {
   hasEmbeddedFigures: boolean;
   processingStatus: MaterialProcessingStatus;
   processingError: string | null;
+  questionMode: MaterialQuestionMode;
   questionCount: number;
   createdAt: string;
   updatedAt: string;
@@ -66,6 +68,7 @@ export interface CreateMaterialInput {
   topicId: string;
   title: string;
   content: string;
+  questionMode?: MaterialQuestionMode;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api/v1";
@@ -160,6 +163,7 @@ export function uploadMaterial(input: {
   title?: string;
   content?: string;
   hasEmbeddedFigures?: boolean;
+  questionMode?: MaterialQuestionMode;
 }): Promise<ApiMaterial> {
   const form = new FormData();
   form.set("topicId", input.topicId);
@@ -167,6 +171,7 @@ export function uploadMaterial(input: {
   if (input.title) form.set("title", input.title);
   if (input.content) form.set("content", input.content);
   if (input.hasEmbeddedFigures) form.set("hasEmbeddedFigures", "true");
+  if (input.questionMode) form.set("questionMode", input.questionMode);
 
   return request<ApiMaterial>("/materials/upload", {
     method: "POST",

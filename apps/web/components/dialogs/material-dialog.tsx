@@ -10,7 +10,8 @@ import {
   uploadMaterial,
   type ApiMaterial,
   type ApiMaterialDraft,
-  type ApiTopic
+  type ApiTopic,
+  type MaterialQuestionMode
 } from "../../lib/api";
 import { type Subject } from "../../lib/subjects";
 import { Dialog, DialogActions } from "./dialog";
@@ -52,6 +53,7 @@ export function MaterialDialog({
   const [content, setContent] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [hasEmbeddedFigures, setHasEmbeddedFigures] = useState(false);
+  const [questionMode, setQuestionMode] = useState<MaterialQuestionMode>("BASED_ON_MATERIAL");
 
   const [extractStatus, setExtractStatus] = useState<ExtractStatus>("idle");
   const [extractError, setExtractError] = useState("");
@@ -240,9 +242,10 @@ export function MaterialDialog({
             title: finalTitle,
             file: selectedFile,
             content: content.trim() || undefined,
-            hasEmbeddedFigures
+            hasEmbeddedFigures,
+            questionMode
           })
-        : await createMaterial({ topicId, title: finalTitle, content: content.trim() });
+        : await createMaterial({ topicId, title: finalTitle, content: content.trim(), questionMode });
       await onCreated({
         subjectId,
         subjectName: selectedSubject?.name ?? "la materia",
@@ -424,6 +427,42 @@ export function MaterialDialog({
               value={content}
             />
           </label>
+
+          <div className="space-y-2">
+            <span className="block text-sm font-semibold">Cómo generar las preguntas</span>
+            <div className="flex gap-2">
+              <button
+                className={`flex-1 min-h-12 rounded-xl border px-3 text-left text-sm transition ${
+                  questionMode === "BASED_ON_MATERIAL"
+                    ? "border-[#6d4aff] bg-[#f1eeff] font-semibold text-[#6d4aff]"
+                    : "border-slate-200 bg-white text-slate-600"
+                }`}
+                disabled={isExtracting}
+                onClick={() => setQuestionMode("BASED_ON_MATERIAL")}
+                type="button"
+              >
+                Basadas en el material
+                <span className="mt-1 block text-xs font-normal text-slate-500">
+                  Preguntas sobre el contenido cargado.
+                </span>
+              </button>
+              <button
+                className={`flex-1 min-h-12 rounded-xl border px-3 text-left text-sm transition ${
+                  questionMode === "SIMILAR_QUESTIONS"
+                    ? "border-[#6d4aff] bg-[#f1eeff] font-semibold text-[#6d4aff]"
+                    : "border-slate-200 bg-white text-slate-600"
+                }`}
+                disabled={isExtracting}
+                onClick={() => setQuestionMode("SIMILAR_QUESTIONS")}
+                type="button"
+              >
+                Preguntas similares
+                <span className="mt-1 block text-xs font-normal text-slate-500">
+                  Guía de ejercicios: misma estructura, datos nuevos.
+                </span>
+              </button>
+            </div>
+          </div>
 
           {!selectedFile && content.trim() && (
             <button
