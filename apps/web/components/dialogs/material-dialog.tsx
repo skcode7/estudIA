@@ -259,7 +259,7 @@ export function MaterialDialog({
   }
 
   return (
-    <Dialog onClose={onClose} title="Agregar material">
+    <Dialog onClose={onClose} title="Agregar material" wide>
       {subjects.length === 0 ? (
         <div className="space-y-4">
           <p className="text-sm text-slate-600">
@@ -430,7 +430,7 @@ export function MaterialDialog({
 
           <div className="space-y-2">
             <span className="block text-sm font-semibold">Cómo generar las preguntas</span>
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <button
                 className={`flex-1 min-h-12 rounded-xl border px-3 text-left text-sm transition ${
                   questionMode === "BASED_ON_MATERIAL"
