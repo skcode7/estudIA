@@ -14,7 +14,7 @@ sources:
   - apps/web/components/views/materials-view.tsx
   - apps/web/components/dialogs/material-edit-dialog.tsx
   - apps/web/components/dialogs/material-delete-dialog.tsx
-synced: 0326a48
+synced: 665ef6e
 related:
   - ../components/catalogo.md
   - ../flows/procesamiento-de-material.md

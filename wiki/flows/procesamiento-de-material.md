@@ -16,7 +16,7 @@ sources:
   - apps/api/src/modules/ai/application/ports/ai-provider.ts
   - apps/api/src/infrastructure/ai/deepseek/deepseek.prompts.ts
   - apps/web/components/views/materials-view.tsx
-synced: 0326a48
+synced: 665ef6e
 related:
   - ./figuras-embebidas.md
   - ../architecture.md
