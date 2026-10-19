@@ -88,6 +88,7 @@ Coolify es la plataforma prevista para producción. El MVP se despliega en un ú
 | api | `apps/api` | 3001 | Backend NestJS, expuesto públicamente en `https://estudia-api.server.encaladadiaz.com` |
 | postgres | Service de Coolify | 5432 | Base de datos PostgreSQL |
 | storage | Service de Coolify (MinIO) o S3 externo | 9000 | Object Storage S3-compatible |
+Configurar webhook para deploy automático.
 
 ### Requisitos previos
 
