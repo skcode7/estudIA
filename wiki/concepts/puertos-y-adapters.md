@@ -9,7 +9,7 @@ sources:
   - apps/api/src/modules/ai/application/ports/ai-provider.ts
   - apps/api/src/modules/materials/materials.module.ts
   - apps/api/src/modules/ai/ai.module.ts
-synced: 5e9017a
+synced: 0326a48
 related:
   - ../components/ia.md
   - ../components/materiales.md
@@ -40,10 +40,10 @@ donde hay que mirar para saber qué implementación corre hoy.
 
 TypeScript borra las `interface` en compilación y no se pueden inyectar; una clase abstracta es a
 la vez el tipo y el token de DI. Por eso `MaterialRepository`
-(`apps/api/src/modules/materials/application/ports/material.repository.ts:35`), `QuizRepository`
+(`apps/api/src/modules/materials/application/ports/material.repository.ts:48`), `QuizRepository`
 (`apps/api/src/modules/quizzes/application/ports/quiz.repository.ts:131`), `ObjectStorage`
 (`apps/api/src/modules/storage/application/ports/object-storage.ts:12`) y `AIProvider`
-(`apps/api/src/modules/ai/application/ports/ai-provider.ts:139`) son `abstract class`. Los tests los
+(`apps/api/src/modules/ai/application/ports/ai-provider.ts:151`) son `abstract class`. Los tests los
 sustituyen por mocks del mismo tipo.
 
 ## Lo que el patrón compra
@@ -60,7 +60,7 @@ sustituyen por mocks del mismo tipo.
 
 Nada es perfecto y hay dos excepciones visibles. Los DTOs de la capa `presentation` son
 class-validator y se conocen en el controller, que es donde se traducen a tipos del dominio
-(`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:208`). Y la
+(`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:211`). Y la
 configuración no pasa por puertos: se inyecta como token propio de cada módulo (ver
 [Configuración por entorno](./configuracion-por-entorno.md)).
 

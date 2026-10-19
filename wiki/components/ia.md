@@ -18,7 +18,7 @@ sources:
   - apps/api/src/infrastructure/ai/openrouter/openrouter.prompts.ts
   - apps/api/src/infrastructure/ai/openrouter/openrouter.schemas.ts
   - apps/web/components/dialogs/material-dialog.tsx
-synced: a9c3163
+synced: 0326a48
 related:
   - ../flows/figuras-embebidas.md
   - ../flows/procesamiento-de-material.md
@@ -28,7 +28,7 @@ related:
 # Módulo de IA y sus adaptadores
 
 Ningún caso de uso conoce DeepSeek ni OpenRouter: conoce `AIProvider` y `MaterialImageExtractor`,
-dos clases abstractas que funcionan como token de inyección (`apps/api/src/modules/ai/application/ports/ai-provider.ts:139`).
+dos clases abstractas que funcionan como token de inyección (`apps/api/src/modules/ai/application/ports/ai-provider.ts:151`).
 Esta es la frontera que AGENTS.md exige — Controller → Use Case → puerto → adaptador — y el motivo
 es el punto de fuga más caro del proyecto: cambiar de proveedor de IA no debe tocar el dominio.
 
@@ -53,7 +53,7 @@ uno puede estar configurado y el otro no.
 ## El contrato con el modelo es JSON, y se comprueba
 
 Los prompts piden un objeto JSON con un formato fijado en el propio prompt
-(`apps/api/src/infrastructure/ai/deepseek/deepseek.prompts.ts:66`), con reglas explícitas como
+(`apps/api/src/infrastructure/ai/deepseek/deepseek.prompts.ts:70`), con reglas explícitas como
 "nunca inventes ids" para que el modelo solo elija del catálogo que se le pasa. En las llamadas de
 DeepSeek se pide además `response_format: json_object`
 (`apps/api/src/infrastructure/ai/deepseek/deepseek.client.ts:31`).
@@ -62,9 +62,9 @@ DeepSeek se pide además `response_format: json_object`
 al modelo que el título es "opcional" y que lo deje vacío "si el material ya tiene uno claro" no es
 flexibilidad: es medir que el modelo se toma esa puerta unas 3 de cada 4 veces, y como el diálogo
 precarga el campo con el nombre del archivo
-(`apps/web/components/dialogs/material-dialog.tsx:199`), el resultado es un material titulado
+(`apps/web/components/dialogs/material-dialog.tsx:201`), el resultado es un material titulado
 `IMG-20240315-WA0037.jpg`. La regla ahora exige inferirlo siempre y prohíbe copiar el nombre del
-archivo (`apps/api/src/infrastructure/ai/deepseek/deepseek.prompts.ts:80`); la tasa de vacíos bajó de
+archivo (`apps/api/src/infrastructure/ai/deepseek/deepseek.prompts.ts:84`); la tasa de vacíos bajó de
 1 de 4 a 0 de 8. El detalle del síntoma está en
 [Procesamiento de un material de estudio](../flows/procesamiento-de-material.md).
 
@@ -80,8 +80,19 @@ Zod para la salida de IA y class-validator para los DTOs de entrada.
 
 Tras validar, el adaptador de DeepSeek todavía filtra lo que no cuadra: una pregunta cuyo
 `imageIndex` no corresponde a ninguna figura real se descarta y un juego sin ninguna pregunta
-válida es un error (`apps/api/src/infrastructure/ai/deepseek/deepseek.provider.ts:67`), de modo que
+válida es un error (`apps/api/src/infrastructure/ai/deepseek/deepseek.provider.ts:70`), de modo que
 una alucinación del modelo no llega a la base de datos.
+
+## Prompts paramétricos por modo de generación
+
+`generateQuestions` no es un prompt fijo: su system prompt se compone con
+`generateQuestionsSystemPrompt(mode)` (`apps/api/src/infrastructure/ai/deepseek/deepseek.prompts.ts:131`),
+que mantiene un bloque común (formato JSON, cantidad exacta, 4 opciones y 1 correcta, idioma, reglas
+de `imageIndex`) y cambia el bloque según `questionMode`. En `BASED_ON_MATERIAL` la regla es "basa las
+preguntas solo en el material, nunca en conocimiento externo"; en `SIMILAR_QUESTIONS` el material se
+trata como guía de ejercicios y el modelo genera datos nuevos con la misma estructura. Es una función
+pura, así que cada modo se testea sin llamar al proveedor. El mensaje del usuario además incluye los
+nombres de materia y tema del material para anclar la mecánica.
 
 ## El borde del adaptador: schemas y mappers
 
@@ -117,8 +128,8 @@ arranque arregla las llamadas pero no cambia el extractor inyectado.
 ## Dos capacidades sin uso
 
 `AIProvider` declara `explainAnswer` y `generateHint`
-(`apps/api/src/modules/ai/application/ports/ai-provider.ts:146`) y DeepSeek los implementa
-(`apps/api/src/infrastructure/ai/deepseek/deepseek.provider.ts:102`), pero ningún caso de uso los
+(`apps/api/src/modules/ai/application/ports/ai-provider.ts:158`) y DeepSeek los implementa
+(`apps/api/src/infrastructure/ai/deepseek/deepseek.provider.ts:105`), pero ningún caso de uso los
 invoca hoy: solo aparecen en los mocks de los tests. Están para la explicación de respuestas y las
 pistas del quiz futuro; no confundir con la `explanation` de las preguntas, que sí se genera al
 procesar el material. El puerto creció además con `analyzeEvaluationDraft` y

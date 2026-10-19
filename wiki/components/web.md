@@ -14,7 +14,7 @@ sources:
   - apps/web/components/views/materials-view.tsx
   - apps/web/components/dialogs/material-edit-dialog.tsx
   - apps/web/components/dialogs/material-delete-dialog.tsx
-synced: 6d3cfec
+synced: 0326a48
 related:
   - ../components/catalogo.md
   - ../flows/procesamiento-de-material.md
@@ -46,7 +46,7 @@ La misma vista que lista materiales también puede crear uno, y para eso la pág
 materia y el tema que ya están filtrados, así que `useMaterials.open` acepta opciones de
 preselección en vez de no admitir argumentos
 (`apps/web/hooks/use-materials.ts:19`) y el diálogo las aplica al cargar los temas
-(`apps/web/components/dialogs/material-dialog.tsx:83`). El botón global de «Agregar material»
+(`apps/web/components/dialogs/material-dialog.tsx:85`). El botón global de «Agregar material»
 —en la barra lateral y en el menú móvil— sigue funcionando igual: la preselección solo se aplica
 cuando viene. Hasta `6d3cfec` ese botón global era el FAB que sobresalía de la barra inferior.
 
@@ -84,21 +84,28 @@ Progreso e Insignias (`apps/web/lib/navigation.ts:6`) — caen en un placeholder
 ## El cliente HTTP
 
 `lib/api.ts` es el único punto que habla con la API. Un `request` común resuelve la base desde
-`NEXT_PUBLIC_API_URL` (`apps/web/lib/api.ts:71`), pasa `FormData` tal cual para las subidas
-(`apps/web/lib/api.ts:85`) y convierte cualquier error HTTP en un `Error` con el mensaje que
+`NEXT_PUBLIC_API_URL` (`apps/web/lib/api.ts:74`), pasa `FormData` tal cual para las subidas
+(`apps/web/lib/api.ts:88`) y convierte cualquier error HTTP en un `Error` con el mensaje que
 devolvió Nest — `message` puede ser string o array y se normaliza a texto
-(`apps/web/lib/api.ts:73`). Ese mensaje es el que ve el usuario en rojo: la API escribe los
+(`apps/web/lib/api.ts:76`). Ese mensaje es el que ve el usuario en rojo: la API escribe los
 mensajes de error pensando en la pantalla.
 
 Desde `9342e58` el `request` tolera respuestas sin cuerpo: un `DELETE` de Nest no devuelve JSON, y
 un `response.json()` a secas rompía con el borrado de materiales
-(`apps/web/lib/api.ts:98`). Cualquier método que conteste `204` o con cuerpo vacío resuelve
+(`apps/web/lib/api.ts:101`). Cualquier método que conteste `204` o con cuerpo vacío resuelve
 `undefined` en vez de lanzar.
 
 Las imágenes de preguntas se resuelven con `assetUrl`, que solo antepone la base de la API
-(`apps/web/lib/api.ts:399`): la web nunca ve el bucket.
+(`apps/web/lib/api.ts:404`): la web nunca ve el bucket.
 
 ## Editar un material y lo que tiene debajo
+
+El alta de material ganó un selector de modo de generación: el diálogo ofrece "Basadas en el material"
+(por defecto) o "Preguntas similares", y ese valor viaja en el `POST` de creación
+(`apps/web/components/dialogs/material-dialog.tsx:239`). Es un control de dos opciones, no un campo de
+texto libre, y solo decide cómo el backend generará las preguntas al procesar (ver
+[Procesamiento de un material de estudio](../flows/procesamiento-de-material.md)). El análisis con IA
+sigue disparándose al elegir el archivo, antes de que el usuario vea el selector.
 
 El diálogo de edición dejó de ser un formulario de dos campos: desde `95b7a11` lleva el nombre de
 la materia en el propio título (`apps/web/components/dialogs/material-edit-dialog.tsx:46`) y bajo
@@ -163,5 +170,5 @@ tarjetas bajo el mismo defecto de diseño: decoration en el cliente donde deber�
 El onboarding toma el primer usuario de la lista (`apps/web/hooks/use-user.ts:21`), sin sesión ni
 perfil: la misma instalación compartida entre dos navegadores muestra el mismo usuario. Y el
 diálogo de material dispara el análisis con IA en cuanto se elige un archivo
-(`apps/web/components/dialogs/material-dialog.tsx:201`), de modo que cada cambio de archivo cuesta
+(`apps/web/components/dialogs/material-dialog.tsx:203`), de modo que cada cambio de archivo cuesta
 una llamada a la IA que el usuario percibe como espera antes de poder editar los campos.

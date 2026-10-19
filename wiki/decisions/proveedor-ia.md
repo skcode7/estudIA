@@ -9,7 +9,7 @@ sources:
   - apps/api/src/modules/ai/ai.module.ts
   - apps/api/src/infrastructure/ai/ai.registry.ts
   - apps/api/src/infrastructure/ai/deepseek/deepseek.provider.ts
-synced: a9c3163
+synced: 0326a48
 confidence: high
 related:
   - ../components/ia.md
@@ -25,7 +25,7 @@ código la respeta: ningún caso de uso importa nada de `infrastructure/ai`.
 ## Qué se decidió
 
 DeepSeek es el proveedor inicial de lenguaje, y se accede **solo** mediante `AIProvider`
-(`apps/api/src/modules/ai/application/ports/ai-provider.ts:139`). Los prompts, los mapeos de
+(`apps/api/src/modules/ai/application/ports/ai-provider.ts:151`). Los prompts, los mapeos de
 respuesta y la validación Zod quedan en `infrastructure/ai`, de modo que el dominio ve tipos
 propios (`MaterialAnalysis`, `GeneratedQuestion`) y no el formato del proveedor. Un registry
 decide qué implementación responde (`apps/api/src/infrastructure/ai/ai.registry.ts:24`), y añadir
@@ -53,7 +53,7 @@ figuras embebidas", después el modelo especialista y el recorte.
   el comportamiento del modelo es un cambio de adaptador, no de dominio.
 - La calidad de salida se defiende en la frontera: JSON validado con Zod y preguntas descartadas
   si su `imageIndex` no corresponde a una figura real
-  (`apps/api/src/infrastructure/ai/deepseek/deepseek.provider.ts:66`). Es el precio de confiar en
+  (`apps/api/src/infrastructure/ai/deepseek/deepseek.provider.ts:69`). Es el precio de confiar en
   un modelo: la validación es parte del adaptador.
 
 ## Cuándo revisarla

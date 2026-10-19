@@ -22,7 +22,7 @@ sources:
   - apps/api/src/modules/materials/infrastructure/prisma-material.repository.ts
   - apps/api/src/modules/materials/infrastructure/prisma-material-image.repository.ts
   - apps/api/prisma/schema.prisma
-synced: a9c3163
+synced: 0326a48
 related:
   - ../flows/procesamiento-de-material.md
   - ../flows/figuras-embebidas.md
@@ -37,16 +37,39 @@ y de la verdad sobre el estado de procesamiento de cada material.
 
 ## Qué es un Material
 
-`Material` (`apps/api/prisma/schema.prisma:65`) es un apunte de un tema: `TEXT` (el usuario pegó el
+`Material` (`apps/api/prisma/schema.prisma:70`) es un apunte de un tema: `TEXT` (el usuario pegó el
 contenido) o `FILE` (un binario en el storage más una transcripción opcional). El tipo `LINK`
 existe en el enum (`apps/api/prisma/schema.prisma:10`) pero no tiene ruta de creación: nada lo
 produce hoy, y el procesamiento lo rechaza.
 
-Los dos atributos que gobiernan el ciclo de vida son `processingStatus`
-(`apps/api/prisma/schema.prisma:73`) y `hasEmbeddedFigures` (`apps/api/prisma/schema.prisma:72`).
-El primero es la máquina de estados `PENDING → PROCESSING → COMPLETED | FAILED` con
-`processingError` como mensaje legible para el usuario. El segundo decide si el procesamiento
-intenta extraer figuras de la foto.
+Tres atributos gobiernan el ciclo de vida: `processingStatus`
+(`apps/api/prisma/schema.prisma:79`), `hasEmbeddedFigures`
+(`apps/api/prisma/schema.prisma:77`) y `questionMode`
+(`apps/api/prisma/schema.prisma:78`). `processingStatus` es la máquina de estados
+`PENDING → PROCESSING → COMPLETED | FAILED` con `processingError` como mensaje legible para el
+usuario. `hasEmbeddedFigures` decide si el procesamiento intenta extraer figuras de la foto.
+`questionMode` elige cómo se generan las preguntas, y es una propiedad del material —no de la
+materia—: dos materiales de una misma materia pueden tener modos distintos (ver
+[Procesamiento de un material](../flows/procesamiento-de-material.md)).
+
+## Cómo generar las preguntas (questionMode)
+
+`questionMode` (`BASED_ON_MATERIAL` por defecto) se elige al crear el material y se persiste con él
+en la misma fila (`apps/api/src/modules/materials/infrastructure/prisma-material.repository.ts:25`):
+vive en el DTO de creación, validado con `@IsEnum`, y el controller lo pasa al caso de uso
+(`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:95`). Solo tiene
+dos valores cerrados, no un prompt libre:
+
+- **`BASED_ON_MATERIAL`**: las preguntas se hacen sobre el contenido cargado, como antes. Es el
+  default y reproduce literalmente el comportamiento anterior.
+- **`SIMILAR_QUESTIONS`**: el material es una guía de ejercicios; el modelo lo usa solo como
+  referencia de estructura y mecánica y genera preguntas nuevas con datos distintos, sin preguntar
+  nunca por los valores concretos del material.
+
+El modo viaja al prompt de generación a través del puerto de IA, junto con el nombre de materia y
+tema (`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:141`); el
+builder de prompts produce un system prompt distinto por modo. Cambiar el modo de un material ya
+procesado no regenera las preguntas existentes.
 
 ## Los puertos y quién los implementa
 
@@ -63,7 +86,7 @@ caso de uso.
 Un material procesado deja tres rastros que se mantienen juntos y se limpian juntos:
 
 1. **El binario original**, con clave `topics/<topicId>/materials/<uuid><ext>`
-   (`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:40`).
+   (`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:43`).
 2. **Las figuras** (`MaterialImage`), cada una con su `storageKey`, un `label` descriptivo y un
    `order` estable que las preguntas usan para referenciarlas
    (`apps/api/src/modules/materials/application/ports/material-image.repository.ts:17`). El puerto
@@ -87,9 +110,9 @@ que no se pueda borrar solo se loguea; la fila ya no existe y el material queda 
 formas — el storage puede quedar con huérfanos si MinIO/S3 falla.
 
 Las preguntas del material **sobreviven** al borrado: `sourceMaterialId` es `onDelete: SetNull`
-(`apps/api/prisma/schema.prisma:147`), así que siguen en el pool de generación de quizzes sin
+(`apps/api/prisma/schema.prisma:153`), así que siguen en el pool de generación de quizzes sin
 material de origen. Sus imágenes, en cambio, caen en cascada con el material
-(`apps/api/prisma/schema.prisma:94`) y la referencia de imagen de la pregunta queda en `null`.
+(`apps/api/prisma/schema.prisma:100`) y la referencia de imagen de la pregunta queda en `null`.
 Borrar un material no es borrar su contenido generado.
 
 ## Servir una figura
@@ -104,7 +127,7 @@ URL firmada ni acceso directo al bucket.
 ## Límites y detalles que importan
 
 - El tope de subida es 10 MB y vive en el controller
-  (`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:50`); un
+  (`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:51`); un
   archivo mayor lo corta Multer antes de llegar al caso de uso.
 - Solo se procesan imágenes (JPG, PNG, GIF, WebP). Un PDF o un `.doc` se puede guardar como
   material, pero su procesamiento falla con un mensaje que dice qué tipos se aceptan.
@@ -149,7 +172,7 @@ Guardar borra y recrea las opciones dentro de una transacción
 ilustra.
 
 Las figuras se listan como metadatos (`id`, `label`, `order`) sin su binario
-(`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:165`): el peso de
+(`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:168`): el peso de
 las imágenes sigue saliendo por la ruta de una en una. Borrar una pregunta **sí** arrastra sus
 `QuizQuestion` y `Answer` por la misma cascada que reprocesar, y esto no tiene todavía arreglo
 documentado — ver [Módulo de quizzes](../components/quizzes.md).

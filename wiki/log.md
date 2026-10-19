@@ -233,3 +233,24 @@ a ser un panel hamburguesa con todas las opciones (`ba4dd59`, `6d3cfec`).
   (`apps/api/src/shared/text.utils.ts`, `scripts/verify-deploy.sh`), los mismos que dejó el pase
   anterior.
 - `synced:` elevado a `6d3cfec` en las 2 páginas reescritas; checkpoint del repo al mismo commit.
+
+## 2026-10-19 · wikipoke-ingest
+
+Reconciliación con 5 commits (desde `6d3cfec`): modo de generación de preguntas por material
+(`MaterialQuestionMode`), selector en la web y prompts paramétricos por modo.
+
+- `components/materiales.md` — nueva sección «Cómo generar las preguntas (questionMode)»: el atributo
+  del material (no de la materia), los dos valores cerrados, su persistencia y que no regenera lo ya
+  procesado. `Material` pasa a tener tres atributos de ciclo (añadido `questionMode`).
+- `flows/procesamiento-de-material.md` — el caso de uso ahora busca materia y tema y pasa sus nombres y
+  el modo a `generateQuestions`; el builder de prompts es función pura por modo. Diagrama y citas
+  re-apuntadas.
+- `flows/figuras-embebidas.md`, `components/ia.md`, `components/evaluaciones.md`, `components/web.md`,
+  `components/catalogo.md`, `components/persistencia.md`, `components/quizzes.md`,
+  `concepts/puertos-y-adapters.md`, `decisions/proveedor-ia.md`, `architecture.md`,
+  `components/crud-de-catalogo.md` — citas re-apuntadas a las líneas actuales; `ia.md` gana la sección
+  «Prompts paramétricos por modo de generación».
+- `web.md` documenta el nuevo selector de modo en el diálogo de alta.
+- `synced:` elevado a `0326a48` en las 13 páginas tocadas; checkpoint del repo al mismo commit.
+- Backlog: 2 archivos sin reclamar (`apps/api/src/shared/text.utils.ts`, `scripts/verify-deploy.sh`),
+  igual que antes; sin páginas nuevas.

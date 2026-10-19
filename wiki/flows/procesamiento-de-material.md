@@ -16,7 +16,7 @@ sources:
   - apps/api/src/modules/ai/application/ports/ai-provider.ts
   - apps/api/src/infrastructure/ai/deepseek/deepseek.prompts.ts
   - apps/web/components/views/materials-view.tsx
-synced: a9c3163
+synced: 0326a48
 related:
   - ./figuras-embebidas.md
   - ../architecture.md
@@ -38,11 +38,11 @@ El botón "Procesar" de la lista sobrevive y sigue siendo la salida para reinten
 ## 1 · Análisis del borrador, antes de guardar nada
 
 En cuanto se elige un archivo, el diálogo lanza la extracción sin persistir nada
-(`apps/web/components/dialogs/material-dialog.tsx:201` llama a `runExtraction`, que invoca
-`analyzeMaterialDraft` en `apps/web/components/dialogs/material-dialog.tsx:179`). También hay un
+(`apps/web/components/dialogs/material-dialog.tsx:203` llama a `runExtraction`, que invoca
+`analyzeMaterialDraft` en `apps/web/components/dialogs/material-dialog.tsx:181`). También hay un
 botón "✨ Extraer con IA" para el texto pegado.
 
-`POST /api/v1/materials/analyze` (`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:70`)
+`POST /api/v1/materials/analyze` (`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:71`)
 llega a `AnalyzeMaterialDraftUseCase`, que carga el catálogo real de materias y temas
 (`apps/api/src/modules/materials/application/use-cases/analyze-material-draft.use-case.ts:58`) y se
 lo pasa a la IA para que sugiera dónde encaja el material
@@ -58,63 +58,64 @@ catálogo y, cuando el tema sugerido pertenece a otra materia, **manda el tema**
 materia (`apps/api/src/modules/materials/application/use-cases/analyze-material-draft.use-case.ts:142`).
 El borrador devuelve además `extractedContent` y la marca `hasEmbeddedFigures`
 (`apps/api/src/modules/materials/application/use-cases/analyze-material-draft.use-case.ts:84`), que
-el diálogo rellena en el formulario (`apps/web/components/dialogs/material-dialog.tsx:135`) y el
+el diálogo rellena en el formulario (`apps/web/components/dialogs/material-dialog.tsx:137`) y el
 usuario puede ajustar antes de guardar.
 
 ## 2 · Guardar: rápido y sin IA
 
 Al enviar el formulario hay dos caminos según haya archivo o solo texto
-(`apps/web/components/dialogs/material-dialog.tsx:237`). La fila nace `PENDING` y es la página la que
+(`apps/web/components/dialogs/material-dialog.tsx:239`). La fila nace `PENDING` y es la página la que
 dispara el procesamiento detrás, así que guardar y procesar son dos peticiones que el usuario nunca
 llega a ver separadas:
 
 - **Texto** → `POST /api/v1/materials` → `CreateTextMaterialUseCase`, que solo valida que el tema
   exista y crea la fila.
 - **Archivo** → `POST /api/v1/materials/upload` (multipart, tope de 10 MB en
-  `apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:50`) →
+  `apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:51`) →
   `CreateTextMaterialUseCase` no interviene: `CreateFileMaterialUseCase` sube el binario al object
   storage con clave `topics/<topicId>/materials/<uuid><ext>`
-  (`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:40`) y
-  guarda la fila con `storageKey`, `content` (si la transcripción ya vino del borrador) y
-  `hasEmbeddedFigures` (`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:53`).
+  (`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:43`) y
+  guarda la fila con `storageKey`, `content` (si la transcripción ya vino del borrador),
+  `hasEmbeddedFigures` (`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:56`)
+  y `questionMode` (`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:63`).
 
 Si el storage falla, la petición falla con `503` y **no queda fila creada**
-(`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:50`). El
+(`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:53`). El
 material nace con `processingStatus: PENDING` y `questionCount: 0`.
 
 ## 3 · Procesar: el estado y las fases
 
 `POST /api/v1/materials/:id/process` dispara `ProcessMaterialUseCase`
-(`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:185`). El estado
+(`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:188`). El estado
 avanza por `PENDING → PROCESSING → COMPLETED`, y cualquier error cae a `FAILED` con un mensaje
 legible: `fail()` marca el estado y devuelve `questionCount: 0`
-(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:299`).
+(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:309`).
 
 ```
-findById ──► PROCESSING (:71) ──► cargar contenido ──► analyzeMaterial (:93)
-    ──► actualizar título/contenido/hasEmbeddedFigures (:107)
-    ──► guardar analysis.json (:122) ──► extraer figuras (:124)  ──► generateQuestions (:129)
-    ──► replaceForMaterial (:136) ──► COMPLETED (:144)
+findById ──► PROCESSING ──► cargar contenido ──► analyzeMaterial
+    ──► actualizar título/contenido/hasEmbeddedFigures
+    ──► guardar analysis.json ──► extraer figuras ──► buscar materia/tema ──► generateQuestions
+    ──► replaceForMaterial ──► COMPLETED
 ```
 
 Un material de texto sin contenido y un tipo no procesable (por ejemplo `LINK`) son `FAILED`
-directos, sin llamar a la IA (`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:76`).
+directos, sin llamar a la IA (`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:80`).
 Para un archivo se relee el binario del storage; si la extensión no es una imagen soportada, el
 proceso falla con un mensaje que dice qué tipos se procesan hoy
-(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:163`).
+(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:173`).
 
 El título se sobrescribe **sin condiciones** en cuanto la IA propone uno
-(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:107`); el contenido
+(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:111`); el contenido
 solo se actualiza si difiere del guardado. La marca de figuras es *pegajosa*: una vez `true`, no
-vuelve a `false` (`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:114`).
+vuelve a `false` (`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:118`).
 El análisis completo se conserva como `analysis.json` junto al material en el storage
-(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:287`): un fallo
+(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:297`): un fallo
 al guardarlo solo se loguea y el proceso sigue.
 
 ### El título lo pone la IA, y por qué antes no
 
 El diálogo rellena el campo de título con el **nombre del archivo** en cuanto se elige
-(`apps/web/components/dialogs/material-dialog.tsx:199`), así que si la IA no propone título, lo que se
+(`apps/web/components/dialogs/material-dialog.tsx:201`), así que si la IA no propone título, lo que se
 guarda es `IMG-20240315-WA0037.jpg`. No era un fallo del modelo: la regla del prompt pedía el título
 *"vacío si el material ya tiene uno claro"* y el formato lo declaraba opcional, de modo que el modelo
 se tomaba esa puerta de salida y solo la tomaba a veces — medido, 1 de cada 4 llamadas. Desde
@@ -131,12 +132,21 @@ Con el análisis en la mano, el caso de uso pide `count` preguntas al puerto de 
 de `AI_QUESTIONS_PER_MATERIAL`, inyectado como config
 (`apps/api/src/modules/materials/materials.module.ts:54`) — y las sustituye todas por las nuevas:
 `replaceForMaterial` no acumula, reemplaza
-(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:136`). Si el
+(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:146`). Si el
 material tenía figuras extraídas, sus pistas viajan junto a la petición para que alguna pregunta
 pueda ser "¿qué es esta imagen?"; el detalle está en [Figuras embebidas](./figuras-embebidas.md).
 
+Antes de pedir las preguntas, el caso de uso resuelve la materia y el tema del material —busca el
+tema y, con su `subjectId`, la materia— y pasa esos nombres a la IA junto con el modo del material
+(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:130`); si el tema
+no existe, los nombres se omiten sin romper el procesamiento. El modo (`questionMode`) cambia el
+system prompt: `BASED_ON_MATERIAL` pide preguntas sobre el contenido, y `SIMILAR_QUESTIONS` pide
+ejercicios nuevos con la misma estructura que la guía (ver
+[Módulo de materiales](../components/materiales.md)). El builder de prompts es una función pura de
+`generateQuestionsSystemPrompt(mode)`, así que cada modo se puede testear sin llamar al proveedor.
+
 El conteo que responde el endpoint es el que devuelve el repositorio de preguntas, no el que se
-pidió (`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:145`).
+pidió (`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:155`).
 
 ## Lo que este flujo deja fuera
 

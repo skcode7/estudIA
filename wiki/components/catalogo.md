@@ -9,7 +9,7 @@ sources:
   - apps/api/src/modules/materials/application/use-cases/create-text-material.use-case.ts
   - apps/web/hooks/use-user.ts
   - apps/api/prisma/schema.prisma
-synced: a9c3163
+synced: 0326a48
 related:
   - ../components/materiales.md
   - ../components/crud-de-catalogo.md
@@ -42,8 +42,8 @@ server-side; el filtrado de la lista lo hace la web.
 
 `DeleteSubjectUseCase` borra la fila y nada más
 (`apps/api/src/modules/subjects/application/use-cases/delete-subject.use-case.ts:14`); el resto lo
-hace la base de datos en cascada: temas (`apps/api/prisma/schema.prisma:55`), materiales
-(`apps/api/prisma/schema.prisma:78`), preguntas, quizzes e intentos. Con dos consecuencias que el
+hace la base de datos en cascada: temas (`apps/api/prisma/schema.prisma:60`), materiales
+(`apps/api/prisma/schema.prisma:84`), preguntas, quizzes e intentos. Con dos consecuencias que el
 código no señala:
 
 - **El object storage no se entera.** Solo `DeleteMaterialUseCase` limpia objetos; al borrar una
@@ -55,7 +55,7 @@ código no señala:
 
 ## El usuario es un nombre, y el primero manda
 
-`User` (`apps/api/prisma/schema.prisma:244`) es solo `name` + fechas: sin contraseña, sin sesión,
+`User` (`apps/api/prisma/schema.prisma:250`) es solo `name` + fechas: sin contraseña, sin sesión,
 sin rol. La web decide cuál es "el usuario" con una convención, no con una regla: carga la lista y
 se queda con el primero (`apps/web/hooks/use-user.ts:21`); si la lista está vacía — o si la
 consulta falla — abre el diálogo de onboarding para crearlo

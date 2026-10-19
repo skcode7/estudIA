@@ -20,7 +20,7 @@ sources:
   - apps/api/src/modules/ai/application/ports/ai-provider.ts
   - apps/web/components/views/evaluations-view.tsx
   - apps/web/components/dialogs/evaluation-dialog.tsx
-synced: a9c3163
+synced: 0326a48
 related:
   - ../components/ia.md
   - ../components/quizzes.md
@@ -36,12 +36,12 @@ con IA para añadirlas al mismo pool que usa el quiz. Reemplazó a la vista de "
 
 ## Qué es una Evaluation
 
-`Evaluation` (`apps/api/prisma/schema.prisma:100`) es un examen fotografiado que pertenece a un
+`Evaluation` (`apps/api/prisma/schema.prisma:106`) es un examen fotografiado que pertenece a un
 tema (`topicId`) y lleva título, fecha opcional y un estado de procesamiento idéntico al de los
 materiales: `PENDING → PROCESSING → COMPLETED | FAILED`. A diferencia de `Material`, una evaluación
-tiene varias fotos (`EvaluationImage`, `apps/api/prisma/schema.prisma:117`) y sus preguntas
+tiene varias fotos (`EvaluationImage`, `apps/api/prisma/schema.prisma:123`) y sus preguntas
 extraídas se guardan como `Question` normales con trazabilidad (`sourceEvaluationId`,
-`evaluationImageId`, `apps/api/prisma/schema.prisma:141-142`).
+`evaluationImageId`, `apps/api/prisma/schema.prisma:147-148`).
 
 ## Subir y procesar
 
@@ -59,7 +59,7 @@ materiales.
 
 `ProcessEvaluationUseCase` (`apps/api/src/modules/evaluations/application/use-cases/process-evaluation.use-case.ts:39`)
 lee las fotos del storage, las envía al modelo con `AIProvider.extractEvaluationQuestions`
-(`apps/api/src/modules/ai/application/ports/ai-provider.ts:143`) y persiste las preguntas extraídas
+(`apps/api/src/modules/ai/application/ports/ai-provider.ts:155`) y persiste las preguntas extraídas
 con `EvaluationQuestionRepository.replaceForEvaluation`. El modelo recibe el nombre de la materia y
 el título de la evaluación para contextualizar la extracción.
 
