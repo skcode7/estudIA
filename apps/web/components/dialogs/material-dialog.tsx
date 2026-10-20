@@ -15,7 +15,7 @@ import {
 } from "../../lib/api";
 import { type Subject } from "../../lib/subjects";
 import { Dialog, DialogActions } from "./dialog";
-import { FieldError } from "../ui/feedback";
+import { FieldError, WarningNote } from "../ui/feedback";
 
 const FILE_ACCEPT = "image/*,.pdf,.txt,.doc,.docx";
 
@@ -51,7 +51,8 @@ export function MaterialDialog({
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [pages, setPages] = useState<File[]>([]);
+  const selectedFile = pages[0] ?? null;
   const [hasEmbeddedFigures, setHasEmbeddedFigures] = useState(false);
   const [questionMode, setQuestionMode] = useState<MaterialQuestionMode>("BASED_ON_MATERIAL");
 
@@ -60,6 +61,9 @@ export function MaterialDialog({
   const [extractSource, setExtractSource] = useState<ExtractSource | null>(null);
   const pendingTopicSuggestionRef = useRef<string | null>(null);
   const extractionSeqRef = useRef(0);
+  const lastAttemptRef = useRef<
+    { source: { kind: "file"; file: File } | { kind: "text"; text: string }; append: boolean } | null
+  >(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -134,7 +138,17 @@ export function MaterialDialog({
     }
   }
 
-  function applyDraft(draft: ApiMaterialDraft, source: ExtractSource): void {
+  function applyDraft(draft: ApiMaterialDraft, source: ExtractSource, append: boolean): void {
+    if (append) {
+      // Foto adicional: solo se suma el texto extraído, sin tocar materia/tema/título.
+      setHasEmbeddedFigures((current) => current || draft.hasEmbeddedFigures);
+      if (source === "file" && draft.extractedContent) {
+        const extracted = draft.extractedContent;
+        setContent((current) => (current ? `${current}\n\n${extracted}` : extracted));
+      }
+      return;
+    }
+
     setHasEmbeddedFigures(draft.hasEmbeddedFigures);
     if (draft.suggestedTitle) {
       setTitle(draft.suggestedTitle);
@@ -169,20 +183,24 @@ export function MaterialDialog({
   }
 
   async function runExtraction(
-    source: { kind: "file"; file: File } | { kind: "text"; text: string }
+    source: { kind: "file"; file: File } | { kind: "text"; text: string },
+    append = false
   ): Promise<void> {
     const seq = ++extractionSeqRef.current;
+    lastAttemptRef.current = { source, append };
     setExtractSource(source.kind);
     setExtractStatus("extracting");
     setExtractError("");
     setSubmitError("");
-    setHasEmbeddedFigures(false);
+    if (!append) {
+      setHasEmbeddedFigures(false);
+    }
     try {
       const draft = await analyzeMaterialDraft(
         source.kind === "file" ? { file: source.file } : { text: source.text }
       );
       if (seq !== extractionSeqRef.current) return;
-      applyDraft(draft, source.kind);
+      applyDraft(draft, source.kind, append);
       setExtractStatus("done");
     } catch (error) {
       if (seq !== extractionSeqRef.current) return;
@@ -195,12 +213,15 @@ export function MaterialDialog({
 
   function handleSelectFile(event: React.ChangeEvent<HTMLInputElement>): void {
     const file = event.target.files?.[0] ?? null;
-    setSelectedFile(file);
+    // Limpiar para permitir volver a capturar aunque el navegador reutilice el nombre.
+    event.target.value = "";
     if (!file) return;
-    if (!title.trim()) {
+    const isAdditional = pages.length > 0;
+    if (!isAdditional && !title.trim()) {
       setTitle(file.name);
     }
-    void runExtraction({ kind: "file", file });
+    setPages((current) => [...current, file]);
+    void runExtraction({ kind: "file", file }, isAdditional);
   }
 
   function handleExtractFromText(): void {
@@ -209,11 +230,27 @@ export function MaterialDialog({
   }
 
   function handleRetryExtraction(): void {
+    const last = lastAttemptRef.current;
+    if (last) {
+      void runExtraction(last.source, last.append);
+      return;
+    }
     if (extractSource === "file" && selectedFile) {
       void runExtraction({ kind: "file", file: selectedFile });
     } else if (content.trim()) {
       void runExtraction({ kind: "text", text: content });
     }
+  }
+
+  function handleResetPages(): void {
+    extractionSeqRef.current++;
+    lastAttemptRef.current = null;
+    setPages([]);
+    setContent("");
+    setHasEmbeddedFigures(false);
+    setExtractStatus("idle");
+    setExtractError("");
+    setExtractSource(null);
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>): Promise<void> {
@@ -284,14 +321,21 @@ export function MaterialDialog({
             >
               <span aria-hidden="true" className="text-2xl">📷</span>
               <span className="text-sm font-semibold text-[#6d4aff]">
-                {selectedFile ? selectedFile.name : "Toma una foto o sube un archivo"}
+                {pages.length > 1
+                  ? `${pages.length} fotos agregadas`
+                  : selectedFile
+                    ? selectedFile.name
+                    : "Toma una foto o sube un archivo"}
               </span>
               <span className="text-xs text-slate-500">
-                {selectedFile ? "Toca para cambiar el archivo" : "JPG, PNG, GIF o WebP · toma una foto con la cámara"}
+                {pages.length > 0
+                  ? "Toma otra foto para agregar la siguiente página"
+                  : "JPG, PNG, GIF o WebP · toma una foto con la cámara"}
               </span>
               <input
                 accept={FILE_ACCEPT}
                 className="sr-only"
+                disabled={isExtracting}
                 id="material-file"
                 onChange={handleSelectFile}
                 type="file"
@@ -317,6 +361,37 @@ export function MaterialDialog({
                   type="button"
                 >
                   Reintentar extracción
+                </button>
+              </div>
+            )}
+
+            {pages.length > 0 && (
+              <ul className="space-y-2">
+                {pages.map((file, index) => (
+                  <li
+                    className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2 text-sm"
+                    key={`${file.name}-${index}`}
+                  >
+                    <span className="min-w-0 truncate">
+                      <span className="font-semibold">Página {index + 1}:</span> {file.name}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {pages.length > 1 && (
+              <div className="flex flex-wrap items-center gap-3">
+                <WarningNote>
+                  Las fotos adicionales aportan su texto. Solo la primera se guarda como imagen del
+                  material.
+                </WarningNote>
+                <button
+                  className="min-h-11 rounded-xl px-3 text-sm font-semibold text-rose-600 hover:bg-rose-50"
+                  onClick={handleResetPages}
+                  type="button"
+                >
+                  Empezar de nuevo
                 </button>
               </div>
             )}
