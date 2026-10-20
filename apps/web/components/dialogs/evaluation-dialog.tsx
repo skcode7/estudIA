@@ -39,9 +39,10 @@ export function EvaluationDialog({
   );
 
   function handleFilesChange(next: FileList | null): void {
-    if (!next) return;
-    // El input se reutiliza: si el usuario quita todo, hay que vaciar el estado.
-    setFiles(Array.from(next).slice(0, MAX_FILES));
+    if (!next || next.length === 0) return;
+    // Acumular en vez de reemplazar: en móvil cada foto de cámara llega como un
+    // FileList de un solo elemento, así que hay que sumarlas al estado previo.
+    setFiles((current) => [...current, ...Array.from(next)].slice(0, MAX_FILES));
   }
 
   function removeFile(index: number): void {
@@ -125,7 +126,13 @@ export function EvaluationDialog({
             aria-label="Fotos de la evaluación"
             className="block w-full text-sm text-slate-600 file:mr-3 file:min-h-11 file:rounded-xl file:border-0 file:bg-[#f1eeff] file:px-4 file:text-sm file:font-semibold file:text-[#6d4aff] hover:file:bg-[#e7e1ff]"
             multiple
-            onChange={(event) => handleFilesChange(event.target.files)}
+            disabled={isSubmitting || files.length === MAX_FILES}
+            onChange={(event) => {
+              handleFilesChange(event.target.files);
+              // Limpiar para permitir tomar otra foto aunque el navegador
+              // reutilice el mismo nombre de archivo (p. ej. "image.jpg").
+              event.target.value = "";
+            }}
             type="file"
           />
           <p className="text-xs text-slate-500">
