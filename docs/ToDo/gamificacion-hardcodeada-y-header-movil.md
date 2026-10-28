@@ -36,10 +36,10 @@ No presentar métricas ficticias como si fueran progreso real, y que el header d
 
 - Implementar un sistema de XP, niveles, rachas, diamantes o insignias.
 - La pantalla de Progreso (hoy placeholder; ver `docs/ToDo/acciones-sin-destino.md`).
-- Cambiar el sistema de iconos (emoji de las estadísticas incluidos; ver `docs/ToDo/sistema-iconos-inconsistente.md`).
+- El mapa común de UIcons ya está implementado en `apps/web/lib/icons.ts`; las métricas de Home usan los iconos `streak`, `xp` y `gems`.
 
 ## Notas
 
 - La medición se hizo con `playwright-cli` a 320×700: anchos de los hijos del bloque de estadísticas `[82, 82, 82, 24]` y sin overflow de página. A 390×844 el bloque entra sin recortes.
-- Los emojis de las estadísticas se ven como cajas en el navegador headless usado para la auditoría por falta de fuentes de emoji en el entorno; **no** se reporta como fallo de la app. El hallazgo es de datos y de layout, no de renderizado de fuentes.
+- La auditoría inicial observó que los emojis de las estadísticas podían verse como cajas en el navegador headless. Ahora esas métricas usan UIcons; el robot y la mochila se conservan como ilustraciones intencionales.
 - Relacionado con `docs/ToDo/tarjetas-materia-datos-reales.md`, que ya unifica contador/progreso/color de materia y deja fuera "Insignias y Repaso".

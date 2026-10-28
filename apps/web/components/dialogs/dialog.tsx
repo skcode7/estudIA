@@ -1,4 +1,5 @@
 import { type ReactNode } from "react";
+import { Icon } from "../ui/icon";
 
 export function Dialog({
   children,
@@ -30,7 +31,7 @@ export function Dialog({
             onClick={onClose}
             type="button"
           >
-            ×
+            <Icon name="close" />
           </button>
         </div>
         {children}

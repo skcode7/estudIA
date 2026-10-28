@@ -1,4 +1,5 @@
 import { navItems, type NavItemId } from "../../lib/navigation";
+import { Icon } from "../ui/icon";
 
 const navItemBase =
   "flex min-h-12 w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm transition";
@@ -51,9 +52,7 @@ export function NavLinks({
           onClick={() => onNavigate(id)}
           type="button"
         >
-          <span aria-hidden="true" className="grid size-5 place-items-center text-lg">
-            {icon}
-          </span>
+          <Icon className="size-5 text-xl" name={icon} />
           {label}
         </button>
       ))}
@@ -74,9 +73,7 @@ export function AddMaterialButton({
       onClick={onClick}
       type="button"
     >
-      <span aria-hidden="true" className="text-xl">
-        ⊕
-      </span>
+      <Icon className="text-xl" name="add" />
       Agregar material
     </button>
   );
@@ -90,7 +87,7 @@ export function UserCard({ className = "", userName }: { className?: string; use
           aria-hidden="true"
           className="grid size-10 place-items-center rounded-full bg-violet-100 text-xl"
         >
-          🧑‍🎓
+          <Icon className="text-xl text-violet-700" name="graduate" />
         </span>
         <div>
           <p className="text-sm font-bold">{userName}</p>

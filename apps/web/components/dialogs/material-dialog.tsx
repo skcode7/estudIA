@@ -16,6 +16,7 @@ import {
 import { type Subject } from "../../lib/subjects";
 import { Dialog, DialogActions } from "./dialog";
 import { FieldError, WarningNote } from "../ui/feedback";
+import { Icon } from "../ui/icon";
 
 const FILE_ACCEPT = "image/*,.pdf,.txt,.doc,.docx";
 
@@ -319,7 +320,7 @@ export function MaterialDialog({
               className="flex min-h-24 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-violet-300 bg-[#f8f7fc] px-4 py-5 text-center"
               htmlFor="material-file"
             >
-              <span aria-hidden="true" className="text-2xl">📷</span>
+              <Icon className="text-2xl text-[#6d4aff]" name="camera" />
               <span className="text-sm font-semibold text-[#6d4aff]">
                 {pages.length > 1
                   ? `${pages.length} fotos agregadas`
@@ -448,7 +449,13 @@ export function MaterialDialog({
                 onClick={() => setShowNewTopic((current) => !current)}
                 type="button"
               >
-                {showNewTopic ? "Cancelar nuevo tema" : "+ Nuevo tema"}
+                {showNewTopic ? (
+                  "Cancelar nuevo tema"
+                ) : (
+                  <>
+                    <Icon className="mr-1" name="add" /> Nuevo tema
+                  </>
+                )}
               </button>
             )}
 
@@ -546,7 +553,8 @@ export function MaterialDialog({
               onClick={handleExtractFromText}
               type="button"
             >
-              ✨ Extraer con IA
+              <Icon className="mr-1" name="sparkle" />
+              Extraer con IA
             </button>
           )}
 

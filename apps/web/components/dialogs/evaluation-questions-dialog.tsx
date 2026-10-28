@@ -15,6 +15,7 @@ import {
 } from "../../lib/api";
 import { Dialog } from "./dialog";
 import { FieldError, WarningNote } from "../ui/feedback";
+import { Icon } from "../ui/icon";
 
 type OptionDraft = { text: string; isCorrect: boolean };
 
@@ -239,7 +240,8 @@ export function EvaluationQuestionsDialog({
                     <ul className="mt-2 space-y-1 text-sm text-slate-600">
                       {question.options.map((option) => (
                         <li key={option.id}>
-                          {option.isCorrect ? "✓ " : "○ "}
+                          <Icon className="mr-1" name={option.isCorrect ? "check" : "unselected"} />
+                          {option.isCorrect && <span className="sr-only">Respuesta correcta: </span>}
                           {option.text}
                         </li>
                       ))}
@@ -291,7 +293,8 @@ export function EvaluationQuestionsDialog({
                           onClick={() => startEdit(question)}
                           type="button"
                         >
-                          ✎ Editar
+                          <Icon className="mr-1" name="edit" />
+                          Editar
                         </button>
                         <button
                           className="min-h-11 rounded-xl px-4 text-sm font-semibold text-rose-600 hover:bg-rose-50"
@@ -301,7 +304,8 @@ export function EvaluationQuestionsDialog({
                           }}
                           type="button"
                         >
-                          ✕ Eliminar
+                          <Icon className="mr-1" name="delete" />
+                          Eliminar
                         </button>
                       </div>
                     )}

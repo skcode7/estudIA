@@ -1,3 +1,5 @@
+import { Icon } from "./icon";
+
 export function Notice({ children }: { children: string }) {
   return (
     <p
@@ -20,7 +22,7 @@ export function FieldError({ children }: { children: string }) {
 export function WarningNote({ children }: { children: string }) {
   return (
     <p className="flex items-start gap-2 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
-      <span aria-hidden="true">⚠</span>
+      <Icon className="mt-0.5 text-amber-700" name="warning" />
       <span>{children}</span>
     </p>
   );

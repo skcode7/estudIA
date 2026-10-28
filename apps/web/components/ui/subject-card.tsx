@@ -1,4 +1,5 @@
 import { type Subject } from "../../lib/subjects";
+import { Icon } from "./icon";
 
 export function SubjectCard({
   subject,
@@ -25,25 +26,25 @@ export function SubjectCard({
             isSubjectsView ? "size-11 rounded-xl text-lg" : "size-12"
           }`}
         >
-          {subject.icon}
+          <Icon className="text-2xl" name={subject.icon} />
         </div>
         {isSubjectsView && (
           <div className="flex gap-1">
             <button
-              className="grid size-8 place-items-center rounded-lg text-sm text-slate-400 hover:bg-slate-100 hover:text-[#6d4aff]"
+              aria-label={`Editar materia ${subject.name}`}
+              className="grid size-11 place-items-center rounded-xl text-sm text-slate-400 hover:bg-slate-100 hover:text-[#6d4aff]"
               onClick={() => onEdit?.(subject)}
-              title="Editar"
               type="button"
             >
-              ✎
+              <Icon className="text-lg" name="edit" />
             </button>
             <button
-              className="grid size-8 place-items-center rounded-lg text-sm text-slate-400 hover:bg-rose-50 hover:text-rose-600"
+              aria-label={`Eliminar materia ${subject.name}`}
+              className="grid size-11 place-items-center rounded-xl text-sm text-slate-400 hover:bg-rose-50 hover:text-rose-600"
               onClick={() => onDelete?.(subject)}
-              title="Eliminar"
               type="button"
             >
-              🗑
+              <Icon className="text-lg" name="delete" />
             </button>
           </div>
         )}

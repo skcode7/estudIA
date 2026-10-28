@@ -18,9 +18,10 @@ import { MaterialDeleteDialog } from "../dialogs/material-delete-dialog";
 import { MaterialEditDialog } from "../dialogs/material-edit-dialog";
 import { EmptyPanel, ErrorPanel, LoadingPanel } from "../ui/state-panels";
 import { MaterialStatusBadge } from "../ui/material-status-badge";
+import { Icon, type IconName } from "../ui/icon";
 
-function materialIcon(type: ApiMaterial["type"]): string {
-  return type === "TEXT" ? "✎" : type === "FILE" ? "📷" : "🔗";
+function materialIcon(type: ApiMaterial["type"]): IconName {
+  return type === "TEXT" ? "text" : type === "FILE" ? "image" : "link";
 }
 
 export function MaterialsView({
@@ -190,7 +191,8 @@ export function MaterialsView({
           }
           type="button"
         >
-          + Agregar material
+          <Icon className="mr-1" name="add" />
+          Agregar material
         </button>
       </header>
 
@@ -238,17 +240,17 @@ export function MaterialsView({
       {areMaterialsLoading ? (
         <LoadingPanel label="Cargando materiales…" />
       ) : !activeSubjectId ? (
-        <EmptyPanel icon="▤" message="Crea una materia para empezar." title="Sin materias" />
+        <EmptyPanel icon="subjects" message="Crea una materia para empezar." title="Sin materias" />
       ) : !topicId ? (
         <EmptyPanel
-          icon="▤"
+          icon="materials"
           message="Esta materia aún no tiene temas. Crea uno desde el diálogo de material."
           title="Sin tema seleccionado"
         />
       ) : materials.length === 0 ? (
         <EmptyPanel
-          ctaLabel="+ Agregar material"
-          icon="📄"
+          ctaLabel="Agregar material"
+          icon="materials"
           message="Sube una foto de tus apuntes o pega el texto para este tema."
           onCta={() =>
             openMaterialDialog({
@@ -272,9 +274,7 @@ export function MaterialsView({
               >
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span aria-hidden="true" className="text-xl">
-                      {materialIcon(material.type)}
-                    </span>
+                    <Icon className="text-xl text-[#6d4aff]" name={materialIcon(material.type)} />
                     <h3 className="truncate text-sm font-bold">{material.title}</h3>
                     <MaterialStatusBadge status={material.processingStatus} />
                   </div>
@@ -311,7 +311,8 @@ export function MaterialsView({
                     onClick={() => setEditingMaterial(material)}
                     type="button"
                   >
-                    ✎ Editar
+                    <Icon className="mr-1" name="edit" />
+                    Editar
                   </button>
                   <button
                     className="min-h-11 rounded-xl px-4 text-sm font-semibold text-rose-600 hover:bg-rose-50"
@@ -321,7 +322,8 @@ export function MaterialsView({
                     }}
                     type="button"
                   >
-                    ✕ Eliminar
+                    <Icon className="mr-1" name="delete" />
+                    Eliminar
                   </button>
                 </div>
               </article>

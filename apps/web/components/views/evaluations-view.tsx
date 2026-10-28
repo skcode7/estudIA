@@ -16,6 +16,7 @@ import { EvaluationQuestionsDialog } from "../dialogs/evaluation-questions-dialo
 import { EmptyPanel, ErrorPanel, LoadingPanel } from "../ui/state-panels";
 import { MaterialStatusBadge } from "../ui/material-status-badge";
 import { Notice } from "../ui/feedback";
+import { Icon } from "../ui/icon";
 
 function formatDate(value: string | null): string {
   if (!value) return "";
@@ -163,7 +164,8 @@ export function EvaluationsView({ subjects }: { subjects: Subject[] }) {
           onClick={() => setIsUploadOpen(true)}
           type="button"
         >
-          + Agregar evaluación
+          <Icon className="mr-1" name="add" />
+          Agregar evaluación
         </button>
       </header>
 
@@ -190,11 +192,11 @@ export function EvaluationsView({ subjects }: { subjects: Subject[] }) {
       {isLoading ? (
         <LoadingPanel label="Cargando evaluaciones…" />
       ) : !activeSubjectId ? (
-        <EmptyPanel icon="▤" message="Crea una materia para empezar." title="Sin materias" />
+        <EmptyPanel icon="subjects" message="Crea una materia para empezar." title="Sin materias" />
       ) : evaluations.length === 0 ? (
         <EmptyPanel
-          ctaLabel="+ Agregar evaluación"
-          icon="📝"
+          ctaLabel="Agregar evaluación"
+          icon="evaluations"
           message="Sube las fotos de un examen o prueba de esta materia y extrae sus preguntas."
           onCta={() => setIsUploadOpen(true)}
           title="Sin evaluaciones"
@@ -214,9 +216,7 @@ export function EvaluationsView({ subjects }: { subjects: Subject[] }) {
               >
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span aria-hidden="true" className="text-xl">
-                      📝
-                    </span>
+                    <Icon className="text-xl text-[#6d4aff]" name="evaluations" />
                     <h3 className="truncate text-sm font-bold">{evaluation.title}</h3>
                     <MaterialStatusBadge status={evaluation.processingStatus} />
                   </div>
@@ -266,7 +266,8 @@ export function EvaluationsView({ subjects }: { subjects: Subject[] }) {
                     }}
                     type="button"
                   >
-                    ✕ Eliminar
+                    <Icon className="mr-1" name="delete" />
+                    Eliminar
                   </button>
                 </div>
               </article>

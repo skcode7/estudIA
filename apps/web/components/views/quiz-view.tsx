@@ -278,7 +278,7 @@ export function QuizView({ subjects }: { subjects: Subject[] }) {
       )}
 
       {!activeSubjectId ? (
-        <EmptyPanel icon="?" message="Crea una materia para empezar." title="Sin materias" />
+        <EmptyPanel icon="subjects" message="Crea una materia para empezar." title="Sin materias" />
       ) : isGenerating ? (
         <LoadingPanel label="Generando quiz…" />
       ) : !quiz && !result ? (

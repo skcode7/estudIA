@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { type NavItemId } from "../../lib/navigation";
+import { Icon } from "../ui/icon";
 import { AddMaterialButton, BrandLockup, NavLinks, UserCard } from "./nav-shared";
 
 export function MobileMenu({
@@ -51,11 +52,11 @@ export function MobileMenu({
             aria-controls="menu-movil"
             aria-expanded={isOpen}
             aria-label="Abrir menú"
-            className="grid size-11 place-items-center rounded-xl text-2xl text-slate-600 hover:bg-slate-100"
+            className="grid size-11 place-items-center rounded-xl text-xl text-slate-600 hover:bg-slate-100"
             onClick={() => setIsOpen(true)}
             type="button"
           >
-            ☰
+            <Icon name="menu" />
           </button>
         </div>
       </header>
@@ -82,7 +83,7 @@ export function MobileMenu({
                 onClick={() => setIsOpen(false)}
                 type="button"
               >
-                ×
+                  <Icon name="close" />
               </button>
             </div>
             <nav aria-label="Navegación principal" className="space-y-2">

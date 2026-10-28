@@ -2,6 +2,7 @@ import { type Subject } from "../../lib/subjects";
 import { Notice } from "../ui/feedback";
 import { EmptyPanel, ErrorPanel, LoadingPanel } from "../ui/state-panels";
 import { SubjectCard } from "../ui/subject-card";
+import { Icon } from "../ui/icon";
 
 export function SubjectsView({
   notice,
@@ -38,7 +39,8 @@ export function SubjectsView({
           onClick={openSubjectDialog}
           type="button"
         >
-          + Nueva materia
+          <Icon className="mr-1" name="add" />
+          Nueva materia
         </button>
       </header>
 
@@ -60,8 +62,8 @@ export function SubjectsView({
         <ErrorPanel message={loadError} />
       ) : subjects.length === 0 ? (
         <EmptyPanel
-          ctaLabel={filter ? undefined : "+ Nueva materia"}
-          icon={filter ? "🔍" : "▤"}
+          ctaLabel={filter ? undefined : "Nueva materia"}
+          icon={filter ? "search" : "subjects"}
           message={
             filter
               ? `No se encontraron materias para "${filter}".`

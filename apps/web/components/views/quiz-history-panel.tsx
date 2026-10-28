@@ -64,7 +64,7 @@ export function QuizHistoryPanel({
       ) : quizzes.length === 0 ? (
         <EmptyPanel
           ctaLabel={onGenerate ? "Generar quiz" : undefined}
-          icon="?"
+          icon="quiz"
           message={`Crea un quiz de ${subjectName || "la materia seleccionada"} con tus preguntas. Cuando lo respondas aparecerá aquí con su resultado.`}
           onCta={onGenerate}
           title="Todavía no hay quizzes"

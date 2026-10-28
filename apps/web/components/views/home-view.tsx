@@ -1,5 +1,6 @@
 import { type Subject } from "../../lib/subjects";
 import { Notice } from "../ui/feedback";
+import { Icon } from "../ui/icon";
 import { EmptyPanel, ErrorPanel, LoadingPanel } from "../ui/state-panels";
 import { Stat } from "../ui/stat";
 import { SubjectCard } from "../ui/subject-card";
@@ -26,22 +27,22 @@ export function HomeView({
       <header className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
         <div>
           <p className="text-2xl font-bold tracking-tight sm:text-3xl">
-            ¡Hola, {userName}! <span aria-hidden="true">👋</span>
+            ¡Hola, {userName}!
           </p>
           <p className="mt-1 text-sm text-slate-500 sm:text-base">
             Listo para aprender con tus propios materiales.
           </p>
         </div>
         <div className="flex w-full divide-x divide-slate-100 rounded-2xl border border-slate-100 bg-white px-2 py-2 shadow-sm sm:w-auto">
-          <Stat emoji="🔥" label="Racha" value="5 días" />
-          <Stat emoji="⭐" label="XP" value="1,240" />
-          <Stat emoji="💎" label="Diamantes" value="230" />
+          <Stat icon="streak" label="Racha" value="5 días" />
+          <Stat icon="xp" label="XP" value="1,240" />
+          <Stat icon="gems" label="Diamantes" value="230" />
           <button
             aria-label="Notificaciones"
             className="grid size-12 place-items-center rounded-xl text-xl text-slate-500 hover:bg-slate-50"
             type="button"
           >
-            ♧
+            <Icon name="bell" />
           </button>
         </div>
       </header>
@@ -51,7 +52,8 @@ export function HomeView({
           <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#8b6bff] to-[#5b3fe0] p-6 text-white shadow-sm sm:p-8">
             <div className="relative z-10 max-w-md">
               <span className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-sm font-semibold">
-                ◎ Reto de hoy
+                <Icon name="goal" />
+                Reto de hoy
               </span>
               <h1 className="mt-5 text-2xl font-bold sm:text-3xl">Aprende a tu ritmo</h1>
               <p className="mt-2 text-white/85">
@@ -72,12 +74,7 @@ export function HomeView({
             >
               🤖
             </span>
-            <span
-              aria-hidden="true"
-              className="absolute right-8 top-7 text-3xl text-amber-300"
-            >
-              ✦
-            </span>
+            <Icon className="absolute right-8 top-7 text-3xl text-amber-300" name="sparkle" />
           </section>
 
           <section aria-labelledby="home-subjects-heading">
@@ -95,7 +92,8 @@ export function HomeView({
                 onClick={openSubjectDialog}
                 type="button"
               >
-                + Nueva materia
+                <Icon className="mr-1" name="add" />
+                Nueva materia
               </button>
             </div>
 
@@ -107,8 +105,8 @@ export function HomeView({
               <ErrorPanel message={loadError} />
             ) : subjects.length === 0 ? (
               <EmptyPanel
-                ctaLabel="+ Nueva materia"
-                icon="▤"
+                ctaLabel="Nueva materia"
+                icon="subjects"
                 message="Crea tu primera materia para empezar a estudiar."
                 onCta={openSubjectDialog}
                 title="Sin materias"
@@ -134,7 +132,7 @@ export function HomeView({
             onClick={openMaterialDialog}
             type="button"
           >
-            Agregar material ⊕
+            Agregar material <Icon className="ml-1" name="add" />
           </button>
         </aside>
       </div>

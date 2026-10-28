@@ -1,0 +1,33 @@
+export const ICON_GLYPHS = {
+  home: "home",
+  subjects: "books",
+  materials: "folder-open",
+  evaluations: "file-pdf",
+  quiz: "brain-circuit",
+  progress: "chart-pie",
+  badges: "medal",
+  bell: "bell",
+  edit: "pencil",
+  delete: "trash",
+  camera: "camera",
+  check: "check",
+  unselected: "circle",
+  search: "search",
+  question: "question",
+  warning: "triangle-warning",
+  pending: "clock",
+  add: "plus",
+  menu: "menu-burger",
+  close: "cross",
+  text: "file",
+  image: "file-image",
+  link: "link",
+  sparkle: "sparkles",
+  graduate: "user-graduate",
+  streak: "fire-flame-curved",
+  xp: "star",
+  gems: "gem",
+  goal: "bullseye"
+} as const;
+
+export type IconName = keyof typeof ICON_GLYPHS;

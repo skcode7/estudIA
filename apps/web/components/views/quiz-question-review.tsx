@@ -1,4 +1,5 @@
 import { assetUrl } from "../../lib/api";
+import { Icon } from "../ui/icon";
 
 /**
  * Repaso de una pregunta ya respondida (resultado recién obtenido o detalle de
@@ -63,7 +64,11 @@ export function QuizQuestionReview({
               key={option.id}
             >
               {option.text}
-              {optionIsCorrect && <span className="ml-2">✓ Respuesta correcta</span>}
+              {optionIsCorrect && (
+                <span className="ml-2 inline-flex items-center gap-1">
+                  <Icon name="check" /> Respuesta correcta
+                </span>
+              )}
               {isSelected && !optionIsCorrect && <span className="ml-2">Tu respuesta</span>}
             </div>
           );

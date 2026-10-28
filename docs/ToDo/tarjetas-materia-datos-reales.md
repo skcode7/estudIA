@@ -6,7 +6,7 @@ La tarjeta de materia en Inicio (`apps/web/components/ui/subject-card.tsx`) mues
 
 - **Contador de materiales**: `decorateSubject` fija `materials: 0` (`apps/web/lib/subjects.ts:24`). El único escritor real es `refreshSubjectMaterialCount`, que solo se dispara desde la vista de Materiales y además es un N+1 por tema (`apps/web/hooks/use-materials.ts:62-68`).
 - **Progreso**: `decorateSubject` fija `progress: 0` (`apps/web/lib/subjects.ts:23`). `TopicProgress` se calcula al enviar un intento (`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:163-208`) pero ningún endpoint lo lee.
-- **Color e ícono**: `decorateSubject` asigna un patrón cíclico por índice (`apps/web/lib/subjects.ts:20`). El modelo `Subject` no tiene campos de estilo (`apps/api/prisma/schema.prisma:37-46`).
+- **Color e ícono**: `decorateSubject` asigna una paleta de color cíclica por índice (`apps/web/lib/subjects.ts:20`); todas las materias usan el icono común `subjects` del mapa UIcons (`apps/web/lib/icons.ts`). El modelo `Subject` no tiene campos de estilo (`apps/api/prisma/schema.prisma:37-46`).
 
 Los tres datos comparten el mismo origen: `decorateSubject` inventa valores en lugar de consumir lo que la API debería darle. Eso hace que cualquier arreglo parcial en el cliente sea un parche; la fuente de verdad tiene que estar en `GET /subjects`.
 
@@ -31,7 +31,7 @@ Que cada tarjeta de materia muestre, desde la primera carga:
 
 ### Frontend
 
-- `apps/web/lib/subjects.ts`: `decorateSubject` deja de hardcodear `materials: 0`, `progress: 0` y el color cíclico; consume los campos que llegan de la API. El fallback cíclico solo aplica a materias creadas antes del cambio.
+- `apps/web/lib/subjects.ts`: `decorateSubject` deja de hardcodear `materials: 0`, `progress: 0` y el color cíclico; consume los campos que llegan de la API. El icono común de materias se mantiene como fallback hasta que el estilo llegue de la API.
 - `apps/web/components/ui/subject-card.tsx`: usa los nuevos campos y el estado "sin intentos".
 - Modal "Nueva materia" (`apps/web/components/dialogs/subject-dialog.tsx`): selector de color e ícono del set permitido.
 - `apps/web/lib/api.ts`: actualizar tipos `ApiSubject`, `CreateSubjectInput` y `UpdateSubjectInput`.

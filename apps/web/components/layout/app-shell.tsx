@@ -4,6 +4,7 @@ import { type ReactNode } from "react";
 
 import { type NavItemId } from "../../lib/navigation";
 import { MobileMenu } from "./mobile-menu";
+import { SiteFooter } from "./site-footer";
 import { Sidebar } from "./sidebar";
 
 export function AppShell({
@@ -38,6 +39,7 @@ export function AppShell({
           {children}
         </section>
       </div>
+      <SiteFooter />
     </main>
   );
 }
