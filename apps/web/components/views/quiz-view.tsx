@@ -206,6 +206,14 @@ export function QuizView({ subjects }: { subjects: Subject[] }) {
             Elige una materia y genera un quiz con las preguntas de tus apuntes.
           </p>
         </div>
+        <button
+          className="min-h-12 rounded-xl bg-[#6d4aff] px-5 text-sm font-semibold text-white shadow-sm hover:bg-[#5b3fe0] disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={!activeSubjectId || isGenerating || Boolean(quiz)}
+          onClick={() => void handleGenerate()}
+          type="button"
+        >
+          {isGenerating ? "Generando…" : "Generar quiz"}
+        </button>
       </header>
 
       {!quiz && !result && (
@@ -274,23 +282,16 @@ export function QuizView({ subjects }: { subjects: Subject[] }) {
       ) : isGenerating ? (
         <LoadingPanel label="Generando quiz…" />
       ) : !quiz && !result ? (
-        <EmptyPanel
-          icon="?"
-          ctaLabel="Generar quiz"
-          message={`Crea un quiz de ${selectedSubjectName || "la materia seleccionada"} con tus preguntas.`}
-          onCta={() => void handleGenerate()}
-          title="Listo para estudiar"
-        />
-      ) : null}
-
-      {!quiz && !result && activeSubjectId && (
         <QuizHistoryPanel
           error={historyError}
           isLoading={isHistoryLoading}
+          key={activeSubjectId}
+          onGenerate={() => void handleGenerate()}
           onSelect={(summary) => void handleOpenDetail(summary)}
           quizzes={quizzes}
+          subjectName={selectedSubjectName}
         />
-      )}
+      ) : null}
 
       {quiz && !result && (
         <section className="mt-6 space-y-5">
