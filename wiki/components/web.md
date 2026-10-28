@@ -14,7 +14,11 @@ sources:
   - apps/web/components/views/materials-view.tsx
   - apps/web/components/dialogs/material-edit-dialog.tsx
   - apps/web/components/dialogs/material-delete-dialog.tsx
-synced: 665ef6e
+  - apps/web/components/layout/app-shell.tsx
+  - apps/web/components/layout/site-footer.tsx
+  - apps/web/components/ui/icon.tsx
+  - apps/web/lib/icons.ts
+synced: a859db8
 related:
   - ../components/catalogo.md
   - ../flows/procesamiento-de-material.md
@@ -46,7 +50,7 @@ La misma vista que lista materiales también puede crear uno, y para eso la pág
 materia y el tema que ya están filtrados, así que `useMaterials.open` acepta opciones de
 preselección en vez de no admitir argumentos
 (`apps/web/hooks/use-materials.ts:19`) y el diálogo las aplica al cargar los temas
-(`apps/web/components/dialogs/material-dialog.tsx:85`). El botón global de «Agregar material»
+(`apps/web/components/dialogs/material-dialog.tsx:90`). El botón global de «Agregar material»
 —en la barra lateral y en el menú móvil— sigue funcionando igual: la preselección solo se aplica
 cuando viene. Hasta `6d3cfec` ese botón global era el FAB que sobresalía de la barra inferior.
 
@@ -54,7 +58,7 @@ El alta vive en un diálogo de la página, no en la vista, y la vista no se ente
 resuelve con un contador, hoy propiedad de `useMaterials`: la página lo incrementa al crear
 (`apps/web/app/page.tsx:145`) y el propio hook lo vuelve a incrementar cuando termina cada proceso
 (`apps/web/hooks/use-materials.ts:56`). `MaterialsView` lo usa como dependencia del efecto que lista
-(`apps/web/components/views/materials-view.tsx:100`). Es un patrón de recarga por señal, no un
+(`apps/web/components/views/materials-view.tsx:101`). Es un patrón de recarga por señal, no un
 gestor de caché: la web no tiene invalidación de datos más allá de eso.
 
 Que el contador viva en el hook y no en la página es consecuencia del procesamiento en segundo plano:
@@ -77,9 +81,14 @@ el error a propósito (`apps/web/hooks/use-materials.ts:46`): el fallo habitual 
 `FAILED` y lo enseña la propia lista, y swallowar aquí evita un rechazo sin manejar en un `void`.
 
 La navegación (`apps/web/lib/navigation.ts:1`) anuncia ya siete destinos; dos de ellos —
-Progreso e Insignias (`apps/web/lib/navigation.ts:6`) — caen en un placeholder
-(`apps/web/app/page.tsx:102`) porque aún no hay nada que mostrar. Evaluaciones reemplazó a Repaso
-(`apps/web/lib/navigation.ts:5`) y tiene vista propia; `ba4dd59` la movió delante de Quiz.
+Progreso e Insignias (`apps/web/lib/navigation.ts:7-8`) — caen en un placeholder
+(`apps/web/app/page.tsx:102`) porque aún no hay nada que mostrar. Evaluaciones tiene vista propia
+(`apps/web/app/page.tsx:99`); `ba4dd59` la ubicó delante de Quiz en la navegación.
+
+Los iconos de navegación son identificadores semánticos del mapa compartido `apps/web/lib/icons.ts:1`,
+renderizados por `Icon` (`apps/web/components/ui/icon.tsx:13`). El layout raíz carga la fuente UIcons
+(`apps/web/app/layout.tsx:4`) y `AppShell` coloca el footer de atribución al pie
+(`apps/web/components/layout/app-shell.tsx:42`).
 
 ## El cliente HTTP
 
@@ -102,21 +111,21 @@ Las imágenes de preguntas se resuelven con `assetUrl`, que solo antepone la bas
 
 El alta de material ganó un selector de modo de generación: el diálogo ofrece "Basadas en el material"
 (por defecto) o "Preguntas similares", y ese valor viaja en el `POST` de creación
-(`apps/web/components/dialogs/material-dialog.tsx:239`). Es un control de dos opciones, no un campo de
+(`apps/web/components/dialogs/material-dialog.tsx:277`). Es un control de dos opciones, no un campo de
 texto libre, y solo decide cómo el backend generará las preguntas al procesar (ver
 [Procesamiento de un material de estudio](../flows/procesamiento-de-material.md)). El análisis con IA
 sigue disparándose al elegir el archivo, antes de que el usuario vea el selector.
 
 El diálogo de edición dejó de ser un formulario de dos campos: desde `95b7a11` lleva el nombre de
-la materia en el propio título (`apps/web/components/dialogs/material-edit-dialog.tsx:46`) y bajo
+la materia en el propio título (`apps/web/components/dialogs/material-edit-dialog.tsx:47`) y bajo
 los campos de título y contenido hay dos pestañas —Preguntas e Imágenes— controladas con estado
-local, sin router (`apps/web/components/dialogs/material-edit-dialog.tsx:41`). Ambas se cargan al
+local, sin router (`apps/web/components/dialogs/material-edit-dialog.tsx:42`). Ambas se cargan al
 abrir, con una sola llamada al par de endpoints.
 
 La pestaña de preguntas es la que hace útil el diálogo: lista cada una con sus opciones, marca la
 correcta y permite editar enunciado, explicación y opciones, o eliminar con una confirmación que
 avisa de que arrastra quizzes. Al borrar, el diálogo avisa a la vista con `onQuestionsChanged` y el
-conteo de la fila se actualiza sin volver a listar (`apps/web/components/views/materials-view.tsx:337`).
+conteo de la fila se actualiza sin volver a listar (`apps/web/components/views/materials-view.tsx:339`).
 La de imágenes es de solo consulta, y el binario sale de `assetUrl` contra la ruta de la figura.
 
 Borrar el material entero tiene su propio diálogo
@@ -133,7 +142,7 @@ El diálogo avisa de que editar el contenido deja las preguntas viejas: es la Fa
 ahora conviene leerlo como lo que es: el usuario ya está avisado, pero nada impide todavía que se
 regenere por encima de un quiz ya resuelto. Desde `e02b72e` el mismo aviso menciona además que
 reprocesar devuelve el título a la IA
-(`apps/web/components/dialogs/material-edit-dialog.tsx:193`), que es la contrapartida de que la IA
+(`apps/web/components/dialogs/material-edit-dialog.tsx:194`), que es la contrapartida de que la IA
 deduzca siempre el título.
 
 ## Dos decisiones que se notan
@@ -149,7 +158,7 @@ eliminado la copia, solo la habría movido de sitio.
 
 **Lo que enseñan las tarjetas de materia es decorativo, y los dos ceros vienen del mismo sitio.**
 `decorateSubject` fija `progress: 0` y `materials: 0` para cada materia
-(`apps/web/lib/subjects.ts:23`), así que la barra de progreso y el contador de materiales son
+(`apps/web/lib/subjects.ts:24`), así que la barra de progreso y el contador de materiales son
 constantes.
 
 El del progreso ya está diagnosticado: el `TopicProgress` real se acumula en la API y no se expone
@@ -170,5 +179,5 @@ tarjetas bajo el mismo defecto de diseño: decoration en el cliente donde deber�
 El onboarding toma el primer usuario de la lista (`apps/web/hooks/use-user.ts:21`), sin sesión ni
 perfil: la misma instalación compartida entre dos navegadores muestra el mismo usuario. Y el
 diálogo de material dispara el análisis con IA en cuanto se elige un archivo
-(`apps/web/components/dialogs/material-dialog.tsx:203`), de modo que cada cambio de archivo cuesta
+(`apps/web/components/dialogs/material-dialog.tsx:200`), de modo que cada cambio de archivo cuesta
 una llamada a la IA que el usuario percibe como espera antes de poder editar los campos.

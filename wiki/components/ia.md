@@ -18,7 +18,7 @@ sources:
   - apps/api/src/infrastructure/ai/openrouter/openrouter.prompts.ts
   - apps/api/src/infrastructure/ai/openrouter/openrouter.schemas.ts
   - apps/web/components/dialogs/material-dialog.tsx
-synced: 665ef6e
+synced: 7c7585a
 related:
   - ../flows/figuras-embebidas.md
   - ../flows/procesamiento-de-material.md
@@ -56,13 +56,13 @@ Los prompts piden un objeto JSON con un formato fijado en el propio prompt
 (`apps/api/src/infrastructure/ai/deepseek/deepseek.prompts.ts:70`), con reglas explícitas como
 "nunca inventes ids" para que el modelo solo elija del catálogo que se le pasa. En las llamadas de
 DeepSeek se pide además `response_format: json_object`
-(`apps/api/src/infrastructure/ai/deepseek/deepseek.client.ts:31`).
+(`apps/api/src/infrastructure/ai/deepseek/deepseek.client.ts:32`).
 
 **Un prompt es contrato con el modelo, no sugerencia, y la diferencia se nota en los datos.** Decirle
 al modelo que el título es "opcional" y que lo deje vacío "si el material ya tiene uno claro" no es
 flexibilidad: es medir que el modelo se toma esa puerta unas 3 de cada 4 veces, y como el diálogo
 precarga el campo con el nombre del archivo
-(`apps/web/components/dialogs/material-dialog.tsx:201`), el resultado es un material titulado
+(`apps/web/components/dialogs/material-dialog.tsx:222`), el resultado es un material titulado
 `IMG-20240315-WA0037.jpg`. La regla ahora exige inferirlo siempre y prohíbe copiar el nombre del
 archivo (`apps/api/src/infrastructure/ai/deepseek/deepseek.prompts.ts:84`); la tasa de vacíos bajó de
 1 de 4 a 0 de 8. El detalle del síntoma está en
@@ -73,10 +73,19 @@ La lección que se lleva la página: el schema tolerante de abajo acepta el camp
 nada que validar. Cuando un campo de la respuesta importe, el prompt tiene que exigirlo.
 
 Aun así **nada se fía de la salida**: `parseModelJson` quita las vallas ``` que los modelos añaden,
-hace `JSON.parse` y valida con Zod (`apps/api/src/infrastructure/ai/model-output.ts:10`). Un JSON
+hace `JSON.parse` y valida con Zod (`apps/api/src/infrastructure/ai/model-output.ts:13`). Un JSON
 roto o un campo fuera de contrato son un `ModelOutputError` que los casos de uso convierten en
 `FAILED` (procesamiento) o en `503` (análisis de borrador). Es el motivo por el que la API usa
 Zod para la salida de IA y class-validator para los DTOs de entrada.
+
+Cuando `JSON.parse` falla, `extractJson` registra un snippet de hasta 200 caracteres antes de lanzar
+el error genérico (`apps/api/src/infrastructure/ai/model-output.ts:31`); un fallo de validación Zod
+registra las rutas inválidas, pero no el raw. El cliente también registra status y cuerpo de un error
+HTTP de DeepSeek (`apps/api/src/infrastructure/ai/deepseek/deepseek.client.ts:77`). Lee el body como
+texto una sola vez y parsea JSON desde ese valor
+(`apps/api/src/infrastructure/ai/deepseek/deepseek.client.ts:72`); si no es JSON, registra el cuerpo
+original y mantiene el mensaje genérico que recibe la aplicación. Esto evita perder el texto cuando
+un `response.json()` previo habría consumido el stream.
 
 Tras validar, el adaptador de DeepSeek todavía filtra lo que no cuadra: una pregunta cuyo
 `imageIndex` no corresponde a ninguna figura real se descarta y un juego sin ninguna pregunta
@@ -115,7 +124,7 @@ ningún SDK.
 ## Configuración
 
 Los clientes leen la configuración **en cada llamada** desde `process.env`: `DEEPSEEK_API_KEY` y
-`DEEPSEEK_MODEL` (`apps/api/src/infrastructure/ai/deepseek/deepseek.client.ts:61`), y
+`DEEPSEEK_MODEL` (`apps/api/src/infrastructure/ai/deepseek/deepseek.client.ts:62`), y
 `OPENROUTER_API_KEY` con `IMAGE_EXTRACTION_MODEL`
 (`apps/api/src/infrastructure/ai/openrouter/openrouter.client.ts:57`). Si falta la clave, la
 excepción lo dice con el nombre exacto de la variable que hay que crear.

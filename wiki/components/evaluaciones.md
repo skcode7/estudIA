@@ -20,7 +20,7 @@ sources:
   - apps/api/src/modules/ai/application/ports/ai-provider.ts
   - apps/web/components/views/evaluations-view.tsx
   - apps/web/components/dialogs/evaluation-dialog.tsx
-synced: 0326a48
+synced: a859db8
 related:
   - ../components/ia.md
   - ../components/quizzes.md
@@ -31,8 +31,9 @@ related:
 # Módulo de evaluaciones
 
 El módulo de evaluaciones permite subir fotos de un examen o prueba y extraer de ellas preguntas
-con IA para añadirlas al mismo pool que usa el quiz. Reemplazó a la vista de "Repaso"
-(`apps/web/lib/navigation.ts:5`) y sigue el mismo patrón de capas que el resto de la API.
+con IA para añadirlas al mismo pool que usa el quiz. La web la presenta como «Evaluaciones» en su
+propia vista (`apps/web/components/views/evaluations-view.tsx:156`), siguiendo el mismo patrón de
+capas que el resto de la API.
 
 ## Qué es una Evaluation
 
@@ -46,7 +47,7 @@ extraídas se guardan como `Question` normales con trazabilidad (`sourceEvaluati
 ## Subir y procesar
 
 La vista dispara la subida con varias fotos en un solo `FormData`
-(`apps/web/components/dialogs/evaluation-dialog.tsx:66`), usando el campo `files`. El controller las
+(`apps/web/components/dialogs/evaluation-dialog.tsx:67`), usando el campo `files`. El controller las
 recibe con `FilesInterceptor` (`apps/api/src/modules/evaluations/presentation/controllers/evaluations.controller.ts:79`),
 valida que haya al menos una y delega en `CreateEvaluationUseCase`.
 
@@ -54,7 +55,7 @@ valida que haya al menos una y delega en `CreateEvaluationUseCase`.
 reserva un `id` antes de subir, guarda cada foto con clave `evaluations/<evaluationId>/images/<uuid>.webp`
 (`apps/api/src/modules/evaluations/application/use-cases/create-evaluation.use-case.ts:60`) y, si
 alguna subida falla, borra lo subido y devuelve `503`. La evaluación nace `PENDING` y la página la
-procesa inmediatamente (`apps/web/components/views/evaluations-view.tsx:285`), igual que con los
+procesa inmediatamente (`apps/web/components/views/evaluations-view.tsx:286`), igual que con los
 materiales.
 
 `ProcessEvaluationUseCase` (`apps/api/src/modules/evaluations/application/use-cases/process-evaluation.use-case.ts:39`)

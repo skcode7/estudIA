@@ -62,3 +62,7 @@ apps/web/next.config.ts
 apps/api/nest-cli.json
 turbo.json
 **/Dockerfile
+
+# Local browser-CLI settings and skill installer lock are project tooling metadata, not app behavior.
+.playwright/**
+skills-lock.json

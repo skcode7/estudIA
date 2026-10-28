@@ -12,7 +12,7 @@ sources:
   - apps/api/src/modules/evaluations/presentation/controllers/evaluations.controller.ts
   - apps/api/src/modules/evaluations/presentation/dto/evaluations.dto.ts
   - apps/web/components/dialogs/evaluation-questions-dialog.tsx
-synced: 5e9017a
+synced: a859db8
 related:
   - ./evaluaciones.md
   - ./quizzes.md
@@ -95,13 +95,15 @@ y borrar la pregunta arrastra sus respuestas de quiz, igual que borrar una pregu
 
 ## La revisión en la web
 
-`EvaluationQuestionsDialog` (`apps/web/components/dialogs/evaluation-questions-dialog.tsx:21`) carga
-las preguntas al abrirse (`apps/web/components/dialogs/evaluation-questions-dialog.tsx:49`) y ofrece
+`EvaluationQuestionsDialog` (`apps/web/components/dialogs/evaluation-questions-dialog.tsx:22`) carga
+las preguntas al abrirse (`apps/web/components/dialogs/evaluation-questions-dialog.tsx:50`) y ofrece
 editar o eliminar por pregunta, con confirmación en un segundo paso. Editar copia la pregunta a un
 borrador; la opción correcta se elige con un radio que marca una y desmarca el resto
-(`apps/web/components/dialogs/evaluation-questions-dialog.tsx:82`), y guardar envía enunciado,
+(`apps/web/components/dialogs/evaluation-questions-dialog.tsx:83`), y guardar envía enunciado,
 explicación, tema y opciones
-(`apps/web/components/dialogs/evaluation-questions-dialog.tsx:92`).
+(`apps/web/components/dialogs/evaluation-questions-dialog.tsx:93`). En el resumen, la opción correcta
+se marca con el icono UIcons de check y se mantiene el texto accesible «Respuesta correcta»; las
+opciones restantes usan un círculo decorativo.
 
 Dos límites de la interfaz, a diferencia de la API: el diálogo **no** manda `type`, así que no se
 puede convertir una pregunta de un tipo a otro desde la web aunque el endpoint lo permita; y el

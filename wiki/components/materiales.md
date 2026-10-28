@@ -22,7 +22,7 @@ sources:
   - apps/api/src/modules/materials/infrastructure/prisma-material.repository.ts
   - apps/api/src/modules/materials/infrastructure/prisma-material-image.repository.ts
   - apps/api/prisma/schema.prisma
-synced: 0326a48
+synced: a859db8
 related:
   - ../flows/procesamiento-de-material.md
   - ../flows/figuras-embebidas.md
@@ -86,7 +86,9 @@ caso de uso.
 Un material procesado deja tres rastros que se mantienen juntos y se limpian juntos:
 
 1. **El binario original**, con clave `topics/<topicId>/materials/<uuid><ext>`
-   (`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:43`).
+   (`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:45`). Si
+   `ObjectStorage.upload` falla, el caso de uso registra el error original junto a `key` y `bucket`
+   antes de responder con el mismo `503` genérico (`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:55`).
 2. **Las figuras** (`MaterialImage`), cada una con su `storageKey`, un `label` descriptivo y un
    `order` estable que las preguntas usan para referenciarlas
    (`apps/api/src/modules/materials/application/ports/material-image.repository.ts:17`). El puerto

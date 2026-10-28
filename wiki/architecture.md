@@ -15,10 +15,12 @@ sources:
   - apps/web/app/globals.css
   - apps/web/lib/api.ts
   - apps/web/package.json
+  - apps/web/components/ui/icon.tsx
+  - apps/web/lib/icons.ts
   - pnpm-workspace.yaml
   - docker-compose.yml
   - .env.example
-synced: 0326a48
+synced: a859db8
 ---
 
 # Arquitectura de estudIA
@@ -81,12 +83,14 @@ arranca desde `dist/`, así que `process.env` no se rellena solo.
 
 **Web.** No hay router de páginas: una única página client-side, `apps/web/app/page.tsx:21`, decide
 qué vista renderiza según la navegación (`apps/web/app/page.tsx:65`) y monta los diálogos globales.
-El layout fija el idioma de la interfaz en español (`apps/web/app/layout.tsx:13`). La web habla solo
+El layout fija el idioma de la interfaz en español (`apps/web/app/layout.tsx:14`). La web habla solo
 con `NEXT_PUBLIC_API_URL` (`apps/web/lib/api.ts:74`, declarada en `.env.example:6`), sin cookies ni
-sesión. El diseño no usa
-librería de componentes: Tailwind con clases escritas a mano y tres colores base en
-`apps/web/app/globals.css:3` (fondo `#f8f7fc`, texto `#1e1b2e` y el morado `#6d4aff` que se repite
-literalmente en cada archivo, sin token de Tailwind).
+sesión. El diseño no usa librería de componentes: Tailwind con clases escritas a mano y tres colores
+base en `apps/web/app/globals.css:3` (fondo `#f8f7fc`, texto `#1e1b2e` y el morado `#6d4aff` que se
+repite literalmente en cada archivo, sin token de Tailwind). Los iconos sí comparten una familia
+externa UIcons Rounded, cuya hoja se carga desde el layout (`apps/web/app/layout.tsx:4`) y cuya
+asignación semántica central vive en `apps/web/lib/icons.ts:1`; el componente `Icon` la traduce a
+glifos (`apps/web/components/ui/icon.tsx:13`).
 
 **Salud.** `GET /api/v1/health` es el sonda de despliegue: un caso de uso que devuelve
 `{ "status": "ok" }` literal (`apps/api/src/modules/health/application/use-cases/get-health.use-case.ts:7`),
@@ -116,6 +120,7 @@ modo que producción cambia de proveedor sin tocar código.
 | [Procesamiento de un material](./flows/procesamiento-de-material.md) | de la foto o el texto al material con preguntas |
 | [Figuras embebidas](./flows/figuras-embebidas.md) | cómo se extraen, recortan y guardan los dibujos de una foto |
 | [Generar y resolver un quiz](./flows/generar-y-resolver-quiz.md) | selección de preguntas, intento, corrección y progreso |
+| [Verificación de deploy de la API](./flows/verificacion-de-deploy.md) | construir y probar la imagen de producción contra una base temporal local |
 | [Módulo de materiales](./components/materiales.md) | `Material`, sus figuras, sus preguntas, su edición a mano y su borrado |
 | [Módulo de quizzes](./components/quizzes.md) | el quiz como instantánea, los intentos y `TopicProgress` |
 | [Módulo de evaluaciones](./components/evaluaciones.md) | subida de exámenes, extracción de preguntas y revisión |

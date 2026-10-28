@@ -7,11 +7,13 @@ sources:
   - apps/api/src/modules/quizzes/application/ports/quiz.repository.ts
   - apps/api/src/modules/quizzes/application/use-cases/list-quizzes.use-case.ts
   - apps/api/src/modules/quizzes/application/use-cases/get-quiz-attempt.use-case.ts
+  - apps/api/src/modules/quizzes/application/use-cases/submit-quiz-attempt.use-case.ts
   - apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts
+  - apps/api/src/shared/text.utils.ts
   - apps/api/src/modules/quizzes/presentation/dto/quizzes.dto.ts
   - apps/api/src/modules/materials/infrastructure/prisma-material-question.repository.ts
   - apps/api/prisma/schema.prisma
-synced: 0326a48
+synced: 7c7585a
 related:
   - ../flows/generar-y-resolver-quiz.md
   - ../components/materiales.md
@@ -47,6 +49,16 @@ entorno: el módulo de quizzes ya no inyecta nada por token. Antes era un númer
 
 `size` es la duración del quiz y no tiene nada que ver con `Question.difficulty`
 (`easy|medium|hard`), que es un atributo de la pregunta y que este selector no filtra.
+
+## Corregir respuestas para completar
+
+Para una pregunta `FILL_BLANK`, `SubmitQuizAttemptUseCase` compara el texto escrito con todas las
+opciones aceptadas (`apps/api/src/modules/quizzes/application/use-cases/submit-quiz-attempt.use-case.ts:64`).
+`matchesAnyAnswer` normaliza ambos lados antes de comparar: ignora mayúsculas, tildes, puntuación
+habitual y espacios repetidos, así «París», «paris» y « PARIS » coinciden
+(`apps/api/src/shared/text.utils.ts:9`, `apps/api/src/shared/text.utils.ts:20`). Una respuesta vacía
+siempre se marca incorrecta (`apps/api/src/shared/text.utils.ts:22`). El helper es compartido dentro
+del flujo de corrección, no llama a un proveedor externo.
 
 ## Corregir escribe progreso
 

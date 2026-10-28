@@ -12,7 +12,11 @@ sources:
   - apps/web/components/ui/feedback.tsx
   - apps/web/components/ui/material-status-badge.tsx
   - apps/web/components/ui/stat.tsx
-synced: 6d3cfec
+  - apps/web/components/ui/icon.tsx
+  - apps/web/components/layout/site-footer.tsx
+  - apps/web/lib/icons.ts
+  - apps/web/lib/navigation.ts
+synced: a859db8
 related:
   - ./web.md
   - ./vistas-de-catalogo.md
@@ -26,20 +30,21 @@ reciben datos y funciones ya cerrados.
 
 ## Un armazón, dos navegaciones que comparten sus piezas
 
-`AppShell` (`apps/web/components/layout/app-shell.tsx:9`) es la única pieza que decide la
-estructura: fondo `#f8f7fc`, cabecera móvil, columna de contenido y las dos navegaciones. No conoce
+`AppShell` (`apps/web/components/layout/app-shell.tsx:10`) es la única pieza que decide la
+estructura: fondo `#f8f7fc`, cabecera móvil, columna de contenido, las dos navegaciones y el footer. No conoce
 las vistas —recibe `children`— y solo reenvía `activeView`, `onNavigate`, `openMaterialDialog` y
-`userName`. Desde `6d3cfec` es una columna (`apps/web/components/layout/app-shell.tsx:23`) y no una
+`userName`. Desde `6d3cfec` es una columna (`apps/web/components/layout/app-shell.tsx:24`) y no una
 fila con hueco inferior: la cabecera del menú móvil va encima, y el `pb-24` que reservaba sitio para
 la barra de abajo se fue con ella.
 
-Las dos navegaciones son **la misma lista**, `navItems` (`apps/web/lib/navigation.ts:1`), y desde
-`6d3cfec` también **las mismas piezas**: `Sidebar` (`apps/web/components/layout/sidebar.tsx:16`) y
-`MobileMenu` (`apps/web/components/layout/mobile-menu.tsx:8`) componen `NavLinks`
-(`apps/web/components/layout/nav-shared.tsx:34`), `BrandLockup`
-(`apps/web/components/layout/nav-shared.tsx:6`), `AddMaterialButton`
-(`apps/web/components/layout/nav-shared.tsx:64`) y `UserCard`
-(`apps/web/components/layout/nav-shared.tsx:85`). Lo único que cambia entre una y otra es el
+Las dos navegaciones son **la misma lista**, `navItems` (`apps/web/lib/navigation.ts:1`), ahora con
+identificadores semánticos de icono en vez de glifos; `NavLinks` los resuelve mediante `Icon`
+(`apps/web/components/layout/nav-shared.tsx:35`). Desde `6d3cfec` también **las mismas piezas**:
+`Sidebar` (`apps/web/components/layout/sidebar.tsx:16`) y
+`MobileMenu` (`apps/web/components/layout/mobile-menu.tsx:9`) componen `NavLinks`, `BrandLockup`
+(`apps/web/components/layout/nav-shared.tsx:7`), `AddMaterialButton`
+(`apps/web/components/layout/nav-shared.tsx:63`) y `UserCard`
+(`apps/web/components/layout/nav-shared.tsx:82`). Lo único que cambia entre una y otra es el
 envoltorio y el tamaño del logo, que entran por `className` y `textClassName`.
 
 `nav-shared.tsx` nació en `6d3cfec` porque antes no existía: cada navegación repetía el markup de
@@ -51,30 +56,35 @@ cosa; hoy el panel muestra las siete igual que la barra lateral, y el orden de l
 ser solo una decisión de producto (los que aún no tienen pantalla —Progreso e Insignias— siguen al
 final). `ba4dd59` movió Evaluaciones delante de Quiz.
 
-Navegar cierra el panel (`apps/web/components/layout/mobile-menu.tsx:40`), y lo mismo hacen el fondo
-y el botón `×` (`apps/web/components/layout/mobile-menu.tsx:65`); Escape lo cierra
-(`apps/web/components/layout/mobile-menu.tsx:21`) y el fondo deja de desplazarse mientras está
-abierto (`apps/web/components/layout/mobile-menu.tsx:31`). Lo que **no** tiene —igual que el
+Navegar cierra el panel (`apps/web/components/layout/mobile-menu.tsx:41`), y lo mismo hacen el fondo
+y el botón de cierre (`apps/web/components/layout/mobile-menu.tsx:66`); Escape lo cierra
+(`apps/web/components/layout/mobile-menu.tsx:22`) y el fondo deja de desplazarse mientras está
+abierto (`apps/web/components/layout/mobile-menu.tsx:32`). Lo que **no** tiene —igual que el
 `Dialog`— es foco atrapado.
 
 Solo hay una acción global: **Agregar material**. En escritorio es un botón más de la barra lateral
 (`apps/web/components/layout/sidebar.tsx:22`) y en móvil un ítem del panel
-(`apps/web/components/layout/mobile-menu.tsx:92`), que además cierra el panel antes de abrirlo. Es
+(`apps/web/components/layout/mobile-menu.tsx:93`), que además cierra el panel antes de abrirlo. Es
 la misma función entrando por dos puertas, y las dos se desactivan por `lg`, así que nunca
 coexisten.
 
+`SiteFooter` se monta debajo del contenido compartido (`apps/web/components/layout/app-shell.tsx:42`)
+y presenta la bandera de Ecuador junto a la atribución «Uicons by Flaticon» enlazada al sitio del
+proveedor (`apps/web/components/layout/site-footer.tsx:5`).
+
 ## El diálogo base
 
-`Dialog` (`apps/web/components/dialogs/dialog.tsx:3`) es un overlay sin portal de React, sin foco
+`Dialog` (`apps/web/components/dialogs/dialog.tsx:4`) es un overlay sin portal de React, sin foco
 atrapado y sin tecla Escape: solo un `role="dialog"` y un fondo que cubre la pantalla. Cerrar es
-responsabilidad de quien lo usa, siempre con el mismo botón `×` de la esquina.
+responsabilidad de quien lo usa, siempre con el mismo botón de cierre de la esquina; el glifo sale
+del mapa UIcons compartido.
 
 Tiene dos anchos, y esa es toda su API: `max-w-lg` por defecto y `max-w-2xl` con scroll propio
-cuando `wide` está activo (`apps/web/components/dialogs/dialog.tsx:22`). El ancho grande existe
+cuando `wide` está activo (`apps/web/components/dialogs/dialog.tsx:23`). El ancho grande existe
 porque la pantalla de edición de material no cabe en el estrecho: sin él, las pestañas y la galería
 quedan apretadas.
 
-`DialogActions` (`apps/web/components/dialogs/dialog.tsx:42`) es la convención de cierre de los
+`DialogActions` (`apps/web/components/dialogs/dialog.tsx:43`) es la convención de cierre de los
 diálogos con formulario: cancelar a la izquierda, confirmar a la derecha, el confirm siempre con
 `type="submit"`. Aparece dentro de un `<form>`, no envuelve uno, para que cada diálogo decida
 cuándo valida.
@@ -83,7 +93,7 @@ cuándo valida.
 
 `state-panels.tsx` son los tres estados que toda vista con datos repite: cargando, error y vacío.
 El vacío admite CTA opcional, que es lo que permite que «Sin materiales» ofrezca crear en vez de
-mandar al usuario a otro sitio (`apps/web/components/ui/state-panels.tsx:44`).
+mandar al usuario a otro sitio (`apps/web/components/ui/state-panels.tsx:42`).
 
 **`ErrorPanel` tiene un defecto que conviene conocer**: su título es la cadena fija «No se pudieron
 cargar tus materias» (`apps/web/components/ui/state-panels.tsx:16`), y el componente no recibe el
@@ -101,6 +111,11 @@ en uno de los otros dos.
 
 ## El vocabulario visual
 
+`apps/web/lib/icons.ts:1` es el mapa de nombres semánticos a glifos UIcons; el componente
+`Icon` (`apps/web/components/ui/icon.tsx:13`) los renderiza con `aria-hidden`. La web carga el
+estilo regular-rounded en el layout raíz. La navegación usa iconos de 20 px y los avatares de
+materia de 24 px; los emojis que quedan son ilustraciones del robot y la mochila, no controles.
+
 No hay librería de componentes: son clases de Tailwind escritas a mano, y por eso hay que conocer
 el vocabulario para no inventar un cuarto estilo. Se repite en cada archivo:
 
@@ -113,9 +128,9 @@ el vocabulario para no inventar un cuarto estilo. Se repite en cada archivo:
   disparador.
 
 El morado sólido es escaso a propósito, y por eso `MaterialStatusBadge`
-(`apps/web/components/ui/material-status-badge.tsx:3`) no lo usa para los estados buenos: el mapa de
+(`apps/web/components/ui/material-status-badge.tsx:4`) no lo usa para los estados buenos: el mapa de
 los cuatro estados de procesamiento va de slate a ámbar, esmeralda y rosa. Es el mismo criterio que
 hizo pasar las pestañas de la edición a un subrayado en lugar de un relleno.
 
-`Stat` (`apps/web/components/ui/stat.tsx:1`) es la única primitiva con datos inventados: la tríada
+`Stat` (`apps/web/components/ui/stat.tsx:3`) es la única primitiva con datos inventados: la tríada
 de racha, XP y diamantes de Inicio la recibe como `string` ya formateada, sin fuente en la API.

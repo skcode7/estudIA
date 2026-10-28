@@ -11,7 +11,8 @@ sources:
   - apps/web/components/dialogs/delete-subject-dialog.tsx
   - apps/web/components/dialogs/user-onboarding-dialog.tsx
   - apps/web/hooks/use-subjects.ts
-synced: a9c3163
+  - apps/web/lib/icons.ts
+synced: a859db8
 related:
   - ./web.md
   - ./armazon-y-primitivas.md
@@ -26,16 +27,16 @@ tres diálogos de materia viven en la página, no aquí.
 
 ## Una tarjeta, dos contextos
 
-`SubjectCard` (`apps/web/components/ui/subject-card.tsx:3`) se usa en las dos vistas y cambia de
+`SubjectCard` (`apps/web/components/ui/subject-card.tsx:4`) se usa en las dos vistas y cambia de
 forma según se le pasen o no los manejadores: sin ellos es una tarjeta de lectura, con ellos
 aparecen los botones de editar y borrar y crece para llenar la celda
-(`apps/web/components/ui/subject-card.tsx:12`). La distinción se llama `isSubjectsView` y controla
+(`apps/web/components/ui/subject-card.tsx:13`). La distinción se llama `isSubjectsView` y controla
 tres cosas a la vez —las acciones, el alto de la celda del icono y si la barra se empuja al fondo
 con `mt-auto`— para que la rejilla de Mis materias alinee las barras entre tarjetas de distinta
 descripción.
 
 **La tarjeta muestra datos que no existen.** El conteo de materiales y la barra de progreso salen
-de `decorateSubject` (`apps/web/lib/subjects.ts:19`), que fija `progress: 0` y `materials: 0`. El
+de `decorateSubject` (`apps/web/lib/subjects.ts:20`), que fija `progress: 0` y `materials: 0`. El
 conteo de materiales sí se actualiza en caliente, porque `useSubjects` expone
 `setSubjectMaterials` y el diálogo de material lo llama tras crear; el progreso no tiene fuente y
 no se actualiza nunca. La barra es decorativa en las dos vistas.
@@ -53,9 +54,11 @@ Tres detalles que no se ven leyendo las firmas:
   server-side; la lista entera baja siempre.
 - **Decorar es parte del alta y de la edición.** `addSubject` decora con `subjects.length` y
   `saveSubject` re-decora usando el índice en la lista
-  (`apps/web/hooks/use-subjects.ts:129`), porque el color y el ícono se eligen por posición. Es
-  decir: **el orden de la lista decide el color de cada materia**, y editar una cambia el color de
-  las siguientes. Está registrado en `docs/ToDo/tarjetas-materia-datos-reales.md`, que unifica
+  (`apps/web/hooks/use-subjects.ts:129`), porque el color se elige por posición. Es decir: **el orden
+  de la lista decide la paleta de cada materia**, pero ya no el icono: todas muestran el símbolo
+  común `subjects` del mapa `apps/web/lib/icons.ts`. Antes también variaba el glifo por índice;
+  `a859db8` estabilizó esa representación. El color sigue siendo cíclico y está registrado en
+  `docs/ToDo/tarjetas-materia-datos-reales.md`, que unifica
   color/ícono, contador de materiales y progreso real de las tarjetas.
 - **Cada operación escribe su propio aviso** en el estado `notice` de la página a través del
   `setNotice` recibido, así que el mismo banner sirve para alta, edición y borrado y se
@@ -83,13 +86,14 @@ el MVP (ver [Sin identidad en el MVP](../decisions/authentico.md)).
 
 ## Inicio y el placeholder
 
-`HomeView` (`apps/web/components/views/home-view.tsx:7`) es la pantalla que más inventa: la tríada
+`HomeView` (`apps/web/components/views/home-view.tsx:8`) es la pantalla que más inventa: la tríada
 de racha, XP y diamantes, el «Reto de hoy» y el «Nivel 8» de la barra lateral son valores fijos sin
 origen en la API. Solo la rejilla de materias y los dos avisos de error son reales. Es la
 consecuencia de que el progreso exista en el backend pero todavía no se exponga
-(`docs/ToDo/tarjetas-materia-datos-reales.md`).
+(`docs/ToDo/tarjetas-materia-datos-reales.md`). Sus métricas usan iconos UIcons del mapa común, no
+emojis; las cifras y la paleta siguen siendo decorativas.
 
-`PlaceholderView` (`apps/web/components/views/placeholder-view.tsx:1`) es lo que se renderiza para
+`PlaceholderView` (`apps/web/components/views/placeholder-view.tsx:3`) es lo que se renderiza para
 Progreso e Insignias: un recuadro con el nombre de la sección. La página decide entre
 `HomeView`, `SubjectsView`, `MaterialsView`, `QuizView`, `EvaluationsView` y este último con un ternario, así que
 añadir una pantalla real es añadir un caso, no una ruta.

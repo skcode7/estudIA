@@ -254,3 +254,56 @@ Reconciliación con 5 commits (desde `6d3cfec`): modo de generación de pregunta
 - `synced:` elevado a `0326a48` en las 13 páginas tocadas; checkpoint del repo al mismo commit.
 - Backlog: 2 archivos sin reclamar (`apps/api/src/shared/text.utils.ts`, `scripts/verify-deploy.sh`),
   igual que antes; sin páginas nuevas.
+
+## 2026-10-28 · wikipoke-ingest
+
+Reconciliación con 11 commits desde `665ef6e`, incluidos los cambios de logging, el historial de
+quizzes y el sistema de iconos UIcons.
+
+- `architecture.md` y `components/armazon-y-primitivas.md` — documentan la familia UIcons Rounded,
+  el mapa semántico compartido, el componente `Icon` y el footer con bandera de Ecuador y atribución
+  a Flaticon.
+- `components/vistas-de-catalogo.md` — corrige el comportamiento de los iconos de materias: el color
+  sigue el ciclo por índice, pero el glifo ya es común y estable; las métricas también usan UIcons.
+- `flows/generar-y-resolver-quiz.md` — añade el botón del header y el paginado cliente de diez quizzes
+  por página, conservando el historial cargado.
+- `components/materiales.md` y `flows/procesamiento-de-material.md` — registra los errores originales
+  de S3 en logs sin cambiar los mensajes al usuario; describe la extracción de fotos adicionales,
+  cuyo texto se suma pero cuya imagen no se guarda.
+- `components/ia.md` — registra el snippet del output de DeepSeek en errores de JSON y advierte un
+  posible bug: `readErrorDetail` intenta leer con `response.text()` después de consumir el body con
+  `response.json()`, por lo que el texto plano puede perderse. No se modificó el código durante este
+  pase.
+- `components/evaluaciones.md`, `components/preguntas-de-evaluacion.md`, `components/web.md`,
+  `concepts/configuracion-por-entorno.md` y `flows/figuras-embebidas.md` — citas actualizadas y
+  descripciones reconciliadas donde el comportamiento había cambiado.
+- Sin páginas nuevas ni cambios en `index.md`; `synced:` elevado a `a859db8` en las 12 páginas
+  reconciliadas. El cambio de responsabilidad no requirió reordenar el índice.
+
+## 2026-10-28 · wikipoke-ingest
+
+Reconciliación de `7c7585a`, que corrige la lectura del body en errores HTTP de DeepSeek.
+
+- `components/ia.md` — la respuesta se lee una sola vez como texto, se parsea desde ese valor y, si
+  no es JSON, se registra el status y el cuerpo original. Se retira el hallazgo de body ya consumido.
+- `concepts/configuracion-por-entorno.md` — `synced:` actualizado; la ubicación de `readConfig` no
+  cambió.
+- Sin páginas nuevas ni cambios de `index.md`.
+
+## 2026-10-28 · wikipoke-ingest apps/api/src/shared/text.utils.ts
+
+- `components/quizzes.md` — documenta cómo las respuestas `FILL_BLANK` aceptan variantes de tildes,
+  mayúsculas, puntuación y espacios, y que el texto vacío queda incorrecto.
+- No se creó página nueva: el helper forma parte de la corrección de intentos del módulo de quizzes.
+
+## 2026-10-28 · wikipoke-ingest scripts/verify-deploy.sh
+
+- new: `flows/verificacion-deploy.md` — documenta el contenedor de producción, la base temporal,
+  migraciones, espera de health y limpieza al salir. Advierte que usa un nombre fijo y elimina la
+  base de verificación previa.
+- `architecture.md` e `index.md` — agregan el nuevo flujo.
+
+## 2026-10-28 · wikipoke-ingest tooling metadata
+
+- `.playwright/cli.config.json` y `skills-lock.json` quedan excluidos de cobertura: configuran el
+  navegador del CLI y el instalador de skills, no comportamiento de estudIA.

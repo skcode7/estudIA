@@ -16,7 +16,7 @@ sources:
   - apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts
   - apps/api/src/modules/quizzes/quizzes.module.ts
   - apps/api/src/shared/random.utils.ts
-synced: 5e9017a
+synced: a859db8
 related:
   - ./procesamiento-de-material.md
   - ../components/quizzes.md
@@ -32,7 +32,8 @@ quiz se genera en milisegundos y el coste de IA ya se pagó al procesar.
 ## 1 · Generar: selección aleatoria
 
 La vista pide materia, tema y duración
-(`apps/web/components/views/quiz-view.tsx:214`); al pulsar "Generar quiz" llama a
+(`apps/web/components/views/quiz-view.tsx:222`); el botón «Generar quiz» está en el encabezado
+(`apps/web/components/views/quiz-view.tsx:209`) y al pulsarlo llama a
 `POST /api/v1/quizzes/generate` (`apps/web/components/views/quiz-view.tsx:124`) y guarda el
 instante de inicio del intento (`apps/web/components/views/quiz-view.tsx:130`), que es lo que
 después permite medir cuánto tardó el estudiante.
@@ -56,7 +57,7 @@ defecto) que hoy ya no existe. El quiz se guarda con esos ids
 `topicId: null` significa "quiz de toda la materia".
 
 La duración se elige en un tercer select junto a Materia y Tema
-(`apps/web/components/views/quiz-view.tsx:255`), etiquetado Corta / Media / Larga y en `MEDIUM` por
+(`apps/web/components/views/quiz-view.tsx:263`), etiquetado Corta / Media / Larga y en `MEDIUM` por
 defecto, que es justo lo que la API aplica cuando `size` no viene. La web no muestra el porcentaje
 porque depende de cuántas preguntas hay en el alcance, y eso no se sabe antes de generar.
 
@@ -71,7 +72,7 @@ estudiante no puede memorizar "la b es la buena".
 Las preguntas con imagen llevan una URL relativa construida con el material o evaluación de origen
 (`apps/api/src/modules/quizzes/presentation/controllers/quizzes.controller.ts:97`); la web la
 resuelve contra la API con `assetUrl` y la pinta con un `<img>` plano
-(`apps/web/components/views/quiz-view.tsx:325`), sin optimizador de Next.
+(`apps/web/components/views/quiz-view.tsx:326`), sin optimizador de Next.
 
 ## 3 · Responder: la web exige completitud, la API la revalida
 
@@ -102,7 +103,7 @@ La respuesta trae un *feedback* por pregunta — la correcta, la elegida y la ex
 la IA al procesar el material
 (`apps/api/src/modules/quizzes/application/use-cases/submit-quiz-attempt.use-case.ts:100`) — y la
 vista de resultado las repasa una a una marcando correcta/incorrecta, resaltando la opción correcta
-y mostrando la explicación (`apps/web/components/views/quiz-question-review.tsx:28`). Ese repaso es
+y mostrando la explicación (`apps/web/components/views/quiz-question-review.tsx:29`). Ese repaso es
 un componente compartido: el mismo que pinta el popup del historial, para que la corrección se vea
 igual en los dos sitios.
 
@@ -114,8 +115,11 @@ contador de estado, `historyVersion` (`apps/web/components/views/quiz-view.tsx:9
 mismo efecto de carga en vez de un segundo `fetch` escrito a mano. El listado es
 `GET /quizzes?subjectId=` y lo pinta `QuizHistoryPanel`: cada fila lleva el título, el tema, el
 número de preguntas y la fecha, y a la derecha el porcentaje del último intento o un badge "Sin
-responder" (`apps/web/components/views/quiz-history-panel.tsx:60`). La fila de un quiz sin intento
-queda `disabled`: no hay nada que revisar, y rejugar está fuera de alcance.
+responder" (`apps/web/components/views/quiz-history-panel.tsx:75`). La fila de un quiz sin intento
+queda `disabled`: no hay nada que revisar, y rejugar está fuera de alcance. El cliente corta la lista
+en páginas de diez (`apps/web/components/views/quiz-history-panel.tsx:6`) y muestra navegación con
+el rango y el número de página; no vuelve a consultar el backend al cambiar de página. «Generar
+quiz» vive en el encabezado y, si el historial está vacío, el panel conserva el CTA secundario.
 
 Elegir una fila con intento abre `QuizAttemptDetailDialog`, que pide
 `GET /quizzes/:id/attempts/:attemptId` (`apps/web/components/views/quiz-view.tsx:177`) y repinta el

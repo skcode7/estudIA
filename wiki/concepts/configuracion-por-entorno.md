@@ -10,7 +10,7 @@ sources:
   - apps/api/src/infrastructure/ai/deepseek/deepseek.client.ts
   - apps/api/src/infrastructure/object-storage/s3.object-storage.ts
   - .env.example
-synced: 5e9017a
+synced: 7c7585a
 related:
   - ../components/ia.md
 ---
@@ -38,7 +38,7 @@ Este es el matiz que más confusión causa, porque el código no es uniforme:
   credenciales en el constructor (`apps/api/src/infrastructure/object-storage/s3.object-storage.ts:17`).
   Cambiar la variable después de arrancar no cambia esas decisiones.
 - **En cada llamada.** Los clientes de IA leen su clave y su modelo por petición
-  (`apps/api/src/infrastructure/ai/deepseek/deepseek.client.ts:61`): aquí sí basta con que la
+  (`apps/api/src/infrastructure/ai/deepseek/deepseek.client.ts:62`): aquí sí basta con que la
   variable exista cuando se llama, y si falta, la excepción nombra la variable exacta.
 
 ## Los números ajustables entran como config inyectada
