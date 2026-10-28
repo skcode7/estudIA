@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ServiceUnavailableException } from "@nestjs/common";
+import { Injectable, Logger, NotFoundException, ServiceUnavailableException } from "@nestjs/common";
 import { randomUUID } from "node:crypto";
 import { extname } from "node:path";
 
@@ -27,6 +27,8 @@ export interface CreateFileMaterialInput {
 
 @Injectable()
 export class CreateFileMaterialUseCase {
+  private readonly logger = new Logger(CreateFileMaterialUseCase.name);
+
   constructor(
     private readonly repository: MaterialRepository,
     private readonly topicRepository: TopicRepository,
@@ -49,7 +51,14 @@ export class CreateFileMaterialUseCase {
         body: input.body,
         contentType: input.contentType
       });
-    } catch {
+    } catch (error) {
+      const bucket = process.env.S3_BUCKET ?? "estudia-materials";
+      this.logger.error(
+        `Fallo al subir el archivo al almacenamiento (key=${key}, bucket=${bucket}): ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+        error instanceof Error ? error.stack : undefined
+      );
       throw new ServiceUnavailableException("No se pudo almacenar el archivo. Intenta de nuevo.");
     }
 

@@ -166,7 +166,13 @@ export class ProcessMaterialUseCase {
     let body: Buffer;
     try {
       body = await this.objectStorage.getObject(material.storageKey);
-    } catch {
+    } catch (error) {
+      this.logger.error(
+        `Fallo al leer el archivo del almacenamiento (storageKey=${material.storageKey}): ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+        error instanceof Error ? error.stack : undefined
+      );
       return { error: "No se pudo leer el archivo del almacenamiento." };
     }
 

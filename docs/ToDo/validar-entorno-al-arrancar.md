@@ -36,11 +36,11 @@ Que un arranque local o un deploy falle pronto y con el nombre de la variable qu
 ## Fuera de alcance (por ahora)
 
 - Módulo Nest `ConfigModule` centralizado.
-- Logging estructurado (`docs/ToDo/logging-errores-originales.md` cubre el catch de S3/DeepSeek).
+- Logging estructurado (el catch de S3/DeepSeek ya loguea el error original en `create-file-material.use-case.ts`, `process-material.use-case.ts`, `model-output.ts` y `deepseek.client.ts`).
 - Health check que toque PostgreSQL o MinIO (`GET /health` sigue siendo sonda de proceso).
 
 ## Notas
 
 - Hallazgo del wiki: `wiki/concepts/configuracion-por-entorno.md`.
 - Coherencia con AGENTS.md: no sobreingenierizar; no hace falta un framework de config, sí un contrato de env completo y un fail-fast de lo crítico.
-- Relacionado: incidente B2 del 2026-09-17 (`docs/ToDo/logging-errores-originales.md`).
+- Relacionado: incidente B2 del 2026-09-17 (motivó el logging del error original en `create-file-material.use-case.ts`, `process-material.use-case.ts`, `model-output.ts` y `deepseek.client.ts`).

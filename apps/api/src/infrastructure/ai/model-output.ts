@@ -1,4 +1,7 @@
+import { Logger } from "@nestjs/common";
 import { z } from "zod";
+
+const logger = new Logger("ModelOutput");
 
 export class ModelOutputError extends Error {
   constructor(message: string) {
@@ -25,6 +28,10 @@ function extractJson(raw: string): unknown {
   try {
     return JSON.parse(trimmed) as unknown;
   } catch {
+    const snippet = raw.length > 200 ? `${raw.slice(0, 200)}…` : raw;
+    logger.error(
+      `El modelo no devolvió un JSON válido. Salida recibida (primeros 200 caracteres): ${snippet}`
+    );
     throw new ModelOutputError("El modelo no devolvió un JSON válido.");
   }
 }

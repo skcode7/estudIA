@@ -40,4 +40,4 @@ Que el usuario vea, antes de confirmar, cuántos recursos se perderán, y que bo
   - `docs/ToDo/limpiar-storage-al-borrar-cascada.md`
 - Hallazgos del wiki: `wiki/components/catalogo.md`, `wiki/decisions/storage-s3-minio.md`, `wiki/log.md`.
 - Coherencia con AGENTS.md: mobile-first y amigable; abstracción `ObjectStorage`; no introducir Redis ni workers.
-- Relacionado: `docs/ToDo/logging-errores-originales.md` (fallos de S3 hoy se tragan el error original en otros flujos).
+- Relacionado: el logging del error original en fallos de S3/DeepSeek ya está implementado en `create-file-material.use-case.ts`, `process-material.use-case.ts`, `model-output.ts` y `deepseek.client.ts` (ver historial).

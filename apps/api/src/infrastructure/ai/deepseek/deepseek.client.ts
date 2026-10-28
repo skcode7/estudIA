@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 
 import { ChatMessage } from "./deepseek.prompts";
 
@@ -18,6 +18,7 @@ interface ChatCompletionResponse {
 
 @Injectable()
 export class DeepSeekClient {
+  private readonly logger = new Logger(DeepSeekClient.name);
   private readonly baseUrl = "https://api.deepseek.com";
 
   async chat(messages: ChatMessage[], options: { json?: boolean } = {}): Promise<string> {
@@ -72,6 +73,12 @@ export class DeepSeekClient {
       const body = (await response.json()) as { error?: { message?: string } };
       return body.error?.message ?? "respuesta vacía";
     } catch {
+      const text = await response.text().catch(() => "");
+      this.logger.error(
+        `No se pudo leer el cuerpo JSON del error de DeepSeek (status=${response.status}). Cuerpo recibido: ${
+          text || "(sin cuerpo)"
+        }`
+      );
       return "no se pudo leer el cuerpo del error";
     }
   }
