@@ -69,14 +69,14 @@ export class DeepSeekClient {
   }
 
   private async readErrorDetail(response: Response): Promise<string> {
+    const rawBody = await response.text().catch(() => "");
     try {
-      const body = (await response.json()) as { error?: { message?: string } };
+      const body = JSON.parse(rawBody) as { error?: { message?: string } };
       return body.error?.message ?? "respuesta vacía";
     } catch {
-      const text = await response.text().catch(() => "");
       this.logger.error(
         `No se pudo leer el cuerpo JSON del error de DeepSeek (status=${response.status}). Cuerpo recibido: ${
-          text || "(sin cuerpo)"
+          rawBody || "(sin cuerpo)"
         }`
       );
       return "no se pudo leer el cuerpo del error";
