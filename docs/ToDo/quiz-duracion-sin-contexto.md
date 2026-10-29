@@ -42,5 +42,5 @@ Que el estudiante pueda anticipar el tamaño del quiz antes de generarlo, y que 
 ## Notas
 
 - Evidencia: el selector solo expone las tres etiquetas y el backend aplica 30/50/70 % con redondeo y mínimo 1. No se generó un quiz durante la auditoría para no crear datos en la base de desarrollo.
-- Relacionado con `docs/ToDo/persistir-quiz-en-curso.md` (saber la longitud también ayuda a decidir si se empieza un quiz largo). El botón "Generar quiz" en el header y el paginado del historial (10 por página) ya están implementados en `quiz-view.tsx` y `quiz-history-panel.tsx`.
+- Relacionado con `docs/ToDo/persistir-quiz-en-curso.md` (implementado: `GET /quizzes/:id` ya permite reanudar quizzes largos). El botón "Generar quiz" en el header y el paginado del historial (10 por página) ya están implementados en `quiz-view.tsx` y `quiz-history-panel.tsx`.
 - Coherente con AGENTS.md: cambio pequeño, sin lógica de negocio en el cliente más allá de mostrar una estimación.

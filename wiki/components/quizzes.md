@@ -122,12 +122,9 @@ siga el orden que vio el estudiante, no el de inserción.
 
 ## Lo que el módulo no tiene
 
-No hay `GET /quizzes/:id`: el quiz **vivo** (sus preguntas, sin intento) sigue existiendo solo en la
-pantalla que lo pidió, y al recargar se pierde (la web lo reconoce y ofrece generar otro). Lo que
-sí hay desde `6191d10` es el historial de intentos ya enviados, no el del quiz en curso; por eso
-`docs/ToDo/persistir-quiz-en-curso.md` sigue abierto aunque el requerimiento del historial ya esté
-implementado. Tampoco hay deduplicación de intentos ni caducidad: cada envío crea un `QuizAttempt`
-nuevo.
+No hay `GET /quizzes/:id` *pendiente*: se implementó para reanudar quizzes (ver `components/quizzes.md`). Lo que
+sí hay desde `6191d10` es el historial de intentos ya enviados. Tampoco hay deduplicación de intentos ni
+caducidad: cada envío crea un `QuizAttempt` nuevo.
 
 El contrato de entrada está en los DTOs: un intento exige `startedAt` y un array de respuestas
 validado elemento a elemento (`apps/api/src/modules/quizzes/presentation/dto/quizzes.dto.ts:89`),

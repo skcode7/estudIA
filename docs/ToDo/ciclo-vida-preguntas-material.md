@@ -132,7 +132,7 @@ Eso lleva la fila a **cuatro acciones**, y aquí hay una asimetría que conviene
 - **Crear preguntas a mano, sin material de origen.** El modelo lo permite (`sourceMaterialId` es nullable) y es un caso de uso real —apuntes de otra evaluación, un tema extra—, pero no es de este requerimiento. Aquí solo se establece que esas preguntas no entran en los quizzes.
 - Corregir `TopicProgress` cuando algo se borra en cascada. Se acepta que el contador quede como está; esto estaba anotado en el ya resuelto `docs/ToDo/tarjetas-materia-datos-reales.md`.
 - Mover el estado al usuario con un aviso previo en lugar de un `409`.
-- `docs/ToDo/persistir-quiz-en-curso.md` sigue abierto: un `GET /quizzes/:id` sobre un quiz cuyas preguntas se borraron devolverá menos preguntas, y la Fase 3 evita que eso ocurra.
+- `docs/ToDo/persistir-quiz-en-curso.md` ya está implementado: `GET /quizzes/:id` devuelve el quiz presentable con el orden persistido. La Fase 3 sigue evitando que el quiz quede con menos preguntas.
 
 ## Notas
 

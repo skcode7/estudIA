@@ -8,7 +8,7 @@ Auditoría de la app local (`http://localhost:3000`, 2026-10-23) con `playwright
 - **Progreso e Insignias**: `apps/web/lib/navigation.ts:1-9` los incluye en la navegación principal y `apps/web/app/page.tsx:102` cae en `PlaceholderView` ("Esta sección estará disponible próximamente"). Se puede navegar a una sección inexistente sin ninguna señal previa en el menú.
 - **Tarjetas de materia en Inicio**: `SubjectCard` se pinta en Home sin `onEdit` ni `onDelete` (`home-view.tsx:119`), y el componente no envuelve la tarjeta en un enlace ni en un botón (`apps/web/components/ui/subject-card.tsx:13-22`). Tocar una materia en Inicio no abre materiales, quiz ni detalle, aunque la misma tarjeta en "Mis materias" sí tiene acciones.
 - **Hero "Reto de hoy"**: `home-view.tsx:51-80` es un bloque que instruye "Selecciona una materia y agrega el material que quieres estudiar" pero no tiene ningún CTA; la única forma de actuar es salir del bloque.
-- **Historial de quizzes**: los 19 intentos listados hoy son botones `disabled` (`apps/web/components/views/quiz-history-panel.tsx:48`) y parecen una lista rota. Está cubierto por `docs/ToDo/persistir-quiz-en-curso.md`; no se repite aquí.
+- **Historial de quizzes**: los intentos listados son botones `disabled` (`apps/web/components/views/quiz-history-panel.tsx:48`) cuando no tienen intento; la acción "Continuar" ya está implementada vía `GET /quizzes/:id` (ver `components/quizzes.md`).
 
 ## Objetivo
 
@@ -22,7 +22,7 @@ Que ningún control visible prometa una acción que no existe, y que las seccion
 - Marcar Progreso e Insignias como "Pronto" en la navegación (badge + `aria-disabled` + no navegar) o retirarlos del menú hasta que existan. Es preferible retirarlos del MVP si no hay fecha.
 - Hacer las tarjetas de materia de Inicio navegables a Materiales con la materia preseleccionada, reutilizando `onNavigate` que ya existe en `AppShell`/`page.tsx`, o quitar cualquier pista visual de que son interactivas.
 - Añadir un CTA al hero ("+ Nueva materia" o "Agregar material") o convertirlo en contenido puramente informativo y quitar la instrucción de acción.
-- En el historial de quizzes, mientras `persistir-quiz-en-curso.md` no esté implementado, al menos distinguir visualmente que "Sin responder" no es una fila rota (texto auxiliar "Aún no disponible"), sin prometer la acción.
+- En el historial de quizzes, ahora que `GET /quizzes/:id` está implementado, los quizzes "Sin responder" ofrecen la acción "Continuar" (ver `components/quizzes.md`), sin prometer más de lo que el backend soporta.
 
 ### Backend
 
@@ -31,7 +31,7 @@ Que ningún control visible prometa una acción que no existe, y que las seccion
 ## Fuera de alcance (por ahora)
 
 - Implementar notificaciones, progreso o insignias.
-- Habilitar "Continuar" en el historial de quizzes (ver `docs/ToDo/persistir-quiz-en-curso.md`).
+- Implementado: "Continuar" en el historial de quizzes vía `GET /quizzes/:id` (ver `components/quizzes.md`).
 - Rutas Next.js por vista.
 
 ## Notas
