@@ -86,12 +86,11 @@ el MVP (ver [Sin identidad en el MVP](../decisions/authentico.md)).
 
 ## Inicio y el placeholder
 
-`HomeView` (`apps/web/components/views/home-view.tsx:7`) es la pantalla que más inventa: la tríada
-de racha, XP y diamantes, el «Reto de hoy» y el «Nivel 8» de la barra lateral son valores fijos sin
-origen en la API. Solo la rejilla de materias y los dos avisos de error son reales. Es la
-consecuencia de que el progreso exista en el backend pero todavía no se exponga
-(`docs/ToDo/tarjetas-materia-datos-reales.md`). Sus métricas usan iconos UIcons del mapa común, no
-emojis; las cifras y la paleta siguen siendo decorativas.
+`HomeView` (`apps/web/components/views/home-view.tsx:9`) conserva el «Reto de hoy» como texto fijo
+—título, subtítulo y bullets—, pero desde `5525cd7` ya no pinta la tríada de racha, XP y diamantes:
+solo la rejilla de materias y los avisos vienen de la API. La marca (`/brand/estudia-logo.webp`) se
+usa como marca de agua al 20 % en el hero, con `next/image`, y el resto de la pantalla sigue el
+vocabulario de iconos UIcons del mapa común, no emojis.
 
 `PlaceholderView` (`apps/web/components/views/placeholder-view.tsx:3`) es lo que se renderiza para
 Progreso e Insignias: un recuadro con el nombre de la sección. La página decide entre

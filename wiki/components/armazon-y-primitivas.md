@@ -38,12 +38,12 @@ la barra de abajo se fue con ella.
 
 Las dos navegaciones son **la misma lista**, `navItems` (`apps/web/lib/navigation.ts:1`), ahora con
 identificadores semánticos de icono en vez de glifos; `NavLinks` los resuelve mediante `Icon`
-(`apps/web/components/layout/nav-shared.tsx:35`). Desde `6d3cfec` también **las mismas piezas**:
+(`apps/web/components/layout/nav-shared.tsx:44`). Desde `6d3cfec` también **las mismas piezas**:
 `Sidebar` (`apps/web/components/layout/sidebar.tsx:16`) y
 `MobileMenu` (`apps/web/components/layout/mobile-menu.tsx:10`) componen `NavLinks`, `BrandLockup`
-(`apps/web/components/layout/nav-shared.tsx:7`), `AddMaterialButton`
-(`apps/web/components/layout/nav-shared.tsx:63`) y `UserCard`
-(`apps/web/components/layout/nav-shared.tsx:82`). Lo único que cambia entre una y otra es el
+(`apps/web/components/layout/nav-shared.tsx:9`), `AddMaterialButton`
+(`apps/web/components/layout/nav-shared.tsx:72`) y `UserCard`
+(`apps/web/components/layout/nav-shared.tsx:91`). Lo único que cambia entre una y otra es el
 envoltorio y el tamaño del logo, que entran por `className` y `textClassName`.
 
 `nav-shared.tsx` nació en `6d3cfec` porque antes no existía: cada navegación repetía el markup de
@@ -113,7 +113,9 @@ en uno de los otros dos.
 `apps/web/lib/icons.ts:1` es el mapa de nombres semánticos a glifos UIcons; el componente
 `Icon` (`apps/web/components/ui/icon.tsx:13`) los renderiza con `aria-hidden`. La web carga el
 estilo regular-rounded en el layout raíz. La navegación usa iconos de 20 px y los avatares de
-materia de 24 px; los emojis que quedan son ilustraciones del robot y la mochila, no controles.
+materia de 24 px; el único emoji que queda es la mochila de Inicio. La marca (cerebro + libro) es
+una imagen (`/brand/estudia-mark.webp`), no un emoji: `BrandLockup` la pinta con `next/image` en un
+badge lavanda junto al wordmark.
 
 No hay librería de componentes: son clases de Tailwind escritas a mano, y por eso hay que conocer
 el vocabulario para no inventar un cuarto estilo. Se repite en cada archivo:

@@ -307,3 +307,16 @@ Reconciliación de `7c7585a`, que corrige la lectura del body en errores HTTP de
 
 - `.playwright/cli.config.json` y `skills-lock.json` quedan excluidos de cobertura: configuran el
   navegador del CLI y el instalador de skills, no comportamiento de estudIA.
+
+## 2026-10-29 · wikipoke-ingest marca de la aplicación
+
+Reconciliación de los dos componentes que dejaron de usar el emoji 🤖.
+
+- `components/armazon-y-primitivas.md` — `BrandLockup` pinta la marca
+  (`/brand/estudia-mark.webp`) con `next/image` en un badge lavanda; ya no queda ningún emoji robot
+  en la navegación (solo la mochila de Inicio). Citas de `nav-shared.tsx` reajustadas.
+- `components/vistas-de-catalogo.md` — `HomeView` usa `/brand/estudia-logo.webp` como marca de agua
+  al 20 % del hero; se retira la descripción de la tríada de gamificación, que ya había desaparecido
+  en `5525cd7`, y se reajusta la cita de `home-view.tsx`.
+- Sin páginas nuevas ni cambios de `index.md`. El checkpoint no avanza: quedan páginas stale de
+  commits anteriores a este pase.
