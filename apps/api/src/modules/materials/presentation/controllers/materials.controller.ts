@@ -121,12 +121,19 @@ export class MaterialsController {
   }
 
   @Get()
-  async findAll(@Query("topicId") topicId: string): Promise<MaterialDto[]> {
+  async findAll(
+    @Query("topicId") topicId: string,
+    @Query("limit") limit?: string,
+    @Query("offset") offset?: string
+  ): Promise<{ items: MaterialDto[]; total: number }> {
     if (!topicId) {
       throw new BadRequestException("El parámetro \"topicId\" es obligatorio.");
     }
-    const materials = await this.listMaterialsUseCase.execute(topicId);
-    return materials.map(toMaterialDto);
+    const result = await this.listMaterialsUseCase.execute(topicId, {
+      limit: limit ? Number(limit) : undefined,
+      offset: offset ? Number(offset) : undefined
+    });
+    return { items: result.items.map(toMaterialDto), total: result.total };
   }
 
   @Get(":id")

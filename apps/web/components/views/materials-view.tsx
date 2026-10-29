@@ -42,6 +42,8 @@ export function MaterialsView({
   const [areTopicsLoading, setAreTopicsLoading] = useState(false);
   const [topicId, setTopicId] = useState("");
   const [materials, setMaterials] = useState<ApiMaterial[]>([]);
+  const [total, setTotal] = useState(0);
+  const [offset, setOffset] = useState(0);
   const [areMaterialsLoading, setAreMaterialsLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -81,9 +83,13 @@ export function MaterialsView({
   useEffect(() => {
     if (!topicId) return;
     let cancelled = false;
-    listMaterials(topicId)
+    listMaterials(topicId, { limit: 20, offset: 0 })
       .then((fetched) => {
-        if (!cancelled) setMaterials(fetched);
+        if (!cancelled) {
+          setMaterials(fetched.items);
+          setTotal(fetched.total);
+          setOffset(20);
+        }
       })
       .catch((error: unknown) => {
         if (!cancelled) {
@@ -132,8 +138,10 @@ export function MaterialsView({
       } catch (error) {
         setLoadError(error instanceof Error ? error.message : "No se pudo procesar el material.");
         try {
-          const refreshed = await listMaterials(material.topicId);
-          setMaterials(refreshed);
+          const refreshed = await listMaterials(material.topicId, { limit: 20, offset: 0 });
+          setMaterials(refreshed.items);
+          setTotal(refreshed.total);
+          setOffset(20);
         } catch {
           // El listado anterior se mantiene.
         }

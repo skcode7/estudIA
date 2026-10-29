@@ -55,7 +55,10 @@ export interface MaterialWithCounts {
 
 export abstract class MaterialRepository {
   abstract create(input: CreateMaterialInput): Promise<MaterialRecord>;
-  abstract findByTopic(topicId: string): Promise<MaterialRecord[]>;
+  abstract findByTopic(
+    topicId: string,
+    options?: { limit?: number; offset?: number }
+  ): Promise<{ items: MaterialRecord[]; total: number }>;
   abstract findById(id: string): Promise<MaterialRecord | null>;
   abstract updateProcessingStatus(
     id: string,

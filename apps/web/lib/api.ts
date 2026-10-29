@@ -203,8 +203,19 @@ export function analyzeMaterialDraft(input: { file?: File; text?: string }): Pro
   });
 }
 
-export function listMaterials(topicId: string): Promise<ApiMaterial[]> {
-  return request<ApiMaterial[]>(`/materials?topicId=${encodeURIComponent(topicId)}`);
+export interface ApiMaterialsPage {
+  items: ApiMaterial[];
+  total: number;
+}
+
+export function listMaterials(
+  topicId: string,
+  options?: { limit?: number; offset?: number }
+): Promise<ApiMaterialsPage> {
+  const params = new URLSearchParams({ topicId });
+  if (options?.limit !== undefined) params.set("limit", String(options.limit));
+  if (options?.offset !== undefined) params.set("offset", String(options.offset));
+  return request<ApiMaterialsPage>(`/materials?${params.toString()}`);
 }
 
 export function processMaterial(id: string): Promise<ApiMaterial> {

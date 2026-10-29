@@ -28,11 +28,21 @@ export class PrismaMaterialRepository implements MaterialRepository {
     });
   }
 
-  findByTopic(topicId: string): Promise<MaterialRecord[]> {
-    return this.prisma.material.findMany({
-      where: { topicId },
-      orderBy: { createdAt: "desc" }
-    });
+  async findByTopic(
+    topicId: string,
+    options?: { limit?: number; offset?: number }
+  ): Promise<{ items: MaterialRecord[]; total: number }> {
+    const where = { topicId };
+    const [items, total] = await Promise.all([
+      this.prisma.material.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        ...(options?.limit !== undefined ? { take: options.limit } : {}),
+        ...(options?.offset !== undefined ? { skip: options.offset } : {})
+      }),
+      this.prisma.material.count({ where })
+    ]);
+    return { items, total };
   }
 
   findById(id: string): Promise<MaterialRecord | null> {

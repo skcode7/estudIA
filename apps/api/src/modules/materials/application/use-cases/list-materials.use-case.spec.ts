@@ -60,7 +60,7 @@ describe("ListMaterialsUseCase", () => {
     const questionRepository = questionRepositoryMock();
     const imageRepository = imageRepositoryMock();
     const materials = [baseMaterial("uuid-1"), baseMaterial("uuid-2")];
-    vi.mocked(repository.findByTopic).mockResolvedValue(materials);
+    vi.mocked(repository.findByTopic).mockResolvedValue({ items: materials, total: materials.length });
     vi.mocked(questionRepository.countByMaterials).mockResolvedValue(
       new Map([["uuid-1", 3]])
     );
@@ -71,11 +71,14 @@ describe("ListMaterialsUseCase", () => {
     const useCase = new ListMaterialsUseCase(repository, questionRepository, imageRepository);
     const result = await useCase.execute("topic-1");
 
-    expect(repository.findByTopic).toHaveBeenCalledWith("topic-1");
+    expect(repository.findByTopic).toHaveBeenCalledWith("topic-1", undefined);
     expect(questionRepository.countByMaterials).toHaveBeenCalledWith(["uuid-1", "uuid-2"]);
-    expect(result).toEqual([
-      { material: materials[0], questionCount: 3, imageCount: 2 },
-      { material: materials[1], questionCount: 0, imageCount: 0 }
-    ]);
+    expect(result).toEqual({
+      items: [
+        { material: materials[0], questionCount: 3, imageCount: 2 },
+        { material: materials[1], questionCount: 0, imageCount: 0 }
+      ],
+      total: 2
+    });
   });
 });
