@@ -132,6 +132,8 @@ export abstract class QuizRepository {
   abstract findQuestionIdsByTopics(topicIds: string[]): Promise<string[]>;
   abstract createQuiz(input: CreateQuizInput): Promise<QuizRecord>;
   abstract findQuizForGrading(id: string): Promise<QuizGradingRecord | null>;
+  /** Quiz presentable (sin corrección) para reanudar o ver. Devuelve null si no existe. */
+  abstract findQuizForPresentation(id: string): Promise<QuizRecord | null>;
   abstract saveAttempt(input: SaveAttemptInput): Promise<QuizAttemptRecord>;
   /** Quizzes de una materia, más recientes primero, con su último intento completado. */
   abstract listBySubject(subjectId: string): Promise<QuizListItemRecord[]>;

@@ -131,6 +131,56 @@ export class PrismaQuizRepository implements QuizRepository {
     };
   }
 
+  async findQuizForPresentation(id: string): Promise<QuizRecord | null> {
+    const quiz = await this.prisma.quiz.findUnique({
+      where: { id },
+      include: {
+        subject: { select: { name: true } },
+        topic: { select: { name: true } },
+        questions: {
+          orderBy: { order: "asc" },
+          include: {
+            question: {
+              select: {
+                id: true,
+                type: true,
+                statement: true,
+                imageId: true,
+                sourceMaterialId: true,
+                evaluationImageId: true,
+                sourceEvaluationId: true,
+                options: { select: { id: true, text: true } }
+              }
+            }
+          }
+        }
+      }
+    });
+    if (!quiz) return null;
+    return {
+      id: quiz.id,
+      title: quiz.title,
+      subjectId: quiz.subjectId,
+      subjectName: quiz.subject.name,
+      topicId: quiz.topicId,
+      topicName: quiz.topic?.name ?? null,
+      createdAt: quiz.createdAt,
+      updatedAt: quiz.updatedAt,
+      questions: quiz.questions.map((quizQuestion) => ({
+        id: quizQuestion.question.id,
+        type: quizQuestion.question.type as "MULTIPLE_CHOICE" | "TRUE_FALSE" | "FILL_BLANK",
+        statement: quizQuestion.question.statement,
+        imageId: quizQuestion.question.imageId,
+        sourceMaterialId: quizQuestion.question.sourceMaterialId,
+        evaluationImageId: quizQuestion.question.evaluationImageId,
+        sourceEvaluationId: quizQuestion.question.sourceEvaluationId,
+        options: [...quizQuestion.question.options]
+          .sort((a, b) => a.id.localeCompare(b.id))
+          .map((option) => ({ id: option.id, text: option.text }))
+      }))
+    };
+  }
+
   async saveAttempt(input: SaveAttemptInput): Promise<QuizAttemptRecord> {
     return this.prisma.$transaction(async (tx) => {
       const attempt = await tx.quizAttempt.create({

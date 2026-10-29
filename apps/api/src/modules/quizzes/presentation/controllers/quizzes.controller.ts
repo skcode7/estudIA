@@ -1,6 +1,7 @@
 import { BadRequestException, Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
 
 import { GenerateQuizUseCase } from "../../application/use-cases/generate-quiz.use-case";
+import { GetQuizUseCase } from "../../application/use-cases/get-quiz.use-case";
 import { GetQuizAttemptUseCase } from "../../application/use-cases/get-quiz-attempt.use-case";
 import { ListQuizzesUseCase } from "../../application/use-cases/list-quizzes.use-case";
 import { SubmitQuizAttemptUseCase, QuizAnswerFeedback } from "../../application/use-cases/submit-quiz-attempt.use-case";
@@ -19,12 +20,12 @@ import {
   QuizSizeDto,
   SubmitAttemptDto
 } from "../dto/quizzes.dto";
-import { shuffle } from "../../../../shared/random.utils";
 
 @Controller("quizzes")
 export class QuizzesController {
   constructor(
     private readonly generateQuizUseCase: GenerateQuizUseCase,
+    private readonly getQuizUseCase: GetQuizUseCase,
     private readonly submitQuizAttemptUseCase: SubmitQuizAttemptUseCase,
     private readonly listQuizzesUseCase: ListQuizzesUseCase,
     private readonly getQuizAttemptUseCase: GetQuizAttemptUseCase
@@ -65,6 +66,11 @@ export class QuizzesController {
     return quizzes.map(toQuizListItemDto);
   }
 
+  @Get(":id")
+  get(@Param("id") id: string): Promise<QuizDto> {
+    return this.getQuizUseCase.execute(id).then(toQuizDto);
+  }
+
   @Get(":id/attempts/:attemptId")
   findAttempt(
     @Param("id") id: string,
@@ -84,12 +90,12 @@ function toQuizDto(quiz: QuizRecord): QuizDto {
     topicName: quiz.topicName,
     createdAt: quiz.createdAt.toISOString(),
     updatedAt: quiz.updatedAt.toISOString(),
-    questions: shuffle(quiz.questions).map((question) => ({
+    questions: quiz.questions.map((question) => ({
       id: question.id,
       type: question.type as QuizQuestionTypeDto,
       statement: question.statement,
       imageUrl: toQuestionImageUrl(question),
-      options: shuffle(question.options)
+      options: question.options
     }))
   };
 }

@@ -9,6 +9,7 @@ function quizRepositoryMock(): QuizRepository {
     findQuestionIdsByTopics: vi.fn(),
     createQuiz: vi.fn(),
     findQuizForGrading: vi.fn(),
+    findQuizForPresentation: vi.fn(),
     saveAttempt: vi.fn(),
     listBySubject: vi.fn(),
     findAttemptDetail: vi.fn()
