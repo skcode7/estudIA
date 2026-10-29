@@ -168,7 +168,7 @@ export function createMaterial(input: CreateMaterialInput): Promise<ApiMaterial>
 
 export function uploadMaterial(input: {
   topicId: string;
-  file: File;
+  files: File[];
   title?: string;
   content?: string;
   hasEmbeddedFigures?: boolean;
@@ -176,7 +176,9 @@ export function uploadMaterial(input: {
 }): Promise<ApiMaterial> {
   const form = new FormData();
   form.set("topicId", input.topicId);
-  form.set("file", input.file);
+  for (const file of input.files) {
+    form.append("files", file);
+  }
   if (input.title) form.set("title", input.title);
   if (input.content) form.set("content", input.content);
   if (input.hasEmbeddedFigures) form.set("hasEmbeddedFigures", "true");

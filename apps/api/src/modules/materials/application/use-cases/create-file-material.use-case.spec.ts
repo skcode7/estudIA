@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { TopicRepository } from "../../../topics/application/ports/topic.repository";
 import { ObjectStorage } from "../../../storage/application/ports/object-storage";
 import { MaterialRecord, MaterialRepository } from "../ports/material.repository";
+import { MaterialImageRepository } from "../ports/material-image.repository";
 import { CreateFileMaterialUseCase } from "./create-file-material.use-case";
 
 function materialRepositoryMock(): MaterialRepository {
@@ -32,6 +33,15 @@ function objectStorageMock(): ObjectStorage {
     delete: vi.fn(),
     getObject: vi.fn(),
     getSignedUrl: vi.fn()
+  };
+}
+
+function materialImageRepositoryMock(): MaterialImageRepository {
+  return {
+    listByMaterial: vi.fn(),
+    replaceForMaterial: vi.fn().mockResolvedValue([]),
+    findById: vi.fn(),
+    countByMaterials: vi.fn()
   };
 }
 
@@ -78,7 +88,7 @@ describe("CreateFileMaterialUseCase", () => {
     vi.mocked(storage.upload).mockResolvedValue({ key: "topics/topic-1/materials/abc.jpg", contentType: "image/jpeg" });
     vi.mocked(repository.create).mockResolvedValue(created);
 
-    const useCase = new CreateFileMaterialUseCase(repository, topicRepository, storage);
+    const useCase = new CreateFileMaterialUseCase(repository, topicRepository, storage, materialImageRepositoryMock());
     const result = await useCase.execute(baseInput);
 
     expect(storage.upload).toHaveBeenCalledWith({
@@ -113,7 +123,7 @@ describe("CreateFileMaterialUseCase", () => {
     vi.mocked(storage.upload).mockResolvedValue({ key: "topics/topic-1/materials/abc.jpg", contentType: "image/jpeg" });
     vi.mocked(repository.create).mockResolvedValue(baseMaterial());
 
-    const useCase = new CreateFileMaterialUseCase(repository, topicRepository, storage);
+    const useCase = new CreateFileMaterialUseCase(repository, topicRepository, storage, materialImageRepositoryMock());
     await useCase.execute({ ...baseInput, hasEmbeddedFigures: true });
 
     expect(repository.create).toHaveBeenCalledWith(
@@ -136,7 +146,7 @@ describe("CreateFileMaterialUseCase", () => {
     vi.mocked(storage.upload).mockResolvedValue({ key: "topics/topic-1/materials/abc.jpg", contentType: "image/jpeg" });
     vi.mocked(repository.create).mockResolvedValue(baseMaterial());
 
-    const useCase = new CreateFileMaterialUseCase(repository, topicRepository, storage);
+    const useCase = new CreateFileMaterialUseCase(repository, topicRepository, storage, materialImageRepositoryMock());
     await useCase.execute({ ...baseInput, content: "Texto extraído de la foto." });
 
     expect(repository.create).toHaveBeenCalledWith(
@@ -150,7 +160,7 @@ describe("CreateFileMaterialUseCase", () => {
     const storage = objectStorageMock();
     vi.mocked(topicRepository.findById).mockResolvedValue(null);
 
-    const useCase = new CreateFileMaterialUseCase(repository, topicRepository, storage);
+    const useCase = new CreateFileMaterialUseCase(repository, topicRepository, storage, materialImageRepositoryMock());
 
     await expect(useCase.execute(baseInput)).rejects.toThrow(
       'Tema con id "topic-1" no encontrado.'
@@ -173,7 +183,7 @@ describe("CreateFileMaterialUseCase", () => {
     });
     vi.mocked(storage.upload).mockRejectedValue(new Error("connection refused"));
 
-    const useCase = new CreateFileMaterialUseCase(repository, topicRepository, storage);
+    const useCase = new CreateFileMaterialUseCase(repository, topicRepository, storage, materialImageRepositoryMock());
 
     await expect(useCase.execute(baseInput)).rejects.toThrow(
       "No se pudo almacenar el archivo. Intenta de nuevo."

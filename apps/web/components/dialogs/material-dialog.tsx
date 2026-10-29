@@ -274,11 +274,11 @@ export function MaterialDialog({
 
     setIsSubmitting(true);
     try {
-      const created = selectedFile
+      const created = pages.length > 0
         ? await uploadMaterial({
             topicId,
             title: finalTitle,
-            file: selectedFile,
+            files: pages,
             content: content.trim() || undefined,
             hasEmbeddedFigures,
             questionMode

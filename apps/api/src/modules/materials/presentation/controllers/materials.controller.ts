@@ -11,9 +11,10 @@ import {
   Res,
   StreamableFile,
   UploadedFile,
+  UploadedFiles,
   UseInterceptors
 } from "@nestjs/common";
-import { FileInterceptor } from "@nestjs/platform-express";
+import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express";
 import type { Response } from "express";
 
 import { AnalyzeMaterialDraftUseCase } from "../../application/use-cases/analyze-material-draft.use-case";
@@ -49,6 +50,7 @@ import {
 } from "../dto/materials.dto";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_FILES = 10;
 
 @Controller("materials")
 export class MaterialsController {
@@ -98,26 +100,31 @@ export class MaterialsController {
   }
 
   @Post("upload")
-  @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_FILE_SIZE } }))
+  @UseInterceptors(FilesInterceptor("files", MAX_FILES, { limits: { fileSize: MAX_FILE_SIZE } }))
   uploadFile(
-    @UploadedFile() file: Express.Multer.File | undefined,
+    @UploadedFiles() files: Express.Multer.File[] | undefined,
     @Body() dto: UploadMaterialDto
   ): Promise<MaterialDto> {
-    if (!file) {
-      throw new BadRequestException("El archivo es obligatorio en el campo \"file\".");
+    const images = (files ?? []).map((file) => ({
+      originalName: file.originalname,
+      contentType: file.mimetype,
+      body: file.buffer
+    }));
+    if (images.length === 0) {
+      throw new BadRequestException(
+        `El material necesita al menos una foto en el campo "files" (máximo ${MAX_FILES}).`
+      );
     }
     return this.createFileMaterialUseCase
       .execute({
         topicId: dto.topicId,
-        title: dto.title?.trim() || file.originalname,
-        originalName: file.originalname,
-        contentType: file.mimetype,
-        body: file.buffer,
+        title: dto.title?.trim() || undefined,
+        files: images,
         content: dto.content?.trim() || undefined,
         hasEmbeddedFigures: dto.hasEmbeddedFigures ?? false,
         questionMode: dto.questionMode
       })
-      .then((material) => toMaterialDto({ material, questionCount: 0, imageCount: 0 }));
+      .then((material) => toMaterialDto({ material, questionCount: 0, imageCount: images.length }));
   }
 
   @Get()
