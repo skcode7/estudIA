@@ -2,7 +2,6 @@ import { type Subject } from "../../lib/subjects";
 import { Notice } from "../ui/feedback";
 import { Icon } from "../ui/icon";
 import { EmptyPanel, ErrorPanel, LoadingPanel } from "../ui/state-panels";
-import { Stat } from "../ui/stat";
 import { SubjectCard } from "../ui/subject-card";
 
 export function HomeView({
@@ -24,27 +23,13 @@ export function HomeView({
 }) {
   return (
     <>
-      <header className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-        <div>
-          <p className="text-2xl font-bold tracking-tight sm:text-3xl">
-            ¡Hola, {userName}!
-          </p>
-          <p className="mt-1 text-sm text-slate-500 sm:text-base">
-            Listo para aprender con tus propios materiales.
-          </p>
-        </div>
-        <div className="flex w-full divide-x divide-slate-100 rounded-2xl border border-slate-100 bg-white px-2 py-2 shadow-sm sm:w-auto">
-          <Stat icon="streak" label="Racha" value="5 días" />
-          <Stat icon="xp" label="XP" value="1,240" />
-          <Stat icon="gems" label="Diamantes" value="230" />
-          <button
-            aria-label="Notificaciones"
-            className="grid size-12 place-items-center rounded-xl text-xl text-slate-500 hover:bg-slate-50"
-            type="button"
-          >
-            <Icon name="bell" />
-          </button>
-        </div>
+      <header>
+        <p className="text-2xl font-bold tracking-tight sm:text-3xl">
+          ¡Hola, {userName}!
+        </p>
+        <p className="mt-1 text-sm text-slate-500 sm:text-base">
+          Listo para aprender con tus propios materiales.
+        </p>
       </header>
 
       <div className="mt-7 grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
@@ -59,12 +44,11 @@ export function HomeView({
               <p className="mt-2 text-white/85">
                 Selecciona una materia y agrega el material que quieres estudiar.
               </p>
-              <div className="mt-5 flex flex-wrap gap-x-3 gap-y-1 text-sm font-medium">
+              <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
                 <span>Materiales propios</span>
-                <span>•</span>
-                <span>Preguntas personalizadas</span>
-                <span>•</span>
-                <span>Progreso real</span>
+                <span className="before:mr-3 before:text-white/70 before:content-['·']">
+                  Preguntas personalizadas
+                </span>
               </div>
 
             </div>

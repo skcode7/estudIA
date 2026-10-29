@@ -91,13 +91,9 @@ export function UserCard({ className = "", userName }: { className?: string; use
         </span>
         <div>
           <p className="text-sm font-bold">{userName}</p>
-          <p className="text-xs text-[#6d4aff]">Nivel 8</p>
+          <p className="text-xs text-slate-500">Estudiante</p>
         </div>
       </div>
-      <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-200">
-        <div className="h-full w-[77%] rounded-full bg-[#6d4aff]" />
-      </div>
-      <p className="mt-2 text-xs text-slate-500">1,240 / 1,600 XP</p>
     </div>
   );
 }
