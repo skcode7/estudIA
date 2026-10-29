@@ -37,10 +37,10 @@ export function MaterialsView({
   processingIds?: string[];
   reloadSignal?: number;
 }) {
-  const [subjectId, setSubjectId] = useState("");
+  const [subjectId, setSubjectId] = useState(() => (typeof window !== "undefined" ? localStorage.getItem("materials.subjectId") ?? "" : ""));
   const [topics, setTopics] = useState<ApiTopic[]>([]);
   const [areTopicsLoading, setAreTopicsLoading] = useState(false);
-  const [topicId, setTopicId] = useState("");
+  const [topicId, setTopicId] = useState(() => (typeof window !== "undefined" ? localStorage.getItem("materials.topicId") ?? "__all__" : "__all__"));
   const [materials, setMaterials] = useState<ApiMaterial[]>([]);
   const [total, setTotal] = useState(0);
   const [offset, setOffset] = useState(0);
@@ -81,9 +81,17 @@ export function MaterialsView({
   }, [activeSubjectId]);
 
   useEffect(() => {
-    if (!topicId) return;
+    if (!topicId || !activeSubjectId) return;
     let cancelled = false;
-    listMaterials(topicId, { limit: 20, offset: 0 })
+    setAreMaterialsLoading(true);
+    const load =
+      topicId === "__all__"
+        ? Promise.all(topics.map((t) => listMaterials(t.id, { limit: 20, offset: 0 }))).then((pages) => ({
+            items: pages.flatMap((p) => p.items),
+            total: pages.reduce((a, p) => a + p.total, 0)
+          }))
+        : listMaterials(topicId, { limit: 20, offset: 0 });
+    load
       .then((fetched) => {
         if (!cancelled) {
           setMaterials(fetched.items);
@@ -113,6 +121,7 @@ export function MaterialsView({
 
   const handleSubjectChange = useCallback((value: string) => {
     setSubjectId(value);
+    if (typeof window !== "undefined") localStorage.setItem("materials.subjectId", value);
     setTopicId("");
     setTopics([]);
     setMaterials([]);
@@ -123,6 +132,7 @@ export function MaterialsView({
 
   const handleTopicChange = useCallback((value: string) => {
     setTopicId(value);
+    if (typeof window !== "undefined") localStorage.setItem("materials.topicId", value);
     setMaterials([]);
     setAreMaterialsLoading(true);
     setLoadError("");
@@ -233,11 +243,14 @@ export function MaterialsView({
             ) : topics.length === 0 ? (
               <option>Sin temas</option>
             ) : (
-              topics.map((topic) => (
-                <option key={topic.id} value={topic.id}>
-                  {topic.name}
-                </option>
-              ))
+              <>
+                <option value="__all__">Todos</option>
+                {topics.map((topic) => (
+                  <option key={topic.id} value={topic.id}>
+                    {topic.name}
+                  </option>
+                ))}
+              </>
             )}
           </select>
         </label>
