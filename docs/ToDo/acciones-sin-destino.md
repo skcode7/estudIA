@@ -38,4 +38,4 @@ Que ningún control visible prometa una acción que no existe, y que las seccion
 
 - Cómo se detectó: clic en cada ítem de la navegación; inspección de los `onClick` del código; conteo del historial en el DOM (`19` botones, los `19` con `disabled`).
 - Coherente con AGENTS.md: mobile-first y no prometer secciones que no existen. El usuario percibe "app rota" cuando toca una campana y no pasa nada.
-- Relacionado con `docs/ToDo/modal-onboarding-vs-api-caida.md` (estados de carga/error) y `docs/ToDo/tarjetas-materia-datos-reales.md` (las tarjetas de materia ganarán acciones reales).
+- Relacionado con `docs/ToDo/modal-onboarding-vs-api-caida.md` (estados de carga/error) y con el ya resuelto `docs/ToDo/tarjetas-materia-datos-reales.md` (las tarjetas de materia ahora traen color/icono, contador y progreso reales desde la API).

@@ -130,7 +130,7 @@ Eso lleva la fila a **cuatro acciones**, y aquí hay una asimetría que conviene
 
 - Snapshot del enunciado en el quiz (la alternativa de fondo a toda esta política: si el quiz copiara la pregunta, nada de esto sería necesario). Es más caro y no se necesita si la regla de inmutabilidad basta.
 - **Crear preguntas a mano, sin material de origen.** El modelo lo permite (`sourceMaterialId` es nullable) y es un caso de uso real —apuntes de otra evaluación, un tema extra—, pero no es de este requerimiento. Aquí solo se establece que esas preguntas no entran en los quizzes.
-- Corregir `TopicProgress` cuando algo se borra en cascada. Se acepta que el contador quede como está; está anotado en `docs/ToDo/tarjetas-materia-datos-reales.md`.
+- Corregir `TopicProgress` cuando algo se borra en cascada. Se acepta que el contador quede como está; esto estaba anotado en el ya resuelto `docs/ToDo/tarjetas-materia-datos-reales.md`.
 - Mover el estado al usuario con un aviso previo en lugar de un `409`.
 - `docs/ToDo/persistir-quiz-en-curso.md` sigue abierto: un `GET /quizzes/:id` sobre un quiz cuyas preguntas se borraron devolverá menos preguntas, y la Fase 3 evita que eso ocurra.
 

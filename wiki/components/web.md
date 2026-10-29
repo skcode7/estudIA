@@ -164,7 +164,7 @@ viejo. Eso se resolvió en el backend: `PrismaSubjectRepository` calcula `materi
 materiales de sus temas) y `progress` (promedio de `score` de intentos completados) en la misma
 consulta, y `decorateSubject` (`apps/web/lib/subjects.ts:64`) solo resuelve color/ícono con fallback.
 `useMaterials` ya no computa conteos: tras crear o editar, `useSubjects` hace `reload` y la tarjeta
-muestra los datos reales. Cierra `docs/ToDo/tarjetas-materia-datos-reales.md`.
+muestra los datos reales. Esto resolvió el ToDo de tarjetas de materia con datos reales (retirado).
 
 ## Límites de la interfaz
 

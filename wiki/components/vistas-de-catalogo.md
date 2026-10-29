@@ -59,7 +59,7 @@ Tres detalles que no se ven leyendo las firmas:
   / `SUBJECT_ICONS`. `decorateSubject` (`apps/web/lib/subjects.ts:64`) solo aplica un fallback si la
   materia no trae alguno. El mapa `apps/web/lib/icons.ts` sigue siendo la fuente de glifos; `a859db8`
   estabilizó esa representación. La unificación de color/ícono, contador de materiales y progreso real
-  de las tarjetas quedó resuelta en `docs/ToDo/tarjetas-materia-datos-reales.md`.
+  de las tarjetas quedó resuelta y el ToDo correspondiente fue retirado.
 - **Cada operación escribe su propio aviso** en el estado `notice` de la página a través del
   `setNotice` recibido, así que el mismo banner sirve para alta, edición y borrado y se
   solapa con el que la vista muestra.
