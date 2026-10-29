@@ -17,7 +17,8 @@ export function QuizHistoryPanel({
   error,
   subjectName,
   onGenerate,
-  onSelect
+  onSelect,
+  onContinue
 }: {
   quizzes: ApiQuizSummary[];
   isLoading: boolean;
@@ -25,6 +26,7 @@ export function QuizHistoryPanel({
   subjectName?: string;
   onGenerate?: () => void;
   onSelect: (quiz: ApiQuizSummary) => void;
+  onContinue?: (quiz: ApiQuizSummary) => void;
 }) {
   const sectionRef = useRef<HTMLElement | null>(null);
   const [page, setPage] = useState(0);
@@ -45,7 +47,7 @@ export function QuizHistoryPanel({
         <div>
           <h2 className="text-lg font-bold">Quizzes anteriores</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Revisa el resultado de los quizzes que ya respondiste.
+            Revisa el resultado de los quizzes respondidos o continúa los que dejaste a medias.
           </p>
         </div>
         {!isLoading && !error && quizzes.length > 0 && (
@@ -78,10 +80,11 @@ export function QuizHistoryPanel({
                 <li key={quiz.id}>
                   <button
                     className={`flex w-full items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-white p-4 text-left shadow-sm transition ${
-                      hasAttempt ? "hover:border-[#6d4aff] hover:bg-[#f1eeff]" : "cursor-default"
+                      hasAttempt
+                        ? "hover:border-[#6d4aff] hover:bg-[#f1eeff]"
+                        : "hover:border-[#6d4aff] hover:bg-[#f1eeff]"
                     }`}
-                    disabled={!hasAttempt}
-                    onClick={() => onSelect(quiz)}
+                    onClick={() => (hasAttempt ? onSelect(quiz) : onContinue?.(quiz))}
                     type="button"
                   >
                     <span>
@@ -97,8 +100,8 @@ export function QuizHistoryPanel({
                         {quiz.score}%
                       </span>
                     ) : (
-                      <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">
-                        Sin responder
+                      <span className="shrink-0 rounded-full bg-[#6d4aff] px-3 py-1 text-xs font-bold text-white">
+                        Continuar
                       </span>
                     )}
                   </button>

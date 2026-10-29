@@ -483,6 +483,10 @@ export function generateQuiz(input: GenerateQuizInput): Promise<ApiQuiz> {
   });
 }
 
+export function getQuiz(quizId: string): Promise<ApiQuiz> {
+  return request<ApiQuiz>(`/quizzes/${encodeURIComponent(quizId)}`);
+}
+
 export function submitQuizAnswers(
   quizId: string,
   startedAt: string,
