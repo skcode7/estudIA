@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import { navItems, type NavItemId } from "../../lib/navigation";
 import { Icon } from "../ui/icon";
 
@@ -21,9 +23,16 @@ export function BrandLockup({
     >
       <span
         aria-hidden="true"
-        className="grid size-9 place-items-center rounded-xl bg-[#6d4aff] text-xl text-white"
+        className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#f1eeff] p-1"
       >
-        🤖
+        <Image
+          alt=""
+          className="size-full object-contain"
+          height={522}
+          sizes="40px"
+          src="/brand/estudia-mark.webp"
+          width={512}
+        />
       </span>
       <span className={`${textClassName} font-bold tracking-tight`}>
         estud<span className="text-[#6d4aff]">IA</span>

@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import { type Subject } from "../../lib/subjects";
 import { Notice } from "../ui/feedback";
 import { Icon } from "../ui/icon";
@@ -52,12 +54,15 @@ export function HomeView({
               </div>
 
             </div>
-            <span
+            <Image
+              alt=""
               aria-hidden="true"
-              className="absolute bottom-[-28px] right-5 text-[150px] opacity-20 sm:text-[180px]"
-            >
-              🤖
-            </span>
+              className="pointer-events-none absolute bottom-3 right-3 h-auto w-28 select-none opacity-20 sm:bottom-5 sm:right-5 sm:w-44"
+              height={526}
+              sizes="(min-width: 640px) 176px, 128px"
+              src="/brand/estudia-logo.webp"
+              width={512}
+            />
             <Icon className="absolute right-8 top-7 text-3xl text-amber-300" name="sparkle" />
           </section>
 

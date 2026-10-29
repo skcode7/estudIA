@@ -7,9 +7,8 @@ Guía de diseño extraída del mockup del dashboard. Pensada para implementarse 
 ## 1. Identidad
 
 - **Nombre:** estudIA
-- **Logo:** icono de robot/graduado (🤖🎓) en un badge morado redondeado + wordmark "estud**IA**" (la "IA" en el color primario, resto en negro/gris oscuro).
+- **Logo:** marca de cerebro con circuitos sobre un libro abierto, con degradado cian→azul (`/brand/estudia-logo.webp`) + wordmark "estud**IA**" (la "IA" en el color primario, resto en negro/gris oscuro). La versión sin halo, recortada al trazo, vive en `/brand/estudia-mark.webp` y es la que se usa en tamaños pequeños (lockup) y favicons.
 - **Personalidad:** amigable, motivadora, gamificada (tono cercano: "¡Hola, Alex! 👋", "¡Sigue así, lo estás haciendo increíble!").
-- **Mascota:** robot ilustrado (estilo 3D/soft), aparece en el hero card y como botón flotante de chat en el nav inferior (mobile).
 
 ---
 
@@ -22,6 +21,18 @@ Guía de diseño extraída del mockup del dashboard. Pensada para implementarse 
 | `primary-500` | `#7C5CFC` | Gradiente hero, hover |
 | `primary-400` | `#8B6BFF` | Gradiente hero (fin) |
 | `primary-50`  | `#F1EEFF` | Fondo de item activo en sidebar, chips |
+
+### Degradado del logo (marca)
+| Token | Hex aprox. | Uso |
+|---|---|---|
+| `brand-cyan`  | `#21AED0` | Parte superior del cerebro |
+| `brand-blue`  | `#097ECB` | Zona media |
+| `brand-deep`  | `#0432A4` | Libro y trazos inferiores |
+
+El logo se usa sobre fondos claros (sidebar, cabecera mobile) y como marca de agua al 20 % sobre el hero morado.
+
+Assets generados a partir de `docs/logo.jpeg` (fondo de cuadros eliminado y lienzo recortado al contenido):
+`apps/web/public/brand/estudia-logo.webp` (con halo), `apps/web/public/brand/estudia-mark.webp` (trazo), `apps/web/app/icon.png`, `apps/web/app/apple-icon.png` y `apps/web/app/favicon.ico`.
 
 ### Colores de estado / materias
 | Token | Hex aprox. | Uso |
@@ -118,7 +129,7 @@ Estructura de tipo **dashboard app**:
 ```
 
 - **Desktop:** sidebar fija a la izquierda (~220–240px), contenido principal en grid `grid-cols-[1fr_360px]` (main + aside derecho), gap `24px`, padding externo `32px`.
-- **Mobile:** sidebar se oculta y se reemplaza por **bottom tab bar** (Inicio, Mis materias, [botón flotante robot central], Quiz, Perfil). El botón central del robot es circular, elevado, color primario, tipo FAB.
+- **Mobile:** sidebar se oculta y se reemplaza por **bottom tab bar** (Inicio, Mis materias, [botón flotante con la marca central], Quiz, Perfil). El botón central es circular, elevado, color primario, tipo FAB.
 - **Contenedor máx:** `max-w-[1440px] mx-auto`.
 - **Fondo de página:** `gray-50`.
 
@@ -128,7 +139,7 @@ Estructura de tipo **dashboard app**:
 
 ### 5.1 Sidebar
 - Fondo blanco, borde derecho `border-gray-100`.
-- Logo arriba (robot icon + wordmark).
+- Logo arriba (marca de cerebro/libro + wordmark).
 - Items de navegación: ícono + label, `rounded-xl`, padding `px-4 py-3`.
   - **Activo:** fondo `primary-50`, texto e ícono `primary-600`, `font-semibold`.
   - **Inactivo:** texto `gray-500`, hover `bg-gray-50`.
@@ -148,7 +159,7 @@ Estructura de tipo **dashboard app**:
 - `rounded-3xl`, gradiente primario, padding `32px`, texto blanco.
 - Contenido: badge/ícono "Reto de hoy" (pill con blur/translucido `bg-white/20`), título grande, subtítulo (materia), meta info con bullets (`5 preguntas • 7 min • +50 XP`).
 - Botón CTA: fondo blanco, texto `primary-600`, `rounded-xl`, ícono play a la derecha, `font-semibold`.
-- Ilustración de la mascota a la derecha con elementos decorativos (estrellas, cruces) flotando.
+- Ilustración de la marca (cerebro + libro) a la derecha como marca de agua al 20 %, con elementos decorativos (estrellas, cruces) flotando.
 
 ### 5.4 Cards de "Mis materias"
 - Grid de 4 columnas (desktop) / scroll horizontal o 2 columnas (mobile).
@@ -190,7 +201,7 @@ Estructura de tipo **dashboard app**:
 
 ### 5.11 Bottom nav (mobile)
 - Barra fija inferior, fondo blanco, sombra superior sutil.
-- 4-5 íconos con label (Inicio, Mis materias, Quiz, Perfil) + botón circular central flotante (mascota) que abre el chat/asistente, en `primary-600`, elevado con sombra.
+- 4-5 íconos con label (Inicio, Mis materias, Quiz, Perfil) + botón circular central flotante (marca de la app) que abre el chat/asistente, en `primary-600`, elevado con sombra.
 
 ---
 
@@ -209,7 +220,7 @@ Estructura de tipo **dashboard app**:
 
 - Íconos de línea simples (estilo Lucide/Heroicons) para navegación y UI.
 - Emojis usados como acentos de personalidad (🔥⭐💎👋💪🚀) — no reemplazan íconos funcionales, son complementarios.
-- Ilustraciones 3D/soft (mascota robot, mochila) reservadas para momentos de "hero" o motivacionales, no para uso repetitivo en toda la UI.
+- Ilustraciones 3D/soft (mochila) reservadas para momentos de "hero" o motivacionales, no para uso repetitivo en toda la UI. La marca de la app se usa como logo, favicon y marca de agua, no como mascota.
 
 ---
 
