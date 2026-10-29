@@ -11,12 +11,11 @@ sources:
   - apps/web/components/ui/state-panels.tsx
   - apps/web/components/ui/feedback.tsx
   - apps/web/components/ui/material-status-badge.tsx
-  - apps/web/components/ui/stat.tsx
   - apps/web/components/ui/icon.tsx
   - apps/web/components/layout/site-footer.tsx
   - apps/web/lib/icons.ts
   - apps/web/lib/navigation.ts
-synced: a859db8
+synced: 4b7f1f3
 related:
   - ./web.md
   - ./vistas-de-catalogo.md
@@ -41,7 +40,7 @@ Las dos navegaciones son **la misma lista**, `navItems` (`apps/web/lib/navigatio
 identificadores semánticos de icono en vez de glifos; `NavLinks` los resuelve mediante `Icon`
 (`apps/web/components/layout/nav-shared.tsx:35`). Desde `6d3cfec` también **las mismas piezas**:
 `Sidebar` (`apps/web/components/layout/sidebar.tsx:16`) y
-`MobileMenu` (`apps/web/components/layout/mobile-menu.tsx:9`) componen `NavLinks`, `BrandLockup`
+`MobileMenu` (`apps/web/components/layout/mobile-menu.tsx:10`) componen `NavLinks`, `BrandLockup`
 (`apps/web/components/layout/nav-shared.tsx:7`), `AddMaterialButton`
 (`apps/web/components/layout/nav-shared.tsx:63`) y `UserCard`
 (`apps/web/components/layout/nav-shared.tsx:82`). Lo único que cambia entre una y otra es el
@@ -56,15 +55,15 @@ cosa; hoy el panel muestra las siete igual que la barra lateral, y el orden de l
 ser solo una decisión de producto (los que aún no tienen pantalla —Progreso e Insignias— siguen al
 final). `ba4dd59` movió Evaluaciones delante de Quiz.
 
-Navegar cierra el panel (`apps/web/components/layout/mobile-menu.tsx:41`), y lo mismo hacen el fondo
-y el botón de cierre (`apps/web/components/layout/mobile-menu.tsx:66`); Escape lo cierra
-(`apps/web/components/layout/mobile-menu.tsx:22`) y el fondo deja de desplazarse mientras está
-abierto (`apps/web/components/layout/mobile-menu.tsx:32`). Lo que **no** tiene —igual que el
+Navegar cierra el panel (`apps/web/components/layout/mobile-menu.tsx:23`), y lo mismo hacen el fondo
+y el botón de cierre (`apps/web/components/layout/mobile-menu.tsx:28`); Escape lo cierra
+(`apps/web/components/layout/mobile-menu.tsx:72`) y el fondo deja de desplazarse mientras está
+abierto (`apps/web/components/layout/mobile-menu.tsx:72`). Lo que **no** tiene —igual que el
 `Dialog`— es foco atrapado.
 
 Solo hay una acción global: **Agregar material**. En escritorio es un botón más de la barra lateral
 (`apps/web/components/layout/sidebar.tsx:22`) y en móvil un ítem del panel
-(`apps/web/components/layout/mobile-menu.tsx:93`), que además cierra el panel antes de abrirlo. Es
+(`apps/web/components/layout/mobile-menu.tsx:28`), que además cierra el panel antes de abrirlo. Es
 la misma función entrando por dos puertas, y las dos se desactivan por `lg`, así que nunca
 coexisten.
 
@@ -74,17 +73,17 @@ proveedor (`apps/web/components/layout/site-footer.tsx:5`).
 
 ## El diálogo base
 
-`Dialog` (`apps/web/components/dialogs/dialog.tsx:4`) es un overlay sin portal de React, sin foco
+`Dialog` (`apps/web/components/dialogs/dialog.tsx:5`) es un overlay sin portal de React, sin foco
 atrapado y sin tecla Escape: solo un `role="dialog"` y un fondo que cubre la pantalla. Cerrar es
 responsabilidad de quien lo usa, siempre con el mismo botón de cierre de la esquina; el glifo sale
 del mapa UIcons compartido.
 
 Tiene dos anchos, y esa es toda su API: `max-w-lg` por defecto y `max-w-2xl` con scroll propio
-cuando `wide` está activo (`apps/web/components/dialogs/dialog.tsx:23`). El ancho grande existe
+cuando `wide` está activo (`apps/web/components/dialogs/dialog.tsx:68`). El ancho grande existe
 porque la pantalla de edición de material no cabe en el estrecho: sin él, las pestañas y la galería
 quedan apretadas.
 
-`DialogActions` (`apps/web/components/dialogs/dialog.tsx:43`) es la convención de cierre de los
+`DialogActions` (`apps/web/components/dialogs/dialog.tsx:68`) es la convención de cierre de los
 diálogos con formulario: cancelar a la izquierda, confirmar a la derecha, el confirm siempre con
 `type="submit"`. Aparece dentro de un `<form>`, no envuelve uno, para que cada diálogo decida
 cuándo valida.
@@ -132,5 +131,6 @@ El morado sólido es escaso a propósito, y por eso `MaterialStatusBadge`
 los cuatro estados de procesamiento va de slate a ámbar, esmeralda y rosa. Es el mismo criterio que
 hizo pasar las pestañas de la edición a un subrayado en lugar de un relleno.
 
-`Stat` (`apps/web/components/ui/stat.tsx:3`) es la única primitiva con datos inventados: la tríada
-de racha, XP y diamantes de Inicio la recibe como `string` ya formateada, sin fuente en la API.
+La única primitiva que antes mostraba datos inventados —la tríada de racha, XP y diamantes de
+Inicio— desapareció con las métricas de gamificación (`5525cd7`); hoy Inicio no pinta esas tarjetas,
+así que ninguna primitiva de la interfaz inventa cifras: todo número viene de la API.

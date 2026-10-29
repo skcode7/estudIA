@@ -13,7 +13,7 @@ sources:
   - apps/api/src/infrastructure/ai/openrouter/openrouter.image-extractor.ts
   - apps/api/src/infrastructure/images/sharp.image-cropper.ts
   - apps/api/src/modules/materials/presentation/controllers/materials.controller.ts
-synced: a859db8
+synced: 4b7f1f3
 related:
   - ./procesamiento-de-material.md
   - ../decisions/proveedor-ia.md
@@ -35,7 +35,7 @@ en el formulario y puede corregirla antes de guardar; viaja como string `"true"`
 multipart, y el DTO la normaliza a booleano
 (`apps/api/src/modules/materials/presentation/dto/materials.dto.ts:83`). Durante el procesamiento
 la marca es pegajosa: si el material ya la traía, un análisis nuevo no la quita
-(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:118`).
+(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:119`).
 
 ## La cadena
 
@@ -51,10 +51,10 @@ foto + hasEmbeddedFigures
 ```
 
 `ProcessMaterialUseCase.extractEmbeddedImages` orquesta todo
-(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:197`). Su
+(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:203`). Su
 primera guarda decide si hay algo que hacer: sin imagen, sin marca o sin extractor disponible,
 devuelve vacío y sigue el procesamiento normal
-(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:202`).
+(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:208`).
 
 ## Localizar las figuras
 
@@ -76,22 +76,22 @@ igualmente con preguntas de solo texto y sin intentar ningún recorte. El `isAva
 adaptador de OpenRouter, en cambio, es `true` incondicional
 (`apps/api/src/infrastructure/ai/openrouter/openrouter.image-extractor.ts:18`): si faltara la clave
 y aun así estuviera inyectado, el corte llegaría cuando `extractRegions` lanza, y el `catch` del
-caso de uso lo absorbería igual (`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:220`).
+caso de uso lo absorbería igual (`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:226`).
 
 ## Recortar y guardar
 
 Cada región se recorta con `ImageCropper.cropToWebp`, que convierte la caja normalizada a píxeles
 con las dimensiones reales (`apps/api/src/infrastructure/images/sharp.image-cropper.ts:19`), mete
 un padding del 8 % antes de recortar
-(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:343`) y exporta
+(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:354`) y exporta
 a WebP de hasta 640 px (`apps/api/src/infrastructure/images/sharp.image-cropper.ts:27`). El
 resultado se sube a `topics/<topicId>/materials/<materialId>/images/<uuid>.webp`
-(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:269`).
+(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:275`).
 
 Un recorte que falla se salta; si todos fallan, el material queda sin figuras
-(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:238`). Las
+(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:244`). Las
 imágenes previas del material que no vuelven a aparecer se borran del storage
-(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:280`), de modo
+(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:286`), de modo
 que reprocesar no acumula huérfanos.
 
 ## De la figura a la pregunta
@@ -99,7 +99,7 @@ que reprocesar no acumula huérfanos.
 Las figuras guardadas se devuelven al generador como pistas `{index, label}`: el índice es estable
 y se usa para atar la respuesta. `toQuestionInputs` traduce el `imageIndex` que devuelve el modelo
 al `id` real de la fila `MaterialImage`
-(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:326`). Si el
+(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:337`). Si el
 modelo inventa un índice que no existe, la pregunta se guarda sin imagen en vez de fallar.
 
 Para mostrarla, la web pide `GET /materials/:id/images/:imageId`

@@ -16,7 +16,7 @@ sources:
   - apps/api/src/modules/ai/application/ports/ai-provider.ts
   - apps/api/src/infrastructure/ai/deepseek/deepseek.prompts.ts
   - apps/web/components/views/materials-view.tsx
-synced: a859db8
+synced: 4b7f1f3
 related:
   - ./figuras-embebidas.md
   - ../architecture.md
@@ -30,7 +30,7 @@ IA) y **procesar** (lento, con IA).
 
 En la web ya no lo son. Desde `4fe2f8a` confirmar el diálogo encadena el procesamiento y el popup
 cierra al guardar: el `POST /materials/:id/process` sigue en segundo plano
-(`apps/web/app/page.tsx:147`), porque puede tardar lo que tarde el proveedor. La página lo lanza
+(`apps/web/app/page.tsx:145`), porque puede tardar lo que tarde el proveedor. La página lo lanza
 con `void` y no espera, así que el usuario ve aparecer el material antes de que tenga preguntas.
 El botón "Procesar" de la lista sobrevive y sigue siendo la salida para reintentar un `PENDING` o un
 `FAILED`.
@@ -88,15 +88,15 @@ Si el storage falla, la petición falla con `503` y **no queda fila creada**
 (`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:62`). Antes de
 devolver el mismo error genérico, el caso de uso registra el error original junto a la key y el bucket
 (`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:55`). El
-material nace con `processingStatus: PENDING` y `questionCount: 0`.
+material nace con `processingStatus: PENDING` y `questionCount: 0` (e `imageCount: 0`).
 
 ## 3 · Procesar: el estado y las fases
 
 `POST /api/v1/materials/:id/process` dispara `ProcessMaterialUseCase`
 (`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:188`). El estado
 avanza por `PENDING → PROCESSING → COMPLETED`, y cualquier error cae a `FAILED` con un mensaje
-legible: `fail()` marca el estado y devuelve `questionCount: 0`
-(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:315`).
+legible: `fail()` marca el estado y devuelve `questionCount` e `imageCount` en 0
+(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:321`).
 
 ```
 findById ──► PROCESSING ──► cargar contenido ──► analyzeMaterial
@@ -106,20 +106,20 @@ findById ──► PROCESSING ──► cargar contenido ──► analyzeMateri
 ```
 
 Un material de texto sin contenido y un tipo no procesable (por ejemplo `LINK`) son `FAILED`
-directos, sin llamar a la IA (`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:80`).
+directos, sin llamar a la IA (`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:81`).
 Para un archivo se relee el binario del storage; si la extensión no es una imagen soportada, el
 proceso falla con un mensaje que dice qué tipos se procesan hoy
-(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:179`).
+(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:185`).
 Si la lectura de `ObjectStorage` falla, el caso de uso registra `storageKey`, mensaje original y stack
 antes de guardar en el material el mismo error genérico para el usuario
-(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:169`).
+(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:175`).
 
 El título se sobrescribe **sin condiciones** en cuanto la IA propone uno
-(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:111`); el contenido
+(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:112`); el contenido
 solo se actualiza si difiere del guardado. La marca de figuras es *pegajosa*: una vez `true`, no
-vuelve a `false` (`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:118`).
+vuelve a `false` (`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:119`).
 El análisis completo se conserva como `analysis.json` junto al material en el storage
-(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:303`): un fallo
+(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:309`): un fallo
 al guardarlo solo se loguea y el proceso sigue.
 
 ### El título lo pone la IA, y por qué antes no
@@ -142,13 +142,13 @@ Con el análisis en la mano, el caso de uso pide `count` preguntas al puerto de 
 de `AI_QUESTIONS_PER_MATERIAL`, inyectado como config
 (`apps/api/src/modules/materials/materials.module.ts:54`) — y las sustituye todas por las nuevas:
 `replaceForMaterial` no acumula, reemplaza
-(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:146`). Si el
+(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:147`). Si el
 material tenía figuras extraídas, sus pistas viajan junto a la petición para que alguna pregunta
 pueda ser "¿qué es esta imagen?"; el detalle está en [Figuras embebidas](./figuras-embebidas.md).
 
 Antes de pedir las preguntas, el caso de uso resuelve la materia y el tema del material —busca el
 tema y, con su `subjectId`, la materia— y pasa esos nombres a la IA junto con el modo del material
-(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:130`); si el tema
+(`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:131`); si el tema
 no existe, los nombres se omiten sin romper el procesamiento. El modo (`questionMode`) cambia el
 system prompt: `BASED_ON_MATERIAL` pide preguntas sobre el contenido, y `SIMILAR_QUESTIONS` pide
 ejercicios nuevos con la misma estructura que la guía (ver
@@ -156,7 +156,7 @@ ejercicios nuevos con la misma estructura que la guía (ver
 `generateQuestionsSystemPrompt(mode)`, así que cada modo se puede testear sin llamar al proveedor.
 
 El conteo que responde el endpoint es el que devuelve el repositorio de preguntas, no el que se
-pidió (`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:155`).
+pidió (`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:156`).
 
 ## Lo que este flujo deja fuera
 
@@ -165,7 +165,7 @@ proveedor de IA, y la web lo lanza sin esperarlo desde el popup. Reprocesar un m
 vuelve a generar sus preguntas desde cero.
 
 En segundo plano la fila nace en `PENDING` y la lista la enseña con el botón "Procesar" ya
-deshabilitado y el texto "Procesando…" (`apps/web/components/views/materials-view.tsx:299`), porque
+deshabilitado y el texto "Procesando…" (`apps/web/components/views/materials-view.tsx:302`), porque
 `useMaterials` lleva los ids en vuelo y la vista los suma a su propio estado de proceso manual
 (`apps/web/components/views/materials-view.tsx:266`). Ese estado vive en el hook y no en la vista, así
 que sobrevive a que el usuario salga de Materiales y vuelva. Al terminar, `startProcessing` refresca el

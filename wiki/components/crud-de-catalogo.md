@@ -25,7 +25,7 @@ sources:
   - apps/api/src/modules/users/application/use-cases/list-users.use-case.ts
   - apps/api/src/modules/users/presentation/dto/users.dto.ts
   - apps/api/src/main.ts
-synced: 95361be
+synced: 4b7f1f3
 related:
   - ../components/catalogo.md
   - ../components/persistencia.md
@@ -68,18 +68,27 @@ en cuatro sitios, y cambiar la implementación implica buscarlos todos.
 ## La validación vive en el DTO
 
 Los DTOs son class-validator documentado con Swagger: `name` de materia aguanta hasta 120
-caracteres (`apps/api/src/modules/subjects/presentation/dto/subjects.dto.ts:8`), el de un tema 160
+caracteres (`apps/api/src/modules/subjects/presentation/dto/subjects.dto.ts:18`), el de un tema 160
 (`apps/api/src/modules/topics/presentation/dto/topics.dto.ts:12`) y las descripciones 500. El
 `ValidationPipe` global con `whitelist` y `forbidNonWhitelisted`
 (`apps/api/src/main.ts:16`) completa el contrato: **un campo que el DTO no declara es un error**,
 no un dato que se ignora, y por eso el DTO de respuesta también está decorado — sirve de contrato
 para Swagger y para la web.
 
+Las materias añadieron dos campos de presentación opcionales —`color` e `icon`— validados con
+`@IsIn` contra `SUBJECT_COLORS` y `SUBJECT_ICONS`
+(`apps/api/src/modules/subjects/presentation/dto/subjects.dto.ts:34`); el contrato los limita a
+paletas e iconos conocidos, definidos en el puerto
+(`apps/api/src/modules/subjects/application/ports/subject.repository.ts:1`). Los dos campos
+agregados del listado, `materialsCount` y `progress`, **no** vienen del DTO: los calcula
+`PrismaSubjectRepository` en el backend, junto con la consulta que ya trae las materias (ver
+[Capa de persistencia](../components/persistencia.md)).
+
 ## Asimetrías entre los tres módulos
 
 - **`PATCH` vacío.** En materias y temas un `PATCH` sin campos devuelve el registro sin cambios; en
   materiales es un `400` que exige al menos `title` o `content`
-  (`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:197`). La regla
+  (`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:199`). La regla
   no es uniforme y la web no lo nota porque siempre envía algo.
 - **Usuarios es mitad de módulo.** Solo `GET /users` y `POST /users`: no hay update, no hay delete
   y el puerto no los declara (`apps/api/src/modules/users/application/ports/user.repository.ts:12`).

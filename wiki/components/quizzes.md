@@ -13,7 +13,7 @@ sources:
   - apps/api/src/modules/quizzes/presentation/dto/quizzes.dto.ts
   - apps/api/src/modules/materials/infrastructure/prisma-material-question.repository.ts
   - apps/api/prisma/schema.prisma
-synced: 7c7585a
+synced: 4b7f1f3
 related:
   - ../flows/generar-y-resolver-quiz.md
   - ../components/materiales.md
@@ -28,7 +28,7 @@ a las preguntas, que pertenecen a otro módulo.
 
 ## El quiz es una instantánea, no una copia
 
-`QuizQuestion` guarda `questionId` + `order` (`apps/api/prisma/schema.prisma:196`): el quiz toma
+`QuizQuestion` guarda `questionId` + `order` (`apps/api/prisma/schema.prisma:198`): el quiz toma
 prestadas preguntas del pool de materiales y evaluaciones y las ordena. Las opciones y la corrección no se
 copian: se leen de la pregunta cada vez que hace falta — `findQuizForGrading` las trae con su
 `isCorrect` (`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:105`). Por eso
@@ -79,7 +79,7 @@ Las preguntas se reemplazan en bloque al procesar un material: `replaceForMateri
 las del material y crea las nuevas
 (`apps/api/src/modules/materials/infrastructure/prisma-material-question.repository.ts:47`). Como
 `QuizQuestion` y `Answer` referencian a la pregunta con `onDelete: Cascade`
-(`apps/api/prisma/schema.prisma:202` y `apps/api/prisma/schema.prisma:232`), **reprocesar un
+(`apps/api/prisma/schema.prisma:204` y `apps/api/prisma/schema.prisma:234`), **reprocesar un
 material destruye lo que sus preguntas antiguas sostenían**:
 
 - Un quiz generado antes pierde esas preguntas en silencio y queda con menos de las que nació.

@@ -20,7 +20,7 @@ sources:
   - pnpm-workspace.yaml
   - docker-compose.yml
   - .env.example
-synced: a859db8
+synced: 4b7f1f3
 ---
 
 # Arquitectura de estudIA
@@ -84,7 +84,7 @@ arranca desde `dist/`, así que `process.env` no se rellena solo.
 **Web.** No hay router de páginas: una única página client-side, `apps/web/app/page.tsx:21`, decide
 qué vista renderiza según la navegación (`apps/web/app/page.tsx:65`) y monta los diálogos globales.
 El layout fija el idioma de la interfaz en español (`apps/web/app/layout.tsx:14`). La web habla solo
-con `NEXT_PUBLIC_API_URL` (`apps/web/lib/api.ts:74`, declarada en `.env.example:6`), sin cookies ni
+con `NEXT_PUBLIC_API_URL` (`apps/web/lib/api.ts:83`, declarada en `.env.example:6`), sin cookies ni
 sesión. El diseño no usa librería de componentes: Tailwind con clases escritas a mano y tres colores
 base en `apps/web/app/globals.css:3` (fondo `#f8f7fc`, texto `#1e1b2e` y el morado `#6d4aff` que se
 repite literalmente en cada archivo, sin token de Tailwind). Los iconos sí comparten una familia

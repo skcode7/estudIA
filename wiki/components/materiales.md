@@ -22,7 +22,7 @@ sources:
   - apps/api/src/modules/materials/infrastructure/prisma-material.repository.ts
   - apps/api/src/modules/materials/infrastructure/prisma-material-image.repository.ts
   - apps/api/prisma/schema.prisma
-synced: a859db8
+synced: 4b7f1f3
 related:
   - ../flows/procesamiento-de-material.md
   - ../flows/figuras-embebidas.md
@@ -37,15 +37,15 @@ y de la verdad sobre el estado de procesamiento de cada material.
 
 ## Qué es un Material
 
-`Material` (`apps/api/prisma/schema.prisma:70`) es un apunte de un tema: `TEXT` (el usuario pegó el
+`Material` (`apps/api/prisma/schema.prisma:72`) es un apunte de un tema: `TEXT` (el usuario pegó el
 contenido) o `FILE` (un binario en el storage más una transcripción opcional). El tipo `LINK`
 existe en el enum (`apps/api/prisma/schema.prisma:10`) pero no tiene ruta de creación: nada lo
 produce hoy, y el procesamiento lo rechaza.
 
 Tres atributos gobiernan el ciclo de vida: `processingStatus`
-(`apps/api/prisma/schema.prisma:79`), `hasEmbeddedFigures`
-(`apps/api/prisma/schema.prisma:77`) y `questionMode`
-(`apps/api/prisma/schema.prisma:78`). `processingStatus` es la máquina de estados
+(`apps/api/prisma/schema.prisma:81`), `hasEmbeddedFigures`
+(`apps/api/prisma/schema.prisma:79`) y `questionMode`
+(`apps/api/prisma/schema.prisma:80`). `processingStatus` es la máquina de estados
 `PENDING → PROCESSING → COMPLETED | FAILED` con `processingError` como mensaje legible para el
 usuario. `hasEmbeddedFigures` decide si el procesamiento intenta extraer figuras de la foto.
 `questionMode` elige cómo se generan las preguntas, y es una propiedad del material —no de la
@@ -67,7 +67,7 @@ dos valores cerrados, no un prompt libre:
   nunca por los valores concretos del material.
 
 El modo viaja al prompt de generación a través del puerto de IA, junto con el nombre de materia y
-tema (`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:141`); el
+tema (`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:142`); el
 builder de prompts produce un system prompt distinto por modo. Cambiar el modo de un material ya
 procesado no regenera las preguntas existentes.
 
@@ -97,7 +97,7 @@ Un material procesado deja tres rastros que se mantienen juntos y se limpian jun
    no acumula.
 3. **Las preguntas** (`Question` + `QuestionOption`), que pertenecen al tema pero recuerdan su
    material de origen. También se reemplazan en bloque
-   (`apps/api/src/modules/materials/application/ports/material-question.repository.ts:50`).
+   (`apps/api/src/modules/materials/application/ports/material-question.repository.ts:43`).
 
 Más un cuarto rastro invisible para la API: el `analysis.json` que `ProcessMaterialUseCase`
 deposita junto al material en el storage.
@@ -112,9 +112,9 @@ que no se pueda borrar solo se loguea; la fila ya no existe y el material queda 
 formas — el storage puede quedar con huérfanos si MinIO/S3 falla.
 
 Las preguntas del material **sobreviven** al borrado: `sourceMaterialId` es `onDelete: SetNull`
-(`apps/api/prisma/schema.prisma:153`), así que siguen en el pool de generación de quizzes sin
+(`apps/api/prisma/schema.prisma:155`), así que siguen en el pool de generación de quizzes sin
 material de origen. Sus imágenes, en cambio, caen en cascada con el material
-(`apps/api/prisma/schema.prisma:100`) y la referencia de imagen de la pregunta queda en `null`.
+(`apps/api/prisma/schema.prisma:102`) y la referencia de imagen de la pregunta queda en `null`.
 Borrar un material no es borrar su contenido generado.
 
 ## Servir una figura
@@ -134,16 +134,23 @@ URL firmada ni acceso directo al bucket.
 - Solo se procesan imágenes (JPG, PNG, GIF, WebP). Un PDF o un `.doc` se puede guardar como
   material, pero su procesamiento falla con un mensaje que dice qué tipos se aceptan.
 - `questionCount` no es un campo del material: se calcula contando preguntas por material
-  (`apps/api/src/modules/materials/application/ports/material-question.repository.ts:47`), y por eso
-  un material recién creado responde `0` sin importar su estado.
+  (`apps/api/src/modules/materials/application/ports/material-question.repository.ts:40`), y por eso
+  un material recién creado responde `0` sin importar su estado. Lo mismo vale para `imageCount`: se
+  cuenta desde `MaterialImage` con el mismo patrón `groupBy` por `materialId`
+  (`apps/api/src/modules/materials/application/ports/material-image.repository.ts:32`), así que el
+  listado puede mostrar cuántas figuras tiene cada material sin abrirlo.
 
 ## Leer y editar sin tocar el procesamiento
 
-Los casos de uso de lectura devuelven el material **con** su conteo de preguntas, y el conteo se
-resuelve en la misma consulta para toda la lista (`apps/api/src/modules/materials/application/use-cases/list-materials.use-case.ts:15`);
-el detalle de uno solo hace lo propio (`apps/api/src/modules/materials/application/use-cases/get-material.use-case.ts:18`).
-Editar es `PATCH` de título y/o contenido y devuelve de nuevo el conteo recalculado
-(`apps/api/src/modules/materials/application/use-cases/update-material.use-case.ts:22`).
+Los casos de uso de lectura devuelven el material **con** sus dos conteos —preguntas e imágenes—, y
+ambos se resuelven en la misma consulta para toda la lista
+(`apps/api/src/modules/materials/application/use-cases/list-materials.use-case.ts:19`); el detalle de
+uno solo hace lo propio (`apps/api/src/modules/materials/application/use-cases/get-material.use-case.ts:21`).
+Editar es `PATCH` de título y/o contenido y devuelve de nuevo los conteos recalculados
+(`apps/api/src/modules/materials/application/use-cases/update-material.use-case.ts:26`). El tipo que
+viaja entre casos de uso y controller es `MaterialWithCounts`
+(`apps/api/src/modules/materials/application/ports/material.repository.ts:48`), que agrupa material,
+`questionCount` e `imageCount`.
 
 Editar el contenido **no** reprocesa nada: las preguntas generadas siguen correspondiéndose con el
 texto que había cuando se procesó, y nada lo detecta. Un material editado sin reprocesar es una
@@ -159,7 +166,7 @@ figuras — cada una con su caso de uso.
 
 Lo que las hace seguras es que **el material manda**: cada caso de uso comprueba primero que el
 material existe, y el repositorio filtra por `sourceMaterialId` en lugar de por id suelto
-(`apps/api/src/modules/materials/application/ports/material-question.repository.ts:53`). Editar o
+(`apps/api/src/modules/materials/application/ports/material-question.repository.ts:46`). Editar o
 borrar una pregunta de otro material no da un `404` ambiguo, da «no encontrada para este material».
 
 `UpdateMaterialQuestionUseCase` (`apps/api/src/modules/materials/application/use-cases/update-material-question.use-case.ts:37`)

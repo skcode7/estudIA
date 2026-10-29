@@ -20,7 +20,7 @@ sources:
   - apps/api/src/modules/ai/application/ports/ai-provider.ts
   - apps/web/components/views/evaluations-view.tsx
   - apps/web/components/dialogs/evaluation-dialog.tsx
-synced: a859db8
+synced: 4b7f1f3
 related:
   - ../components/ia.md
   - ../components/quizzes.md
@@ -37,12 +37,12 @@ capas que el resto de la API.
 
 ## Qué es una Evaluation
 
-`Evaluation` (`apps/api/prisma/schema.prisma:106`) es un examen fotografiado que pertenece a un
+`Evaluation` (`apps/api/prisma/schema.prisma:108`) es un examen fotografiado que pertenece a un
 tema (`topicId`) y lleva título, fecha opcional y un estado de procesamiento idéntico al de los
 materiales: `PENDING → PROCESSING → COMPLETED | FAILED`. A diferencia de `Material`, una evaluación
-tiene varias fotos (`EvaluationImage`, `apps/api/prisma/schema.prisma:123`) y sus preguntas
+tiene varias fotos (`EvaluationImage`, `apps/api/prisma/schema.prisma:125`) y sus preguntas
 extraídas se guardan como `Question` normales con trazabilidad (`sourceEvaluationId`,
-`evaluationImageId`, `apps/api/prisma/schema.prisma:147-148`).
+`evaluationImageId`, `apps/api/prisma/schema.prisma:149-148`).
 
 ## Subir y procesar
 

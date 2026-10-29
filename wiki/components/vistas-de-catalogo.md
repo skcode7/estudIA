@@ -12,7 +12,7 @@ sources:
   - apps/web/components/dialogs/user-onboarding-dialog.tsx
   - apps/web/hooks/use-subjects.ts
   - apps/web/lib/icons.ts
-synced: a859db8
+synced: 4b7f1f3
 related:
   - ./web.md
   - ./armazon-y-primitivas.md
@@ -35,31 +35,31 @@ tres cosas a la vez —las acciones, el alto de la celda del icono y si la barra
 con `mt-auto`— para que la rejilla de Mis materias alinee las barras entre tarjetas de distinta
 descripción.
 
-**La tarjeta muestra datos que no existen.** El conteo de materiales y la barra de progreso salen
-de `decorateSubject` (`apps/web/lib/subjects.ts:20`), que fija `progress: 0` y `materials: 0`. El
-conteo de materiales sí se actualiza en caliente, porque `useSubjects` expone
-`setSubjectMaterials` y el diálogo de material lo llama tras crear; el progreso no tiene fuente y
-no se actualiza nunca. La barra es decorativa en las dos vistas.
+**La tarjeta muestra datos reales.** El conteo de materiales y la barra de progreso ya no se inventan:
+vienen de la API. `decorateSubject` (`apps/web/lib/subjects.ts:64`) resuelve el color y el ícono de
+la materia (con fallback a los valores por defecto si no trae alguno) y deja `materialsCount` y
+`progress` tal cual llegan del backend; el contador de materiales se actualiza en caliente porque
+`useSubjects` expone `reload` y el diálogo de material lo invoca tras crear. La barra refleja el
+progreso real de los quizzes de la materia.
 
 ## El hook que sostiene todo
 
-`useSubjects` (`apps/web/hooks/use-subjects.ts:13`) es el estado más grande de la web: 28 estados y
+`useSubjects` (`apps/web/hooks/use-subjects.ts:15`) es el estado más grande de la web: 28 estados y
 callbacks para tres operaciones. Carga las materias una vez al montar
-(`apps/web/hooks/use-subjects.ts:33`) y de ahí saca un array ya decorado.
+(`apps/web/hooks/use-subjects.ts:36`) y de ahí saca un array ya decorado.
 
 Tres detalles que no se ven leyendo las firmas:
 
 - **El filtro es del cliente y es case-insensitive**: `filteredSubjects` compara contra nombre y
-  descripción en minúsculas (`apps/web/hooks/use-subjects.ts:56`). No hay paginación ni búsqueda
+  descripción en minúsculas (`apps/web/hooks/use-subjects.ts:60`). No hay paginación ni búsqueda
   server-side; la lista entera baja siempre.
-- **Decorar es parte del alta y de la edición.** `addSubject` decora con `subjects.length` y
-  `saveSubject` re-decora usando el índice en la lista
-  (`apps/web/hooks/use-subjects.ts:129`), porque el color se elige por posición. Es decir: **el orden
-  de la lista decide la paleta de cada materia**, pero ya no el icono: todas muestran el símbolo
-  común `subjects` del mapa `apps/web/lib/icons.ts`. Antes también variaba el glifo por índice;
-  `a859db8` estabilizó esa representación. El color sigue siendo cíclico y está registrado en
-  `docs/ToDo/tarjetas-materia-datos-reales.md`, que unifica
-  color/ícono, contador de materiales y progreso real de las tarjetas.
+- **Color e ícono vienen de la materia, no de la posición.** `addSubject` y `saveSubject` ya no
+  calculan la paleta por índice: el `SubjectDialog` envía `color` e `icon` elegidos por el usuario
+  (`apps/web/components/dialogs/subject-dialog.tsx:33`) y el backend los valida contra `SUBJECT_COLORS`
+  / `SUBJECT_ICONS`. `decorateSubject` (`apps/web/lib/subjects.ts:64`) solo aplica un fallback si la
+  materia no trae alguno. El mapa `apps/web/lib/icons.ts` sigue siendo la fuente de glifos; `a859db8`
+  estabilizó esa representación. La unificación de color/ícono, contador de materiales y progreso real
+  de las tarjetas quedó resuelta en `docs/ToDo/tarjetas-materia-datos-reales.md`.
 - **Cada operación escribe su propio aviso** en el estado `notice` de la página a través del
   `setNotice` recibido, así que el mismo banner sirve para alta, edición y borrado y se
   solapa con el que la vista muestra.
@@ -68,7 +68,7 @@ Tres detalles que no se ven leyendo las firmas:
 
 Los tres son casi gemelos, y esa repetición es el patrón del proyecto: **`mode` en lugar de dos
 componentes**, un solo `SubjectDialog` para crear y editar
-(`apps/web/components/dialogs/subject-dialog.tsx:11`), que solo cambia el título y el texto del
+(`apps/web/components/dialogs/subject-dialog.tsx:33`), que solo cambia el título y el texto del
 botón. La página lo monta con una `key` distinta por modo para que React remonte el formulario y
 los campos no conserven el texto anterior.
 
@@ -77,7 +77,7 @@ recibe la materia como `Subject` sino lo que necesita para nombrarla. Avisa de q
 deshacer, pero no de lo que arrastra el borrado en cascada — están los temas, los materiales y los
 quizzes; está documentado en `docs/ToDo/borrado-en-cascada-con-confirmacion-y-limpieza.md`.
 
-`UserOnboardingDialog` (`apps/web/components/dialogs/user-onboarding-dialog.tsx:7`) es la excepción
+`UserOnboardingDialog` (`apps/web/components/dialogs/user-onboarding-dialog.tsx:8`) es la excepción
 al patrón: no usa `Dialog` sino un overlay propio, porque no se cierra —no hay `×` ni cancelar— y
 aparece incluso mientras carga la lista. La página lo muestra cuando `isUserLoading` **o** el
 diálogo está abierto (`apps/web/app/page.tsx:50`), de modo que bloquea la app entera mientras
@@ -86,7 +86,7 @@ el MVP (ver [Sin identidad en el MVP](../decisions/authentico.md)).
 
 ## Inicio y el placeholder
 
-`HomeView` (`apps/web/components/views/home-view.tsx:8`) es la pantalla que más inventa: la tríada
+`HomeView` (`apps/web/components/views/home-view.tsx:7`) es la pantalla que más inventa: la tríada
 de racha, XP y diamantes, el «Reto de hoy» y el «Nivel 8» de la barra lateral son valores fijos sin
 origen en la API. Solo la rejilla de materias y los dos avisos de error son reales. Es la
 consecuencia de que el progreso exista en el backend pero todavía no se exponga

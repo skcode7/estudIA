@@ -10,7 +10,7 @@ sources:
   - apps/api/src/modules/subjects/infrastructure/prisma-subject.repository.ts
   - apps/api/src/modules/topics/infrastructure/prisma-topic.repository.ts
   - apps/api/src/modules/users/infrastructure/prisma-user.repository.ts
-synced: 0326a48
+synced: 4b7f1f3
 related:
   - ../concepts/puertos-y-adapters.md
   - ../components/materiales.md
@@ -40,7 +40,7 @@ negocio, y devolviendo los `*Record` del puerto, que son los modelos Prisma por 
 Cinco convenciones que la API da por supuestas y ningún tipo declara:
 
 - **El orden es parte del contrato.** Materias y temas se listan por nombre
-  (`apps/api/src/modules/subjects/infrastructure/prisma-subject.repository.ts:26`), materiales por
+  (`apps/api/src/modules/subjects/infrastructure/prisma-subject.repository.ts:43`), materiales por
   fecha descendente (`apps/api/src/modules/materials/infrastructure/prisma-material.repository.ts:34`),
   usuarios por fecha ascendente (`apps/api/src/modules/users/infrastructure/prisma-user.repository.ts:11`)
   y figuras por su `order` (`apps/api/src/modules/materials/infrastructure/prisma-material-image.repository.ts:17`).
