@@ -8,10 +8,14 @@ import { useModalBehavior } from "../../hooks/use-modal-behavior";
 export function UserOnboardingDialog({
   isSaving,
   error,
+  apiError,
+  onRetry,
   onSubmit
 }: {
   isSaving: boolean;
   error: string;
+  apiError?: string;
+  onRetry?: () => void;
   onSubmit: (name: string) => Promise<void>;
 }) {
   const [name, setName] = useState("");
@@ -25,6 +29,38 @@ export function UserOnboardingDialog({
   function handleSubmit(event: React.FormEvent<HTMLFormElement>): void {
     event.preventDefault();
     void onSubmit(name);
+  }
+
+  if (apiError) {
+    return (
+      <div
+        ref={modalRef}
+        aria-describedby={descriptionId}
+        aria-labelledby={titleId}
+        aria-modal="true"
+        className="fixed inset-0 z-50 grid place-items-center bg-[#f8f7fc] p-6"
+        role="dialog"
+        tabIndex={-1}
+        onKeyDown={onKeyDown}
+      >
+        <div className="w-full max-w-md rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+          <h2 className="text-xl font-bold tracking-tight" id={titleId}>
+            Sin conexión
+          </h2>
+          <p className="mt-2 text-sm text-slate-500" id={descriptionId}>
+            No pudimos conectar con el servidor. Comprueba tu conexión e inténtalo de nuevo.
+          </p>
+          {apiError && <FieldError>{apiError}</FieldError>}
+          <button
+            className="mt-5 min-h-12 w-full rounded-xl bg-[#6d4aff] px-4 text-sm font-semibold text-white hover:bg-[#5b3fe0] disabled:cursor-not-allowed disabled:opacity-60"
+            onClick={() => onRetry?.()}
+            type="button"
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (

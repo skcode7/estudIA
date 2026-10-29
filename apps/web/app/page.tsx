@@ -48,10 +48,12 @@ export default function HomePage() {
 
   return (
     <>
-      {(user.isUserLoading || user.isUserModalOpen) && (
+      {!user.isUserLoading && user.isUserModalOpen && (
         <UserOnboardingDialog
+          apiError={user.apiError}
           error={user.userError}
           isSaving={user.isSavingUser}
+          onRetry={user.retryLoadUser}
           onSubmit={user.saveUser}
         />
       )}

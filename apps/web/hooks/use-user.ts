@@ -10,34 +10,35 @@ export function useUser() {
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [isSavingUser, setIsSavingUser] = useState(false);
   const [userError, setUserError] = useState("");
+  const [apiError, setApiError] = useState("");
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadUser(): Promise<void> {
-      try {
-        const users = await listUsers();
-        if (cancelled) return;
-        if (users.length > 0) {
-          setUser(users[0]);
-        } else {
-          setIsUserModalOpen(true);
-        }
-      } catch {
-        if (cancelled) return;
+  const loadUser = useCallback(async (): Promise<void> => {
+    setIsUserLoading(true);
+    setUserError("");
+    setApiError("");
+    try {
+      const users = await listUsers();
+      if (users.length > 0) {
+        setUser(users[0]);
+        setIsUserModalOpen(false);
+      } else {
+        setUser(null);
         setIsUserModalOpen(true);
-      } finally {
-        if (!cancelled) setIsUserLoading(false);
       }
+    } catch (error) {
+      setApiError(error instanceof Error ? error.message : "No se pudo conectar con la API.");
+      setIsUserModalOpen(true);
+    } finally {
+      setIsUserLoading(false);
     }
-
-    void loadUser();
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
+  useEffect(() => {
+    void loadUser();
+  }, [loadUser]);
+
   const saveUser = useCallback(async (name: string): Promise<void> => {
+    if (isUserLoading) return;
     const trimmed = name.trim();
     if (!trimmed) return;
     setIsSavingUser(true);
@@ -46,12 +47,25 @@ export function useUser() {
       const created = await createUser({ name: trimmed });
       setUser(created);
       setIsUserModalOpen(false);
+      setApiError("");
     } catch (error) {
       setUserError(error instanceof Error ? error.message : "No se pudo guardar el nombre.");
     } finally {
       setIsSavingUser(false);
     }
-  }, []);
+  }, [isUserLoading]);
 
-  return { user, isUserLoading, isUserModalOpen, isSavingUser, userError, saveUser };
+  const needsOnboarding = isUserModalOpen && !apiError;
+
+  return {
+    user,
+    isUserLoading,
+    isUserModalOpen,
+    isSavingUser,
+    userError,
+    apiError,
+    needsOnboarding,
+    saveUser,
+    retryLoadUser: loadUser
+  };
 }
