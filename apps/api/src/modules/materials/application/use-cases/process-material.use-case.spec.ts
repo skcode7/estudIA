@@ -76,7 +76,8 @@ function imageRepositoryMock(): MaterialImageRepository {
   return {
     listByMaterial: vi.fn(async () => []),
     replaceForMaterial: vi.fn(async () => []),
-    findById: vi.fn()
+    findById: vi.fn(),
+    countByMaterials: vi.fn(async () => new Map())
   };
 }
 
@@ -293,6 +294,10 @@ describe("ProcessMaterialUseCase", () => {
       id: "subject-1",
       name: "Matemáticas",
       description: null,
+      color: "violet",
+      icon: "subjects",
+      materialsCount: 0,
+      progress: null,
       createdAt: new Date("2026-09-10T00:00:00.000Z"),
       updatedAt: new Date("2026-09-10T00:00:00.000Z")
     });

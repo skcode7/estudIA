@@ -29,11 +29,11 @@ import { ListMaterialsUseCase } from "../../application/use-cases/list-materials
 import { ProcessMaterialUseCase } from "../../application/use-cases/process-material.use-case";
 import { UpdateMaterialQuestionUseCase } from "../../application/use-cases/update-material-question.use-case";
 import { UpdateMaterialUseCase } from "../../application/use-cases/update-material.use-case";
-import {
-  MaterialQuestionRecord,
-  MaterialWithQuestionCount
-} from "../../application/ports/material-question.repository";
 import { MaterialImageRecord } from "../../application/ports/material-image.repository";
+import { MaterialWithCounts } from "../../application/ports/material.repository";
+import {
+  MaterialQuestionRecord
+} from "../../application/ports/material-question.repository";
 import {
   AnalyzeMaterialDraftDto,
   CreateTextMaterialDto,
@@ -94,7 +94,7 @@ export class MaterialsController {
         content: dto.content,
         questionMode: dto.questionMode
       })
-      .then((material) => toMaterialDto({ material, questionCount: 0 }));
+      .then((material) => toMaterialDto({ material, questionCount: 0, imageCount: 0 }));
   }
 
   @Post("upload")
@@ -117,7 +117,7 @@ export class MaterialsController {
         hasEmbeddedFigures: dto.hasEmbeddedFigures ?? false,
         questionMode: dto.questionMode
       })
-      .then((material) => toMaterialDto({ material, questionCount: 0 }));
+      .then((material) => toMaterialDto({ material, questionCount: 0, imageCount: 0 }));
   }
 
   @Get()
@@ -189,7 +189,9 @@ export class MaterialsController {
   process(@Param("id") id: string): Promise<MaterialDto> {
     return this.processMaterialUseCase
       .execute(id)
-      .then(({ material, questionCount }) => toMaterialDto({ material, questionCount }));
+      .then(({ material, questionCount, imageCount }) =>
+        toMaterialDto({ material, questionCount, imageCount })
+      );
   }
 
   @Patch(":id")
@@ -208,7 +210,7 @@ export class MaterialsController {
   }
 }
 
-function toMaterialDto({ material, questionCount }: MaterialWithQuestionCount): MaterialDto {
+function toMaterialDto({ material, questionCount, imageCount }: MaterialWithCounts): MaterialDto {
   return {
     id: material.id,
     topicId: material.topicId,
@@ -221,6 +223,7 @@ function toMaterialDto({ material, questionCount }: MaterialWithQuestionCount): 
     processingError: material.processingError,
     questionMode: material.questionMode as MaterialQuestionModeDto,
     questionCount,
+    imageCount,
     createdAt: material.createdAt.toISOString(),
     updatedAt: material.updatedAt.toISOString()
   };

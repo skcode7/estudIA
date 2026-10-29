@@ -2,6 +2,10 @@ export interface ApiSubject {
   id: string;
   name: string;
   description: string | null;
+  color: string;
+  icon: string;
+  materialsCount: number;
+  progress: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -9,11 +13,15 @@ export interface ApiSubject {
 export interface CreateSubjectInput {
   name: string;
   description?: string;
+  color?: string;
+  icon?: string;
 }
 
 export interface UpdateSubjectInput {
   name?: string;
   description?: string;
+  color?: string;
+  icon?: string;
 }
 
 export interface ApiTopic {
@@ -47,6 +55,7 @@ export interface ApiMaterial {
   processingError: string | null;
   questionMode: MaterialQuestionMode;
   questionCount: number;
+  imageCount: number;
   createdAt: string;
   updatedAt: string;
 }

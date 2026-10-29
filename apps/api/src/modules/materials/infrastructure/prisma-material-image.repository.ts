@@ -44,4 +44,20 @@ export class PrismaMaterialImageRepository implements MaterialImageRepository {
   findById(id: string): Promise<MaterialImageRecord | null> {
     return this.prisma.materialImage.findUnique({ where: { id } });
   }
+
+  async countByMaterials(materialIds: string[]): Promise<Map<string, number>> {
+    if (materialIds.length === 0) {
+      return new Map();
+    }
+    const groups = await this.prisma.materialImage.groupBy({
+      by: ["materialId"],
+      where: { materialId: { in: materialIds } },
+      _count: { _all: true }
+    });
+    const counts = new Map<string, number>();
+    for (const group of groups) {
+      counts.set(group.materialId, group._count._all);
+    }
+    return counts;
+  }
 }

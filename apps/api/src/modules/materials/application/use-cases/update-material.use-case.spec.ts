@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { MaterialImageRepository } from "../ports/material-image.repository";
 import { MaterialRecord, MaterialRepository } from "../ports/material.repository";
 import { MaterialQuestionRepository } from "../ports/material-question.repository";
 import { UpdateMaterialUseCase } from "./update-material.use-case";
@@ -26,6 +27,15 @@ function questionRepositoryMock(): MaterialQuestionRepository {
   };
 }
 
+function imageRepositoryMock(): MaterialImageRepository {
+  return {
+    listByMaterial: vi.fn(),
+    replaceForMaterial: vi.fn(),
+    findById: vi.fn(),
+    countByMaterials: vi.fn()
+  };
+}
+
 function baseMaterial(overrides: Partial<MaterialRecord> = {}): MaterialRecord {
   return {
     id: "uuid-1",
@@ -45,17 +55,21 @@ function baseMaterial(overrides: Partial<MaterialRecord> = {}): MaterialRecord {
 }
 
 describe("UpdateMaterialUseCase", () => {
-  it("updates title and content and returns the question count", async () => {
+  it("updates title and content and returns the question and image counts", async () => {
     const repository = materialRepositoryMock();
     const questionRepository = questionRepositoryMock();
+    const imageRepository = imageRepositoryMock();
     const updated = baseMaterial({ title: "Fotosíntesis", content: "Texto corregido" });
     vi.mocked(repository.findById).mockResolvedValue(baseMaterial());
     vi.mocked(repository.updateFields).mockResolvedValue(updated);
     vi.mocked(questionRepository.countByMaterials).mockResolvedValue(
       new Map([["uuid-1", 2]])
     );
+    vi.mocked(imageRepository.countByMaterials).mockResolvedValue(
+      new Map([["uuid-1", 4]])
+    );
 
-    const useCase = new UpdateMaterialUseCase(repository, questionRepository);
+    const useCase = new UpdateMaterialUseCase(repository, questionRepository, imageRepository);
     const result = await useCase.execute("uuid-1", {
       title: "Fotosíntesis",
       content: "Texto corregido"
@@ -65,15 +79,16 @@ describe("UpdateMaterialUseCase", () => {
       title: "Fotosíntesis",
       content: "Texto corregido"
     });
-    expect(result).toEqual({ material: updated, questionCount: 2 });
+    expect(result).toEqual({ material: updated, questionCount: 2, imageCount: 4 });
   });
 
   it("throws NotFoundException when material does not exist", async () => {
     const repository = materialRepositoryMock();
     const questionRepository = questionRepositoryMock();
+    const imageRepository = imageRepositoryMock();
     vi.mocked(repository.findById).mockResolvedValue(null);
 
-    const useCase = new UpdateMaterialUseCase(repository, questionRepository);
+    const useCase = new UpdateMaterialUseCase(repository, questionRepository, imageRepository);
 
     await expect(
       useCase.execute("missing", { title: "Nuevo título" })

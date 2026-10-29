@@ -1,10 +1,3 @@
-import { MaterialRecord } from "./material.repository";
-
-export interface MaterialWithQuestionCount {
-  material: MaterialRecord;
-  questionCount: number;
-}
-
 export interface MaterialQuestionOptionInput {
   text: string;
   isCorrect: boolean;

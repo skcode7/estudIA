@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { MaterialImageRepository } from "../ports/material-image.repository";
 import { MaterialRecord, MaterialRepository } from "../ports/material.repository";
 import { MaterialQuestionRepository } from "../ports/material-question.repository";
 import { GetMaterialUseCase } from "./get-material.use-case";
@@ -26,10 +27,20 @@ function questionRepositoryMock(): MaterialQuestionRepository {
   };
 }
 
+function imageRepositoryMock(): MaterialImageRepository {
+  return {
+    listByMaterial: vi.fn(),
+    replaceForMaterial: vi.fn(),
+    findById: vi.fn(),
+    countByMaterials: vi.fn()
+  };
+}
+
 describe("GetMaterialUseCase", () => {
-  it("returns the material with its question count when found", async () => {
+  it("returns the material with its question and image counts when found", async () => {
     const repository = materialRepositoryMock();
     const questionRepository = questionRepositoryMock();
+    const imageRepository = imageRepositoryMock();
     const material: MaterialRecord = {
       id: "uuid-1",
       topicId: "topic-1",
@@ -48,20 +59,24 @@ describe("GetMaterialUseCase", () => {
     vi.mocked(questionRepository.countByMaterials).mockResolvedValue(
       new Map([["uuid-1", 5]])
     );
+    vi.mocked(imageRepository.countByMaterials).mockResolvedValue(
+      new Map([["uuid-1", 1]])
+    );
 
-    const useCase = new GetMaterialUseCase(repository, questionRepository);
+    const useCase = new GetMaterialUseCase(repository, questionRepository, imageRepository);
     const result = await useCase.execute("uuid-1");
 
     expect(repository.findById).toHaveBeenCalledWith("uuid-1");
-    expect(result).toEqual({ material, questionCount: 5 });
+    expect(result).toEqual({ material, questionCount: 5, imageCount: 1 });
   });
 
   it("throws NotFoundException when material does not exist", async () => {
     const repository = materialRepositoryMock();
     const questionRepository = questionRepositoryMock();
+    const imageRepository = imageRepositoryMock();
     vi.mocked(repository.findById).mockResolvedValue(null);
 
-    const useCase = new GetMaterialUseCase(repository, questionRepository);
+    const useCase = new GetMaterialUseCase(repository, questionRepository, imageRepository);
 
     await expect(useCase.execute("non-existent")).rejects.toThrow(
       'Material con id "non-existent" no encontrado.'

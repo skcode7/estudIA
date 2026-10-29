@@ -25,3 +25,19 @@ export function MaterialStatusBadge({ status }: { status: MaterialProcessingStat
     </span>
   );
 }
+
+const IMAGE_BADGE_CLASSNAME = "bg-sky-100 text-sky-700";
+
+export function MaterialImageBadge({ count }: { count: number }) {
+  const label = `${count} ${count === 1 ? "imagen" : "imágenes"}`;
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${IMAGE_BADGE_CLASSNAME}`}
+      aria-label={label}
+      title={label}
+    >
+      <Icon name="image" />
+      <span aria-hidden="true">{count}</span>
+    </span>
+  );
+}

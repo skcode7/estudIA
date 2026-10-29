@@ -29,7 +29,8 @@ function imageRepositoryMock(): MaterialImageRepository {
   return {
     listByMaterial: vi.fn(async () => []),
     replaceForMaterial: vi.fn(async () => []),
-    findById: vi.fn()
+    findById: vi.fn(),
+    countByMaterials: vi.fn()
   };
 }
 

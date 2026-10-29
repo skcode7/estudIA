@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { MaterialImageRepository } from "../ports/material-image.repository";
 import { MaterialRecord, MaterialRepository } from "../ports/material.repository";
 import { MaterialQuestionRepository } from "../ports/material-question.repository";
 import { ListMaterialsUseCase } from "./list-materials.use-case";
@@ -26,6 +27,15 @@ function questionRepositoryMock(): MaterialQuestionRepository {
   };
 }
 
+function imageRepositoryMock(): MaterialImageRepository {
+  return {
+    listByMaterial: vi.fn(),
+    replaceForMaterial: vi.fn(),
+    findById: vi.fn(),
+    countByMaterials: vi.fn()
+  };
+}
+
 function baseMaterial(id: string, overrides: Partial<MaterialRecord> = {}): MaterialRecord {
   return {
     id,
@@ -45,23 +55,27 @@ function baseMaterial(id: string, overrides: Partial<MaterialRecord> = {}): Mate
 }
 
 describe("ListMaterialsUseCase", () => {
-  it("returns all materials of a topic with their question counts", async () => {
+  it("returns all materials of a topic with their question and image counts", async () => {
     const repository = materialRepositoryMock();
     const questionRepository = questionRepositoryMock();
+    const imageRepository = imageRepositoryMock();
     const materials = [baseMaterial("uuid-1"), baseMaterial("uuid-2")];
     vi.mocked(repository.findByTopic).mockResolvedValue(materials);
     vi.mocked(questionRepository.countByMaterials).mockResolvedValue(
       new Map([["uuid-1", 3]])
     );
+    vi.mocked(imageRepository.countByMaterials).mockResolvedValue(
+      new Map([["uuid-1", 2]])
+    );
 
-    const useCase = new ListMaterialsUseCase(repository, questionRepository);
+    const useCase = new ListMaterialsUseCase(repository, questionRepository, imageRepository);
     const result = await useCase.execute("topic-1");
 
     expect(repository.findByTopic).toHaveBeenCalledWith("topic-1");
     expect(questionRepository.countByMaterials).toHaveBeenCalledWith(["uuid-1", "uuid-2"]);
     expect(result).toEqual([
-      { material: materials[0], questionCount: 3 },
-      { material: materials[1], questionCount: 0 }
+      { material: materials[0], questionCount: 3, imageCount: 2 },
+      { material: materials[1], questionCount: 0, imageCount: 0 }
     ]);
   });
 });

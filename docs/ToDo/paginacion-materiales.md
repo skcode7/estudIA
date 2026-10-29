@@ -30,5 +30,5 @@ Que el listado de materiales sea liviano en móvil, evitando cargar y renderizar
 
 ## Notas
 - Coherente con AGENTS.md: mobile-first, evitar lógica en cliente para inventar datos, mantener cambios pequeños. El bug reportado es reproducible al confirmar la creación (recarga de lista) — atacar tanto el tamaño de payload como el volumen de DOM.
-- Relacionado con `docs/ToDo/indicador-imagenes-en-materiales.md` (el listado ganará más metadatos) y con `docs/ToDo/material-multi-imagen-backend.md` (los materiales pueden crecer en número de imágenes pero el listado debe seguir liviano).
+- Relacionado con `docs/ToDo/indicador-imagenes-en-materiales.md` (ya implementado: el listado muestra `imageCount` vía `GET /materials`) y con `docs/ToDo/material-multi-imagen-backend.md` (los materiales pueden crecer en número de imágenes pero el listado debe seguir liviano).
 - Si el preview en DTO no resuelve del todo el OOM en casos extremos, el paginado por sí solo ya limita el re-render.

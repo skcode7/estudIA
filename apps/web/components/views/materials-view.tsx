@@ -17,7 +17,7 @@ import { type Subject } from "../../lib/subjects";
 import { MaterialDeleteDialog } from "../dialogs/material-delete-dialog";
 import { MaterialEditDialog } from "../dialogs/material-edit-dialog";
 import { EmptyPanel, ErrorPanel, LoadingPanel } from "../ui/state-panels";
-import { MaterialStatusBadge } from "../ui/material-status-badge";
+import { MaterialImageBadge, MaterialStatusBadge } from "../ui/material-status-badge";
 import { Icon, type IconName } from "../ui/icon";
 
 function materialIcon(type: ApiMaterial["type"]): IconName {
@@ -277,6 +277,9 @@ export function MaterialsView({
                     <Icon className="text-xl text-[#6d4aff]" name={materialIcon(material.type)} />
                     <h3 className="truncate text-sm font-bold">{material.title}</h3>
                     <MaterialStatusBadge status={material.processingStatus} />
+                    {material.imageCount > 0 && (
+                      <MaterialImageBadge count={material.imageCount} />
+                    )}
                   </div>
                   {material.content && (
                     <p className="mt-1 line-clamp-2 text-xs text-slate-500" title={material.content}>

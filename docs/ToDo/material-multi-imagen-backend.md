@@ -74,4 +74,4 @@ Que un material pueda guardar **todas** las fotos capturadas (no solo la primera
 - Reutilizar el patrón de `evaluations` evita reinventar la validación de múltiples archivos e imagen; mantiene coherencia de arquitectura (Clean Architecture: el caso de uso no conoce Multer, solo recibe `ImageInput[]`).
 - El `hasEmbeddedFigures` que hoy envía el cliente (OR de todas las páginas, `material-dialog.tsx`) sigue teniendo sentido para decidir si se intenta extraer regiones.
 - No rompe `POST /materials` (texto sin archivo), que es el otro camino de creación.
-- Conviene actualizar `docs/ToDo/indicador-imagenes-en-materiales.md` y `procesamiento-documentos-ia.md` si el material pasa a tener N imágenes como caso normal y no excepcional.
+- `docs/ToDo/indicador-imagenes-en-materiales.md` ya está implementado: el listado expone `imageCount` (conteo real agregado por el backend, no `hasEmbeddedFigures`). Si el material pasa a tener N imágenes como caso normal, la insignia de imágenes pasa de indicador secundario a principal sin cambios en el contrato. Ver también `procesamiento-documentos-ia.md`.

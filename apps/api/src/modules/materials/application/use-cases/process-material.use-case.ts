@@ -36,6 +36,7 @@ const IMAGE_BOX_PADDING_RATIO = 0.08;
 export interface ProcessMaterialResult {
   material: MaterialRecord;
   questionCount: number;
+  imageCount: number;
 }
 
 export const PROCESS_MATERIAL_CONFIG = "PROCESS_MATERIAL_CONFIG";
@@ -152,7 +153,12 @@ export class ProcessMaterialUseCase {
     }
 
     const processed = await this.repository.updateProcessingStatus(materialId, "COMPLETED", null);
-    return { material: processed, questionCount: questionsCount };
+    const imageCounts = await this.imageRepository.countByMaterials([materialId]);
+    return {
+      material: processed,
+      questionCount: questionsCount,
+      imageCount: imageCounts.get(materialId) ?? 0
+    };
   }
 
   private async loadFileMaterial(
@@ -314,7 +320,12 @@ export class ProcessMaterialUseCase {
 
   private async fail(materialId: string, message: string): Promise<ProcessMaterialResult> {
     const material = await this.repository.updateProcessingStatus(materialId, "FAILED", message);
-    return { material, questionCount: 0 };
+    const imageCounts = await this.imageRepository.countByMaterials([materialId]);
+    return {
+      material,
+      questionCount: 0,
+      imageCount: imageCounts.get(materialId) ?? 0
+    };
   }
 
   private providerError(step: string, error: unknown): string {

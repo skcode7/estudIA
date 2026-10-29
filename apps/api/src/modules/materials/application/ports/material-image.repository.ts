@@ -25,4 +25,9 @@ export abstract class MaterialImageRepository {
     images: SaveMaterialImageInput[]
   ): Promise<MaterialImageRecord[]>;
   abstract findById(id: string): Promise<MaterialImageRecord | null>;
+  /**
+   * Cuenta las imágenes extraídas agrupadas por material, sin N+1.
+   * Devuelve un mapa materialId -> cantidad (0 si no aparece en el grupo).
+   */
+  abstract countByMaterials(materialIds: string[]): Promise<Map<string, number>>;
 }

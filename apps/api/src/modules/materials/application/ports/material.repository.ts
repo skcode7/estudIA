@@ -45,6 +45,14 @@ export interface UpdateMaterialFieldsInput {
   hasEmbeddedFigures?: boolean;
 }
 
+export interface MaterialWithCounts {
+  material: MaterialRecord;
+  /** Preguntas generadas a partir del material (0 si no hay procesamiento completado). */
+  questionCount: number;
+  /** Imágenes extraídas del material (0 si no se extrajo ninguna). */
+  imageCount: number;
+}
+
 export abstract class MaterialRepository {
   abstract create(input: CreateMaterialInput): Promise<MaterialRecord>;
   abstract findByTopic(topicId: string): Promise<MaterialRecord[]>;

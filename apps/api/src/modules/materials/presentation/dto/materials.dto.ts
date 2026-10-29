@@ -206,6 +206,9 @@ export class MaterialDto {
   @ApiProperty({ example: 3, description: "Cantidad de preguntas generadas (0 si no hay procesamiento completado)" })
   questionCount!: number;
 
+  @ApiProperty({ example: 2, description: "Cantidad de imágenes extraídas del material (0 si no se extrajo ninguna)" })
+  imageCount!: number;
+
   @ApiProperty({ example: "2026-09-10T12:00:00.000Z", description: "Fecha de creación" })
   @IsDateString()
   createdAt!: string;
