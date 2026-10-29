@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   assetUrl,
   generateQuiz,
+  getQuiz,
   getQuizAttempt,
   listQuizzes,
   listTopics,
@@ -21,6 +22,44 @@ import { QuizAttemptDetailDialog } from "../dialogs/quiz-attempt-detail-dialog";
 import { EmptyPanel, ErrorPanel, LoadingPanel } from "../ui/state-panels";
 import { QuizHistoryPanel } from "./quiz-history-panel";
 import { QuizQuestionReview } from "./quiz-question-review";
+
+const CURRENT_QUIZ_KEY = "quiz.current";
+function draftKey(quizId: string): string {
+  return `quiz.draft.${quizId}`;
+}
+function readDraft(quizId: string): { startedAt: string; answers: Record<string, string> } | null {
+  try {
+    const raw = window.localStorage.getItem(draftKey(quizId));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { startedAt?: unknown; answers?: unknown };
+    if (typeof parsed.startedAt !== "string") return null;
+    if (typeof parsed.answers !== "object" || parsed.answers === null) return null;
+    const answers: Record<string, string> = {};
+    for (const [k, v] of Object.entries(parsed.answers as Record<string, unknown>)) {
+      if (typeof v === "string") answers[k] = v;
+    }
+    return { startedAt: parsed.startedAt, answers };
+  } catch {
+    return null;
+  }
+}
+function writeDraft(quizId: string, startedAt: string, answers: Record<string, string>): void {
+  try {
+    window.localStorage.setItem(draftKey(quizId), JSON.stringify({ startedAt, answers }));
+  } catch {
+    // Sin cuota o almacenamiento bloqueado: el quiz sigue funcionando en memoria.
+  }
+}
+function clearDraft(quizId: string): void {
+  try {
+    window.localStorage.removeItem(draftKey(quizId));
+    if (window.localStorage.getItem(CURRENT_QUIZ_KEY) === quizId) {
+      window.localStorage.removeItem(CURRENT_QUIZ_KEY);
+    }
+  } catch {
+    // ignorar
+  }
+}
 
 export function QuizView({ subjects }: { subjects: Subject[] }) {
   const [subjectId, setSubjectId] = useState("");
@@ -95,6 +134,53 @@ export function QuizView({ subjects }: { subjects: Subject[] }) {
     };
   }, [activeSubjectId, historyVersion]);
 
+  // Restaura el quiz en curso al recargar la página, si lo hay.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const currentId = window.localStorage.getItem(CURRENT_QUIZ_KEY);
+    if (!currentId) return;
+    let cancelled = false;
+    getQuiz(currentId)
+      .then((loaded) => {
+        if (cancelled) return;
+        const draft = readDraft(currentId);
+        const validQuestionIds = new Set(loaded.questions.map((question) => question.id));
+        const validOptionIds = new Set(loaded.questions.flatMap((question) => question.options.map((option) => option.id)));
+        const answers: Record<string, string> = {};
+        if (draft) {
+          for (const [questionId, optionId] of Object.entries(draft.answers)) {
+            if (validQuestionIds.has(questionId) && validOptionIds.has(optionId)) {
+              answers[questionId] = optionId;
+            }
+          }
+        }
+        setQuiz(loaded);
+        setStartedAt(draft?.startedAt ?? new Date().toISOString());
+        setAnswers(answers);
+        setResult(null);
+        setLoadError("");
+      })
+      .catch(() => {
+        if (cancelled) return;
+        clearDraft(currentId);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Persiste el progreso del quiz en curso en localStorage.
+  useEffect(() => {
+    if (!quiz || result) return;
+    if (typeof window === "undefined") return;
+    writeDraft(quiz.id, startedAt, answers);
+    try {
+      window.localStorage.setItem(CURRENT_QUIZ_KEY, quiz.id);
+    } catch {
+      // ignorar
+    }
+  }, [quiz, answers, startedAt, result]);
+
   const selectedSubjectName = useMemo(
     () => subjects.find((subject) => subject.id === activeSubjectId)?.name ?? "",
     [subjects, activeSubjectId]
@@ -142,7 +228,7 @@ export function QuizView({ subjects }: { subjects: Subject[] }) {
     : false;
 
   const handleSubmit = useCallback(async () => {
-    if (!quiz) return;
+    if (!quiz || result) return;
     if (!allAnswered) {
       setLoadError("Responde todas las preguntas antes de enviar el quiz.");
       return;
@@ -159,19 +245,48 @@ export function QuizView({ subjects }: { subjects: Subject[] }) {
         }))
       );
       setResult(attempt);
+      clearDraft(quiz.id);
       setHistoryVersion((current) => current + 1);
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : "No se pudo registrar el intento.");
     } finally {
       setIsSubmitting(false);
     }
-  }, [quiz, startedAt, answers, allAnswered]);
+  }, [quiz, startedAt, answers, allAnswered, result]);
 
   const handleNewQuiz = useCallback(() => {
+    if (quiz) clearDraft(quiz.id);
     setQuiz(null);
     setResult(null);
     setAnswers({});
     setLoadError("");
+  }, [quiz]);
+
+  const handleContinue = useCallback(async (summary: ApiQuizSummary) => {
+    setLoadError("");
+    try {
+      const loaded = await getQuiz(summary.id);
+      const draft = readDraft(summary.id);
+      const validQuestionIds = new Set(loaded.questions.map((question) => question.id));
+      const validOptionIds = new Set(loaded.questions.flatMap((question) => question.options.map((option) => option.id)));
+      const answers: Record<string, string> = {};
+      if (draft) {
+        for (const [questionId, optionId] of Object.entries(draft.answers)) {
+          if (validQuestionIds.has(questionId) && validOptionIds.has(optionId)) {
+            answers[questionId] = optionId;
+          }
+        }
+      }
+      setQuiz(loaded);
+      setStartedAt(draft?.startedAt ?? new Date().toISOString());
+      setAnswers(answers);
+      setResult(null);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(CURRENT_QUIZ_KEY, loaded.id);
+      }
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "No se pudo cargar el quiz.");
+    }
   }, []);
 
   const handleOpenDetail = useCallback(async (summary: ApiQuizSummary) => {
@@ -288,6 +403,7 @@ export function QuizView({ subjects }: { subjects: Subject[] }) {
           key={activeSubjectId}
           onGenerate={() => void handleGenerate()}
           onSelect={(summary) => void handleOpenDetail(summary)}
+          onContinue={(summary) => void handleContinue(summary)}
           quizzes={quizzes}
           subjectName={selectedSubjectName}
         />
