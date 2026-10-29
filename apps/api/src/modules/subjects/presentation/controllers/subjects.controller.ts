@@ -21,7 +21,7 @@ export class SubjectsController {
   @Post()
   create(@Body() dto: CreateSubjectDto): Promise<SubjectDto> {
     return this.createSubjectUseCase
-      .execute({ name: dto.name, description: dto.description })
+      .execute({ name: dto.name, description: dto.description, color: dto.color, icon: dto.icon })
       .then(toSubjectDto);
   }
 
@@ -51,6 +51,10 @@ function toSubjectDto(subject: SubjectRecord): SubjectDto {
     id: subject.id,
     name: subject.name,
     description: subject.description,
+    color: subject.color,
+    icon: subject.icon,
+    materialsCount: subject.materialsCount,
+    progress: subject.progress,
     createdAt: subject.createdAt.toISOString(),
     updatedAt: subject.updatedAt.toISOString()
   };

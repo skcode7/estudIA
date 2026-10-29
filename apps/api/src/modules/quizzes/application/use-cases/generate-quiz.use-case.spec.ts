@@ -45,6 +45,10 @@ function baseSubject(overrides: Partial<SubjectRecord> = {}): SubjectRecord {
     id: "subject-1",
     name: "Biología",
     description: null,
+    color: "violet",
+    icon: "subjects",
+    materialsCount: 0,
+    progress: null,
     createdAt: new Date("2026-09-10T00:00:00.000Z"),
     updatedAt: new Date("2026-09-10T00:00:00.000Z"),
     ...overrides

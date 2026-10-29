@@ -43,6 +43,8 @@ model Subject {
   id          String   @id @default(uuid())
   name        String
   description String?
+  color       String   @default("violet")
+  icon        String   @default("subjects")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

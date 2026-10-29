@@ -11,6 +11,8 @@ export function SubjectCard({
   onDelete?: (subject: Subject) => void;
 }) {
   const isSubjectsView = Boolean(onEdit && onDelete);
+  const hasProgress = subject.progress !== null;
+  const progressPercent = hasProgress ? `${Math.round(subject.progress ?? 0)}%` : "Sin quizzes";
 
   return (
     <article
@@ -58,7 +60,7 @@ export function SubjectCard({
       <div className={isSubjectsView ? "mt-auto pt-3" : "mt-3"}>
         <div className="flex items-center justify-between text-xs text-slate-500">
           <span>{subject.materials} materiales</span>
-          <span>{subject.progress}%</span>
+          <span>{progressPercent}</span>
         </div>
         <div
           className={
@@ -69,7 +71,7 @@ export function SubjectCard({
         >
           <div
             className={`h-full rounded-full ${subject.progressColor}`}
-            style={{ width: `${subject.progress}%` }}
+            style={{ width: hasProgress ? `${subject.progress ?? 0}%` : "0%" }}
           />
         </div>
         {!isSubjectsView && <p className="mt-3 text-xs text-slate-500">{subject.message}</p>}

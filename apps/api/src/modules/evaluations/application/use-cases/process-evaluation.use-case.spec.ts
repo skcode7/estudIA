@@ -112,6 +112,10 @@ function baseSubject(): SubjectRecord {
     id: "subject-1",
     name: "Matemáticas",
     description: null,
+    color: "violet",
+    icon: "subjects",
+    materialsCount: 0,
+    progress: null,
     createdAt: new Date("2026-10-01T00:00:00.000Z"),
     updatedAt: new Date("2026-10-01T00:00:00.000Z")
   };

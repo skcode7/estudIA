@@ -8,6 +8,8 @@ import { decorateSubject, type Subject } from "../lib/subjects";
 export interface SubjectFormValues {
   name: string;
   description: string;
+  color?: string;
+  icon?: string;
 }
 
 export function useSubjects(setNotice: (message: string) => void) {
@@ -29,16 +31,18 @@ export function useSubjects(setNotice: (message: string) => void) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const [reloadSignal, setReloadSignal] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
 
     async function load(): Promise<void> {
+      setIsLoading(true);
+      setLoadError("");
       try {
         const apiSubjects = await listSubjects();
         if (cancelled) return;
         setSubjects(apiSubjects.map(decorateSubject));
-        setLoadError("");
       } catch (error) {
         if (cancelled) return;
         setLoadError(error instanceof Error ? error.message : "No se pudieron cargar tus materias.");
@@ -51,7 +55,7 @@ export function useSubjects(setNotice: (message: string) => void) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reloadSignal]);
 
   const filteredSubjects = useMemo(() => {
     const q = filter.trim().toLowerCase();
@@ -95,9 +99,11 @@ export function useSubjects(setNotice: (message: string) => void) {
       try {
         const created = await createSubject({
           name,
-          description: values.description.trim() || undefined
+          description: values.description.trim() || undefined,
+          color: values.color,
+          icon: values.icon
         });
-        const subject = decorateSubject(created, subjects.length);
+        const subject = decorateSubject(created);
         setSubjects((current) => [...current, subject]);
         setIsCreateDialogOpen(false);
         setNotice(`"${name}" se agregó a tus materias.`);
@@ -109,7 +115,7 @@ export function useSubjects(setNotice: (message: string) => void) {
         setIsCreating(false);
       }
     },
-    [subjects.length, setNotice]
+    [setNotice]
   );
 
   const saveSubject = useCallback(
@@ -122,11 +128,13 @@ export function useSubjects(setNotice: (message: string) => void) {
       try {
         const updated = await updateSubject(editingSubject.id, {
           name,
-          description: values.description.trim() || undefined
+          description: values.description.trim() || undefined,
+          color: values.color,
+          icon: values.icon
         });
         setSubjects((current) =>
           current.map((s) =>
-            s.id === editingSubject.id ? decorateSubject(updated, current.indexOf(s)) : s
+            s.id === editingSubject.id ? decorateSubject(updated) : s
           )
         );
         setIsEditDialogOpen(false);
@@ -158,10 +166,8 @@ export function useSubjects(setNotice: (message: string) => void) {
     }
   }, [deletingSubject, setNotice]);
 
-  const setSubjectMaterials = useCallback((subjectId: string, count: number) => {
-    setSubjects((current) =>
-      current.map((s) => (s.id === subjectId ? { ...s, materials: count } : s))
-    );
+  const reload = useCallback((): void => {
+    setReloadSignal((current) => current + 1);
   }, []);
 
   return {
@@ -171,6 +177,7 @@ export function useSubjects(setNotice: (message: string) => void) {
     loadError,
     filter,
     setFilter,
+    reload,
     isCreateDialogOpen,
     createError,
     isCreating,
@@ -190,7 +197,6 @@ export function useSubjects(setNotice: (message: string) => void) {
     closeDeleteDialog,
     addSubject,
     saveSubject,
-    confirmDelete,
-    setSubjectMaterials
+    confirmDelete
   };
 }

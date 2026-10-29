@@ -2,14 +2,14 @@
 
 import { useCallback, useState } from "react";
 
-import { listMaterials, listTopics, processMaterial } from "../lib/api";
+import { processMaterial } from "../lib/api";
 
 export type OpenMaterialDialogOptions = {
   subjectId?: string;
   topicId?: string;
 };
 
-export function useMaterials(setSubjectMaterials: (subjectId: string, count: number) => void) {
+export function useMaterials() {
   const [isOpen, setIsOpen] = useState(false);
   const [preselectedSubjectId, setPreselectedSubjectId] = useState<string | null>(null);
   const [preselectedTopicId, setPreselectedTopicId] = useState<string | null>(null);
@@ -57,20 +57,6 @@ export function useMaterials(setSubjectMaterials: (subjectId: string, count: num
     }
   }, []);
 
-  const refreshSubjectMaterialCount = useCallback(
-    async (subjectId: string): Promise<void> => {
-      try {
-        const topics = await listTopics(subjectId);
-        const materialsPerTopic = await Promise.all(topics.map((topic) => listMaterials(topic.id)));
-        const total = materialsPerTopic.reduce((acc, materials) => acc + materials.length, 0);
-        setSubjectMaterials(subjectId, total);
-      } catch {
-        // El contador queda como está si falla la consulta.
-      }
-    },
-    [setSubjectMaterials]
-  );
-
   return {
     isOpen,
     open,
@@ -81,7 +67,6 @@ export function useMaterials(setSubjectMaterials: (subjectId: string, count: num
     processingIds,
     reloadMaterials,
     reloadSignal,
-    refreshSubjectMaterialCount,
     startProcessing
   };
 }

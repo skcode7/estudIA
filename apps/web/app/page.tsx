@@ -24,7 +24,7 @@ export default function HomePage() {
 
   const user = useUser();
   const subjects = useSubjects(setNotice);
-  const materials = useMaterials(subjects.setSubjectMaterials);
+  const materials = useMaterials();
 
   const openSubjects = useCallback(() => {
     setActiveView("subjects");
@@ -86,9 +86,7 @@ export default function HomePage() {
           />
         ) : activeView === "materials" ? (
           <MaterialsView
-            onSubjectMaterialsChange={(subjectId) =>
-              void materials.refreshSubjectMaterialCount(subjectId)
-            }
+            onSubjectMaterialsChange={() => subjects.reload()}
             openMaterialDialog={materials.open}
             processingIds={materials.processingIds}
             reloadSignal={materials.reloadSignal}
@@ -141,7 +139,7 @@ export default function HomePage() {
           onClose={materials.close}
           onCreated={async (created) => {
             materials.close();
-            await materials.refreshSubjectMaterialCount(created.subjectId);
+            subjects.reload();
             materials.reloadMaterials();
             setNotice(`Material añadido a ${created.subjectName}.`);
             void materials.startProcessing(created.material.id);

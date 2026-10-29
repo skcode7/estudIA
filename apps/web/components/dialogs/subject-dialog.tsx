@@ -2,10 +2,32 @@
 
 import { useState } from "react";
 
-import { type Subject } from "../../lib/subjects";
+import {
+  FALLBACK_SUBJECT_COLOR,
+  FALLBACK_SUBJECT_ICON,
+  SUBJECT_COLORS,
+  SUBJECT_COLOR_PALETTES,
+  SUBJECT_ICONS,
+  type SubjectColor
+} from "../../lib/subjects";
+import { type IconName } from "../../lib/icons";
+import type { Subject } from "../../lib/subjects";
 import type { SubjectFormValues } from "../../hooks/use-subjects";
 import { Dialog, DialogActions } from "./dialog";
 import { FieldError } from "../ui/feedback";
+import { Icon } from "../ui/icon";
+
+function coerceColor(value: string | undefined): SubjectColor {
+  return (SUBJECT_COLORS as string[]).includes(value ?? "")
+    ? (value as SubjectColor)
+    : FALLBACK_SUBJECT_COLOR;
+}
+
+function coerceIcon(value: string | undefined): IconName {
+  return (SUBJECT_ICONS as string[]).includes(value ?? "")
+    ? (value as IconName)
+    : FALLBACK_SUBJECT_ICON;
+}
 
 export function SubjectDialog({
   mode,
@@ -24,10 +46,12 @@ export function SubjectDialog({
 }) {
   const [name, setName] = useState(subject?.name ?? "");
   const [description, setDescription] = useState(subject?.description ?? "");
+  const [color, setColor] = useState<SubjectColor>(coerceColor(subject?.color));
+  const [icon, setIcon] = useState<IconName>(coerceIcon(subject?.icon));
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>): void {
     event.preventDefault();
-    void onSubmit({ name, description });
+    void onSubmit({ name, description, color, icon });
   }
 
   return (
@@ -55,6 +79,55 @@ export function SubjectDialog({
             value={description}
           />
         </label>
+
+        <fieldset>
+          <legend className="text-sm font-semibold">Color</legend>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {SUBJECT_COLORS.map((option) => {
+              const palette = SUBJECT_COLOR_PALETTES[option];
+              const isSelected = option === color;
+              return (
+                <button
+                  aria-label={`Color ${option}`}
+                  className={`grid size-9 place-items-center rounded-full outline-none ring-offset-2 transition ${
+                    isSelected ? "ring-2 ring-[#6d4aff]" : "hover:opacity-80"
+                  } ${palette.progressColor}`}
+                  key={option}
+                  onClick={() => setColor(option)}
+                  type="button"
+                >
+                  <Icon className="text-lg text-white" name="check" />
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend className="text-sm font-semibold">Ícono</legend>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {SUBJECT_ICONS.map((option) => {
+              const palette = SUBJECT_COLOR_PALETTES[color];
+              const isSelected = option === icon;
+              return (
+                <button
+                  aria-label={`Ícono ${option}`}
+                  className={`grid size-9 place-items-center rounded-xl text-lg transition ${
+                    isSelected
+                      ? `${palette.iconBackground} ring-2 ring-[#6d4aff]`
+                      : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                  }`}
+                  key={option}
+                  onClick={() => setIcon(option)}
+                  type="button"
+                >
+                  <Icon name={option} />
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+
         {error && <FieldError>{error}</FieldError>}
         <DialogActions
           disabled={isSubmitting}

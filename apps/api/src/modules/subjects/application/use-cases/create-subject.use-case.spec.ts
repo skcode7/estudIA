@@ -20,6 +20,10 @@ describe("CreateSubjectUseCase", () => {
       id: "uuid-1",
       name: "Matemáticas",
       description: null,
+      color: "violet",
+      icon: "subjects",
+      materialsCount: 0,
+      progress: null,
       createdAt: new Date("2026-09-09T00:00:00.000Z"),
       updatedAt: new Date("2026-09-09T00:00:00.000Z")
     };
@@ -38,6 +42,10 @@ describe("CreateSubjectUseCase", () => {
       id: "uuid-2",
       name: input.name,
       description: input.description ?? null,
+      color: "violet",
+      icon: "subjects",
+      materialsCount: 0,
+      progress: null,
       createdAt: new Date("2026-09-09T00:00:00.000Z"),
       updatedAt: new Date("2026-09-09T00:00:00.000Z")
     }));
