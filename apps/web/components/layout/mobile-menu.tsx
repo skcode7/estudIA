@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { type NavItemId } from "../../lib/navigation";
 import { Icon } from "../ui/icon";
 import { AddMaterialButton, BrandLockup, NavLinks, UserCard } from "./nav-shared";
+import { useModalBehavior } from "../../hooks/use-modal-behavior";
 
 export function MobileMenu({
   activeView,
@@ -18,25 +19,6 @@ export function MobileMenu({
   userName: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setIsOpen(false);
-    };
-    window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [isOpen]);
-
-  // El panel tapa la pantalla, pero sin esto el fondo sigue desplazándose detrás.
-  useEffect(() => {
-    if (!isOpen) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [isOpen]);
 
   const navigate = (view: NavItemId) => {
     onNavigate(view);
@@ -62,45 +44,74 @@ export function MobileMenu({
       </header>
 
       {isOpen && (
-        <div className="fixed inset-0 z-40 flex lg:hidden">
-          <button
-            aria-label="Cerrar menú"
-            className="absolute inset-0 bg-slate-950/35"
-            onClick={() => setIsOpen(false)}
-            type="button"
-          />
-          <div
-            aria-modal="true"
-            className="relative flex w-72 max-w-[85%] flex-col overflow-y-auto bg-white p-4 shadow-xl"
-            id="menu-movil"
-            role="dialog"
-          >
-            <div className="mb-2 flex items-center justify-between">
-              <p className="px-2 text-sm font-semibold text-slate-500">Menú</p>
-              <button
-                aria-label="Cerrar menú"
-                className="grid size-11 place-items-center rounded-xl text-xl text-slate-500 hover:bg-slate-100"
-                onClick={() => setIsOpen(false)}
-                type="button"
-              >
-                  <Icon name="close" />
-              </button>
-            </div>
-            <nav aria-label="Navegación principal" className="space-y-2">
-              <NavLinks activeView={activeView} onNavigate={navigate} />
-            </nav>
-            <div className="mt-4 border-t border-slate-100 pt-4">
-              <AddMaterialButton
-                onClick={() => {
-                  setIsOpen(false);
-                  openMaterialDialog();
-                }}
-              />
-            </div>
-            <UserCard className="mt-6" userName={userName} />
-          </div>
-        </div>
+        <MobileMenuPanel
+          activeView={activeView}
+          navigate={navigate}
+          onClose={() => setIsOpen(false)}
+          openMaterialDialog={openMaterialDialog}
+          userName={userName}
+        />
       )}
     </>
+  );
+}
+
+function MobileMenuPanel({
+  activeView,
+  navigate,
+  onClose,
+  openMaterialDialog,
+  userName
+}: {
+  activeView: NavItemId;
+  navigate: (view: NavItemId) => void;
+  onClose: () => void;
+  openMaterialDialog: () => void;
+  userName: string;
+}) {
+  const { modalRef, onKeyDown } = useModalBehavior({ onClose });
+
+  return (
+    <div className="fixed inset-0 z-40 flex lg:hidden">
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-slate-950/35"
+        onClick={onClose}
+      />
+      <div
+        ref={modalRef}
+        aria-label="Menú"
+        aria-modal="true"
+        className="relative flex w-72 max-w-[85%] flex-col overflow-y-auto bg-white p-4 shadow-xl"
+        id="menu-movil"
+        role="dialog"
+        tabIndex={-1}
+        onKeyDown={onKeyDown}
+      >
+        <div className="mb-2 flex items-center justify-between">
+          <p className="px-2 text-sm font-semibold text-slate-500">Menú</p>
+          <button
+            aria-label="Cerrar menú"
+            className="grid size-11 place-items-center rounded-xl text-xl text-slate-500 hover:bg-slate-100"
+            onClick={onClose}
+            type="button"
+          >
+            <Icon name="close" />
+          </button>
+        </div>
+        <nav aria-label="Navegación principal" className="space-y-2">
+          <NavLinks activeView={activeView} onNavigate={navigate} />
+        </nav>
+        <div className="mt-4 border-t border-slate-100 pt-4">
+          <AddMaterialButton
+            onClick={() => {
+              onClose();
+              openMaterialDialog();
+            }}
+          />
+        </div>
+        <UserCard className="mt-6" userName={userName} />
+      </div>
+    </div>
   );
 }
