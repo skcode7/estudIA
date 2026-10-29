@@ -34,7 +34,9 @@ export function useUser() {
   }, []);
 
   useEffect(() => {
-    void loadUser();
+    queueMicrotask(() => {
+      void loadUser();
+    });
   }, [loadUser]);
 
   const saveUser = useCallback(async (name: string): Promise<void> => {

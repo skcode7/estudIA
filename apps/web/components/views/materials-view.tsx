@@ -83,7 +83,9 @@ export function MaterialsView({
   useEffect(() => {
     if (!topicId || !activeSubjectId) return;
     let cancelled = false;
-    setAreMaterialsLoading(true);
+    queueMicrotask(() => {
+      if (!cancelled) setAreMaterialsLoading(true);
+    });
     const load =
       topicId === "__all__"
         ? Promise.all(topics.map((t) => listMaterials(t.id, { limit: 20, offset: 0 }))).then((pages) => ({
