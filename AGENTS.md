@@ -73,6 +73,7 @@ No incorporar Redis.
 En el MVP usar operaciones on-demand. Si una operación se vuelve lenta o requiere ejecución asíncrona, diseñar primero la interfaz de aplicación y posteriormente introducir una cola/worker sin modificar el dominio.
 
 ## Calidad
+- Si un cambio toca interfaz (UI), validar con Playwright (E2E) además de lint/typecheck/tests.
 - No dejar lógica de negocio en controllers.
 - No acceder a Prisma desde domain/application.
 - Validar inputs.
