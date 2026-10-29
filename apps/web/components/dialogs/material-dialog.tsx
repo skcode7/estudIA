@@ -384,8 +384,7 @@ export function MaterialDialog({
             {pages.length > 1 && (
               <div className="flex flex-wrap items-center gap-3">
                 <WarningNote>
-                  Las fotos adicionales aportan su texto. Solo la primera se guarda como imagen del
-                  material.
+                  Todas las fotos se guardan como imágenes del material.
                 </WarningNote>
                 <button
                   className="min-h-11 rounded-xl px-3 text-sm font-semibold text-rose-600 hover:bg-rose-50"
