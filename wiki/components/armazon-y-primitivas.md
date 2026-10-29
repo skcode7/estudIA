@@ -113,9 +113,9 @@ en uno de los otros dos.
 `apps/web/lib/icons.ts:1` es el mapa de nombres semánticos a glifos UIcons; el componente
 `Icon` (`apps/web/components/ui/icon.tsx:13`) los renderiza con `aria-hidden`. La web carga el
 estilo regular-rounded en el layout raíz. La navegación usa iconos de 20 px y los avatares de
-materia de 24 px; el único emoji que queda es la mochila de Inicio. La marca (cerebro + libro) es
-una imagen (`/brand/estudia-mark.webp`), no un emoji: `BrandLockup` la pinta con `next/image` en un
-badge lavanda junto al wordmark.
+materia de 24 px; ya no queda ningún emoji en la navegación ni en Inicio. La marca (cerebro + libro)
+es una imagen (`/brand/estudia-mark.webp`), no un emoji: `BrandLockup` la pinta con `next/image` en
+un badge lavanda junto al wordmark.
 
 No hay librería de componentes: son clases de Tailwind escritas a mano, y por eso hay que conocer
 el vocabulario para no inventar un cuarto estilo. Se repite en cada archivo:

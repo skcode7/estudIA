@@ -92,6 +92,10 @@ solo la rejilla de materias y los avisos vienen de la API. La marca (`/brand/est
 usa como marca de agua al 20 % en el hero, con `next/image`, y el resto de la pantalla sigue el
 vocabulario de iconos UIcons del mapa común, no emojis.
 
+En desktop el hero y «¡No olvides!» comparten fila (`xl:grid-cols-[minmax(0,1fr)_320px]`) y la
+tarjeta estira a la altura del hero (`xl:row-start-1`); «Mis materias» va en la fila siguiente,
+en la columna izquierda, y en móvil el orden se mantiene: hero, materias y recordatorio al final.
+
 `PlaceholderView` (`apps/web/components/views/placeholder-view.tsx:3`) es lo que se renderiza para
 Progreso e Insignias: un recuadro con el nombre de la sección. La página decide entre
 `HomeView`, `SubjectsView`, `MaterialsView`, `QuizView`, `EvaluationsView` y este último con un ternario, así que

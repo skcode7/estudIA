@@ -185,7 +185,7 @@ Estructura de tipo **dashboard app**:
 - Link "Ver todas" arriba a la derecha.
 
 ### 5.8 Card "¡No olvides!" (recordatorio/CTA)
-- Fondo crema/amber suave, `rounded-2xl`, ilustración de mochila en la esquina.
+- Fondo crema/amber suave, `rounded-2xl`. En desktop comparte fila con el hero y estira su altura para igualarla; el botón queda pegado al borde inferior (`mt-auto`).
 - Texto corto explicativo + botón primario con ícono "+".
 
 ### 5.9 Botones
@@ -220,7 +220,7 @@ Estructura de tipo **dashboard app**:
 
 - Íconos de línea simples (estilo Lucide/Heroicons) para navegación y UI.
 - Emojis usados como acentos de personalidad (🔥⭐💎👋💪🚀) — no reemplazan íconos funcionales, son complementarios.
-- Ilustraciones 3D/soft (mochila) reservadas para momentos de "hero" o motivacionales, no para uso repetitivo en toda la UI. La marca de la app se usa como logo, favicon y marca de agua, no como mascota.
+- Ilustraciones 3D/soft reservadas para momentos de "hero" o motivacionales, no para uso repetitivo en toda la UI. Hoy no queda ninguna: la marca de la app se usa como logo, favicon y marca de agua, no como mascota.
 
 ---
 

@@ -320,3 +320,11 @@ Reconciliación de los dos componentes que dejaron de usar el emoji 🤖.
   en `5525cd7`, y se reajusta la cita de `home-view.tsx`.
 - Sin páginas nuevas ni cambios de `index.md`. El checkpoint no avanza: quedan páginas stale de
   commits anteriores a este pase.
+
+## 2026-10-29 · ajuste de la tarjeta «¡No olvides!»
+
+- `components/vistas-de-catalogo.md` — documenta la fila compartida hero + recordatorio: la tarjeta
+  estira a la altura del hero en desktop y «Mis materias» pasa a la fila siguiente; el orden móvil
+  no cambia.
+- `components/armazon-y-primitivas.md` — retira la mochila como último emoji ilustrativo; ya no
+  queda ninguno en la UI.
