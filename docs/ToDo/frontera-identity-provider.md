@@ -1,5 +1,9 @@
 # Requerimiento: materializar la frontera IdentityProvider (preparación para Authentico)
 
+> **Estado: materializado** (2026-11-01, ADR-0004). El port `AuthProvider` vive en
+> `apps/api/src/modules/auth/` con el adapter `AuthenticoAuthProvider`. `validateToken`
+> queda para el plan de roles (SDK >= 0.2).
+
 ## Contexto
 
 AGENTS.md (sección Authentico) exige que, aunque en el MVP no haya integración activa, "Sí debe existir una frontera arquitectónica preparada para incorporarla posteriormente". Hoy esa frontera es solo documental:

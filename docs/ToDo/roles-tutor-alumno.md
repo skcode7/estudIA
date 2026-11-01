@@ -32,7 +32,7 @@ Que al integrar Authentico existan al menos dos roles con capacidades distintas:
 ## Cambios implicados
 
 ### Backend
-- `modules/identity/`: extender `Identity` con el rol. Depende de materializar el port que pide `docs/ToDo/frontera-identity-provider.md` (hoy la frontera es solo documental, no hay archivo en código).
+- `modules/auth/` (port ya materializado como `AuthProvider` con `signIn`): extender la `Identity`/sesión con el rol. `validateToken`/`getIdentity` quedan pendientes hasta que el SDK exponga `GetSessionInfo` (SDK >= 0.2); hasta entonces el rol se resuelve en la app consumidora o se inyecta por configuración.
 - Guard de autorización + decorator de metadatos; aplicarlo en `materials.controller.ts` (edición/borrado de preguntas, process, delete) y en las rutas de escritura de materias, temas y materiales.
 - `toMaterialQuestionDto` (`materials.controller.ts:225-235`): dejar de exponer `isCorrect` y `explanation` a roles sin permiso de curación, o mover la ruta entera a tutor-only.
 - Tests del guard (rol con permiso, rol sin permiso, sin identidad) y del caso de uso que ya protege la pertenencia de la pregunta a su material (`update-material-question.use-case.ts:37`).

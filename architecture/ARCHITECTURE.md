@@ -112,21 +112,24 @@ Implementación local (dev): **MinIO** como proveedor S3-compatible, levantado c
 
 Implementación futura (producción): S3-compatible para Backblaze B2 o Contabo Object Storage, configurable solo por variables de entorno sin modificar los casos de uso.
 
-## 7. Autenticación futura
+## 7. Autenticación (Authentico, etapa 2)
 
-Crear una frontera:
+Frontera materializada en `modules/auth/`:
 
 ```ts
-interface IdentityProvider {
-  validateToken(token: string): Promise<Identity>;
-  getIdentity(token: string): Promise<Identity>;
+interface AuthProvider {
+  signIn(input: { login: string; password: string }): Promise<{ sessionId: string; message?: string }>;
 }
 ```
 
-En MVP puede existir un `DevelopmentIdentityProvider` extremadamente simple o un contexto de usuario local controlado. No implementar Authentico todavía.
+Implementación: `AuthenticoAuthProvider` (adapter sobre `@ed_open/authentico-sdk`).
+El `SessionId` es opaco y viaja como header `X-Session-Id`. No se crean credenciales
+propias (ADR-0004).
 
-Cuando llegue la etapa 2:
-`AuthenticoIdentityProvider` será el adapter.
+Pendiente para el plan de roles/guards (SDK >= 0.2):
+- `validateToken` / `getIdentity` (GetSessionInfo).
+- Guards en presentation.
+- Multiusuario y dueño de recursos.
 
 ## 8. Procesamiento
 

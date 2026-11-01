@@ -24,6 +24,7 @@ estudIA es una aplicación mobile-first que ayuda al estudiante a estudiar únic
 - Producción futura: Coolify.
 - Object Storage futuro: S3-compatible (Backblaze B2 o Contabo Object Storage).
 - IA inicial: DeepSeek mediante un adapter propio.
+- IAM: Authentico mediante `@ed_open/authentico-sdk` (login integrado; roles/guards diferidos).
 
 ## MVP
 Implementar únicamente:
@@ -37,10 +38,9 @@ Implementar únicamente:
 8. Progreso básico.
 
 No implementar todavía:
-- Authentico.
-- Registro/login.
+- Registro (pendiente de `create_user` en el SDK; issue abierto).
 - Multiusuario.
-- Roles.
+- Roles/guards (plan de roles).
 - Billing.
 - SaaS/lifetime.
 - Redis.
@@ -50,8 +50,9 @@ No implementar todavía:
 - Microservicios.
 
 ## Authentico
-Authentico será la solución IAM futura. En el MVP no debe existir integración activa.
-Sí debe existir una frontera arquitectónica preparada para incorporarla posteriormente. No crear contraseñas, sesiones ni credenciales propias salvo lo estrictamente necesario para desarrollo local.
+Authentico es el IAM del ecosistema. El **login** ya está integrado (etapa 2, ADR-0004) mediante el SDK oficial `@ed_open/authentico-sdk` (registry GitLab), con el adapter `AuthenticoAuthProvider` en `modules/auth/`.
+Roles, guards, multiusuario y validación de sesión (GetSessionInfo) siguen diferidos al plan de roles (`docs/ToDo/roles-tutor-alumno.md`).
+No crear contraseñas, sesiones ni credenciales propias salvo lo estrictamente necesario; el `SessionId` es opaco y lo emite Authentico.
 
 ## IA
 Nunca llamar DeepSeek directamente desde controllers o casos de uso.

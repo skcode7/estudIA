@@ -4,7 +4,9 @@
 estudIA convierte materiales y temas aprendidos en la escuela en una experiencia de estudio interactiva, con quizzes y retroalimentación asistida por IA.
 
 ## Estado actual
-MVP individual, sin autenticación y sin restricciones de uso.
+Etapa 1 (MVP) completada e integración de login con Authentico (etapa 2) en curso:
+autenticación activa mediante `@ed_open/authentico-sdk`; el usuario se resuelve por
+sesión. Roles, guards y multiusuario siguen pendientes (ver `docs/ToDo/roles-tutor-alumno.md`).
 
 ## Ejecutar y verificar el proyecto inicial
 
@@ -67,10 +69,10 @@ pnpm exec wikipoke hooks          # hooks instalados
 Al abrir una sesión, `sh wiki/.wikipoke-hook.sh` avisa si el wiki quedó atrás (es silencioso cuando está al día).
 
 ## Evolución prevista
-Etapa 2:
-- Integración con Authentico.
-- Multiusuario.
-- Roles/perfiles.
+Etapa 2 (en curso):
+- ✅ Integración de login con Authentico (`@ed_open/authentico-sdk`).
+- Roles/guards y multiusuario (`docs/ToDo/roles-tutor-alumno.md`).
+- Auto-registro (pendiente de `create_user` en el SDK; issue abierto).
 - Storage externo.
 - Procesamiento asíncrono si las métricas lo justifican.
 
@@ -109,7 +111,7 @@ Al ser un monorepo, cada recurso Coolify debe apuntar al repositorio completo: d
 
 2. **API**
    - Recurso Application con Dockerfile Location `apps/api/Dockerfile`.
-   - Variables de entorno: `DATABASE_URL`, `API_PORT`, `WEB_URL` (origen CORS), `AI_*` y `S3_*` según el proveedor.
+   - Variables de entorno: `DATABASE_URL`, `API_PORT`, `WEB_URL` (origen CORS), `AI_*`, `S3_*` y `AUTHENTICO_*` (`AUTHENTICO_BASE_URL`, `AUTHENTICO_APPLICATION`, `AUTHENTICO_ACCOUNT`, `AUTHENTICO_TIMEOUT_MS`) según el proveedor. `AUTHENTICO_BASE_URL` es la URL pública del Authentico desplegado (raíz, sin `SecurityService`).
    - Dominio público: `https://estudia-api.server.encaladadiaz.com`. El navegador llama a la API directamente (client-side fetch). CORS configurado mediante la variable `WEB_URL`.
 
 Nota sobre `NEXT_PUBLIC_API_URL`: en el `.env.example` raíz está definida, pero el frontend no lee variables de la raíz: Next.js solo carga `.env` desde `apps/web/`, que no existe en desarrollo. Por eso localmente la web usa el valor por defecto `http://localhost:3001/api/v1` de `apps/web/lib/api.ts:62`. No hay que definirla en `apps/api/.env`; es responsabilidad del recurso web en Coolify.
