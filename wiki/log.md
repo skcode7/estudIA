@@ -328,3 +328,18 @@ Reconciliación de los dos componentes que dejaron de usar el emoji 🤖.
   no cambia.
 - `components/armazon-y-primitivas.md` — retira la mochila como último emoji ilustrativo; ya no
   queda ninguno en la UI.
+
+## 2026-11-01 · wikipoke-ingest all
+
+Pase `all` sobre el backlog de cobertura. Único clúster de código sin página que merecía una
+página nueva: el módulo de autenticación recién integrado.
+
+- new: `components/auth.md` — port `AuthProvider`, adapter `AuthenticoAuthProvider`,
+  controller `POST /api/v1/auth/login`, DTO, módulo y errores; sesión en web
+  (`use-user.ts`, `auth-session.ts`) y envío de `X-Session-Id`.
+- actualizado: `index.md`, `architecture.md` (tabla de componentes).
+- El resto de los 12 archivos sin cobertura son iconos (`apple-icon.png`, `favicon.ico`,
+  `icon.png`, `docs/logo.jpeg`) y tests (`use-modal-behavior.test.tsx`); se mantienen ignorados
+  por `.wikipokeignore` (no son código documentable). `get-quiz.use-case.ts` se considera parte
+  del módulo de quizzes ya cubierto.
+- `decisions/authentico.md` ya estaba reconciliado en el commit anterior.

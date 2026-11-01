@@ -126,6 +126,7 @@ modo que producción cambia de proveedor sin tocar código.
 | [Módulo de evaluaciones](./components/evaluaciones.md) | subida de exámenes, extracción de preguntas y revisión |
 | [Preguntas extraídas de una evaluación](./components/preguntas-de-evaluacion.md) | la revisión de las preguntas de un examen y sus reglas por tipo |
 | [Módulo de IA y sus adaptadores](./components/ia.md) | puertos de IA, proveedores y validación de la salida |
+| [Autenticación (Authentico)](./components/auth.md) | frontera de identidad: login, adaptador del SDK y controller HTTP |
 | [Capa de persistencia (Prisma)](./components/persistencia.md) | la conexión global y los repositorios que traducen los puertos a tablas |
 | [La forma del CRUD de catálogo](./components/crud-de-catalogo.md) | cómo están hechos los módulos de materias, temas y usuarios |
 | [Materias, temas y usuarios](./components/catalogo.md) | la jerarquía de catálogo y sus cascadas |

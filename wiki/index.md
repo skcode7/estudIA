@@ -23,6 +23,7 @@
 - [Módulos de materias, temas y usuarios](./components/catalogo.md) — Dueños de la jerarquía de catálogo (materia → tema) y del registro mínimo de usuario, con las reglas de borrado que arrastran todo lo demás.
 - [Aplicación web (Next.js)](./components/web.md) — Dueño de la interfaz: una sola página client-side que compone vistas y diálogos, sus hooks de estado y el cliente HTTP contra la API.
 - [Armazón y primitivas de la interfaz](./components/armazon-y-primitivas.md) — Dueño del esqueleto que rodea a todas las vistas: el armazón, las dos navegaciones, el diálogo base y el vocabulario visual compartido.
+- [Autenticación (Authentico)](./components/auth.md) — Frontera de identidad materializada: login con Authentico vía SDK, adaptador y controller HTTP.
 - [Vistas de catálogo (Inicio y Mis materias)](./components/vistas-de-catalogo.md) — Dueño de las dos pantallas que muestran y gestionan materias, la tarjeta que comparten y el hook que sostiene su estado.
 
 ## concept
