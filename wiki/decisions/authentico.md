@@ -1,25 +1,30 @@
 ---
-title: Sin identidad en el MVP, con frontera para Authentico
+title: Login con Authentico (etapa 2), frontera para roles
 type: decision
-responsibility: Por qué el MVP no tiene login ni sesiones, qué es hoy "el usuario" y dónde entra Authentico cuando toque.
+responsibility: Cómo se integró el login con Authentico (SDK + adapter), qué queda diferido (roles/guards) y cómo convive con el User local.
 options: Login propio con contraseñas y sesiones · integrar Authentico desde el inicio · identidad mínima con frontera preparada
 sources:
-  - requirements/ADR-0003-AUTHENTICO-LATER.md
-  - apps/api/src/modules/users/presentation/controllers/users.controller.ts
+  - requirements/ADR-0004-AUTHENTICO-LOGIN.md
+  - apps/api/src/modules/auth/application/ports/auth-provider.ts
+  - apps/api/src/modules/auth/infrastructure/authentico-auth.provider.ts
+  - apps/api/src/modules/auth/presentation/controllers/auth.controller.ts
   - apps/web/hooks/use-user.ts
-  - apps/api/src/main.ts
-synced: 36ec39f
+  - apps/web/lib/auth-session.ts
+synced: 1ea05de
 confidence: high
 related:
   - ../components/catalogo.md
 ---
 
-# Sin identidad en el MVP, con frontera para Authentico
+# Login con Authentico (etapa 2), frontera para roles
 
-estudIA se valida primero con una persona. Meter autenticación antes de saber si el producto
-sirve añade complejidad — contraseñas, sesiones, recuperación, protección de endpoints — sin
-aportar nada al aprendizaje. La decisión (ADR-0003) es no integrar identidad en el MVP y dejar
-preparado el hueco para Authentico, el IAM del ecosistema.
+estudIA se valida primero con una persona, por eso el MVP no tuvo identidad (ADR-0003). En la
+etapa 2 se integró el **login** con Authentico mediante `@ed_open/authentico-sdk` (adapter
+`AuthenticoAuthProvider` en `modules/auth/`, ADR-0004). Sigue sin haber contraseñas ni
+sesiones propias: el `SessionId` es opaco y lo emite Authentico.
+
+Roles, guards, multiusuario y validación de sesión (GetSessionInfo) siguen diferidos al plan
+de roles (`docs/ToDo/roles-tutor-alumno.md`).
 
 ## Qué hay en su lugar
 
