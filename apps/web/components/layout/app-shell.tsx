@@ -12,18 +12,21 @@ export function AppShell({
   onNavigate,
   openMaterialDialog,
   userName,
+  onLogout,
   children
 }: {
   activeView: NavItemId;
   onNavigate: (view: NavItemId) => void;
   openMaterialDialog: () => void;
   userName: string;
+  onLogout?: () => void;
   children: ReactNode;
 }) {
   return (
     <main className="flex min-h-screen flex-col bg-[#f8f7fc] text-[#1e1b2e]">
       <MobileMenu
         activeView={activeView}
+        onLogout={onLogout}
         onNavigate={onNavigate}
         openMaterialDialog={openMaterialDialog}
         userName={userName}
@@ -31,6 +34,7 @@ export function AppShell({
       <div className="mx-auto flex w-full max-w-[1440px] flex-1">
         <Sidebar
           activeView={activeView}
+          onLogout={onLogout}
           onNavigate={onNavigate}
           openMaterialDialog={openMaterialDialog}
           userName={userName}

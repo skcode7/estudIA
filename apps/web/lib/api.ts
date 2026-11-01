@@ -1,3 +1,5 @@
+import { getSessionId } from "./auth-session";
+
 export interface ApiSubject {
   id: string;
   name: string;
@@ -96,6 +98,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
   if (init?.body !== undefined && !(init.body instanceof FormData)) {
     headers.set("Content-Type", "application/json");
+  }
+  const sessionId = getSessionId();
+  if (sessionId) {
+    headers.set("X-Session-Id", sessionId);
   }
 
   const response = await fetch(`${API_URL}${path}`, {
@@ -568,6 +574,18 @@ export function listUsers(): Promise<ApiUser[]> {
 
 export function createUser(input: { name: string }): Promise<ApiUser> {
   return request<ApiUser>("/users", {
+    method: "POST",
+    body: JSON.stringify(input)
+  });
+}
+
+export interface ApiAuthSession {
+  sessionId: string;
+  message?: string;
+}
+
+export function signIn(input: { login: string; password: string }): Promise<ApiAuthSession> {
+  return request<ApiAuthSession>("/auth/login", {
     method: "POST",
     body: JSON.stringify(input)
   });

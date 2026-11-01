@@ -11,12 +11,14 @@ export function MobileMenu({
   activeView,
   onNavigate,
   openMaterialDialog,
-  userName
+  userName,
+  onLogout
 }: {
   activeView: NavItemId;
   onNavigate: (view: NavItemId) => void;
   openMaterialDialog: () => void;
   userName: string;
+  onLogout?: () => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -50,6 +52,7 @@ export function MobileMenu({
           onClose={() => setIsOpen(false)}
           openMaterialDialog={openMaterialDialog}
           userName={userName}
+          onLogout={onLogout}
         />
       )}
     </>
@@ -61,13 +64,15 @@ function MobileMenuPanel({
   navigate,
   onClose,
   openMaterialDialog,
-  userName
+  userName,
+  onLogout
 }: {
   activeView: NavItemId;
   navigate: (view: NavItemId) => void;
   onClose: () => void;
   openMaterialDialog: () => void;
   userName: string;
+  onLogout?: () => void;
 }) {
   const { modalRef, onKeyDown } = useModalBehavior({ onClose });
 
@@ -111,6 +116,15 @@ function MobileMenuPanel({
           />
         </div>
         <UserCard className="mt-6" userName={userName} />
+        {onLogout && userName && (
+          <button
+            className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+            onClick={onLogout}
+            type="button"
+          >
+            Salir
+          </button>
+        )}
       </div>
     </div>
   );

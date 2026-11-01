@@ -6,7 +6,7 @@ import { AppShell } from "../components/layout/app-shell";
 import { DeleteSubjectDialog } from "../components/dialogs/delete-subject-dialog";
 import { MaterialDialog } from "../components/dialogs/material-dialog";
 import { SubjectDialog } from "../components/dialogs/subject-dialog";
-import { UserOnboardingDialog } from "../components/dialogs/user-onboarding-dialog";
+import { LoginDialog } from "../components/dialogs/login-dialog";
 import { EvaluationsView } from "../components/views/evaluations-view";
 import { HomeView } from "../components/views/home-view";
 import { MaterialsView } from "../components/views/materials-view";
@@ -49,18 +49,19 @@ export default function HomePage() {
   return (
     <>
       {!user.isUserLoading && user.isUserModalOpen && (
-        <UserOnboardingDialog
+        <LoginDialog
           apiError={user.apiError}
           error={user.userError}
           isSaving={user.isSavingUser}
           onRetry={user.retryLoadUser}
-          onSubmit={user.saveUser}
+          onSubmit={user.submitLogin}
         />
       )}
 
       <AppShell
         activeView={activeView}
         onNavigate={setActiveView}
+        onLogout={user.logout}
         openMaterialDialog={materials.open}
         userName={user.user?.name ?? ""}
       >

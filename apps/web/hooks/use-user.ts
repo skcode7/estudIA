@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { type ApiUser, createUser, listUsers } from "../lib/api";
+import { type ApiUser, createUser, listUsers, signIn } from "../lib/api";
+import { clearSession, getSession, setSession } from "../lib/auth-session";
 
 export function useUser() {
   const [user, setUser] = useState<ApiUser | null>(null);
@@ -12,26 +13,34 @@ export function useUser() {
   const [userError, setUserError] = useState("");
   const [apiError, setApiError] = useState("");
 
+  const ensureLocalUser = useCallback(async (login: string): Promise<ApiUser> => {
+    const users = await listUsers();
+    const existing = users.find((u) => u.name === login);
+    if (existing) return existing;
+    return createUser({ name: login });
+  }, []);
+
   const loadUser = useCallback(async (): Promise<void> => {
     setIsUserLoading(true);
     setUserError("");
     setApiError("");
     try {
-      const users = await listUsers();
-      if (users.length > 0) {
-        setUser(users[0]);
-        setIsUserModalOpen(false);
-      } else {
+      const session = getSession();
+      if (!session) {
         setUser(null);
         setIsUserModalOpen(true);
+        return;
       }
+      const local = await ensureLocalUser(session.login);
+      setUser(local);
+      setIsUserModalOpen(false);
     } catch (error) {
       setApiError(error instanceof Error ? error.message : "No se pudo conectar con la API.");
       setIsUserModalOpen(true);
     } finally {
       setIsUserLoading(false);
     }
-  }, []);
+  }, [ensureLocalUser]);
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -39,23 +48,34 @@ export function useUser() {
     });
   }, [loadUser]);
 
-  const saveUser = useCallback(async (name: string): Promise<void> => {
-    if (isUserLoading) return;
-    const trimmed = name.trim();
-    if (!trimmed) return;
-    setIsSavingUser(true);
-    setUserError("");
-    try {
-      const created = await createUser({ name: trimmed });
-      setUser(created);
-      setIsUserModalOpen(false);
-      setApiError("");
-    } catch (error) {
-      setUserError(error instanceof Error ? error.message : "No se pudo guardar el nombre.");
-    } finally {
-      setIsSavingUser(false);
-    }
-  }, [isUserLoading]);
+  const submitLogin = useCallback(
+    async (login: string, password: string, remember: boolean): Promise<void> => {
+      if (isUserLoading) return;
+      const trimmedLogin = login.trim();
+      if (!trimmedLogin || !password) return;
+      setIsSavingUser(true);
+      setUserError("");
+      try {
+        const result = await signIn({ login: trimmedLogin, password });
+        setSession({ sessionId: result.sessionId, login: trimmedLogin }, remember);
+        const local = await ensureLocalUser(trimmedLogin);
+        setUser(local);
+        setIsUserModalOpen(false);
+        setApiError("");
+      } catch (error) {
+        setUserError(error instanceof Error ? error.message : "No se pudo iniciar sesión.");
+      } finally {
+        setIsSavingUser(false);
+      }
+    },
+    [isUserLoading, ensureLocalUser]
+  );
+
+  const logout = useCallback(() => {
+    clearSession();
+    setUser(null);
+    setIsUserModalOpen(true);
+  }, []);
 
   const needsOnboarding = isUserModalOpen && !apiError;
 
@@ -67,7 +87,8 @@ export function useUser() {
     userError,
     apiError,
     needsOnboarding,
-    saveUser,
+    submitLogin,
+    logout,
     retryLoadUser: loadUser
   };
 }
