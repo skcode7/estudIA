@@ -10,6 +10,7 @@ sources:
   - apps/api/src/modules/auth/presentation/controllers/auth.controller.ts
   - apps/web/hooks/use-user.ts
   - apps/web/lib/auth-session.ts
+  - apps/api/src/modules/users/presentation/controllers/users.controller.ts
 synced: 1ea05de
 confidence: high
 related:
@@ -28,11 +29,11 @@ de roles (`docs/ToDo/roles-tutor-alumno.md`).
 
 ## Qué hay en su lugar
 
-Un modelo `User` que es solo un nombre (`users.controller.ts` expone crear y listar,
-`apps/api/src/modules/users/presentation/controllers/users.controller.ts:15`), y una convención en
-la web: el primer usuario de la lista es "el usuario", y si no hay ninguno se abre el onboarding
-(`apps/web/hooks/use-user.ts:21`). No hay contraseña, ni token, ni cookie, ni relación entre el
-usuario y sus materias: las materias y los materiales no tienen dueño.
+- `modules/auth/` con el port `AuthProvider` y el adapter `AuthenticoAuthProvider`.
+- Web: `LoginDialog` + `auth-session.ts` (cookie de 14 días o `sessionStorage`) y
+  `use-user.ts` que hace find-or-create del `User` local por login.
+- El `User` local (`{id, name}`) sigue siendo solo un perfil de la app; no hay dueño en
+  materias ni materiales todavía (plan de roles).
 
 ## Lo que se descartó
 
