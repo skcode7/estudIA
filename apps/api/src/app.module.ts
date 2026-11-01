@@ -9,6 +9,7 @@ import { MaterialsModule } from "./modules/materials/materials.module";
 import { QuizzesModule } from "./modules/quizzes/quizzes.module";
 import { SubjectsModule } from "./modules/subjects/subjects.module";
 import { TopicsModule } from "./modules/topics/topics.module";
+import { AuthModule } from "./modules/auth/auth.module";
 import { UsersModule } from "./modules/users/users.module";
 
 @Module({
@@ -22,7 +23,8 @@ import { UsersModule } from "./modules/users/users.module";
     MaterialsModule,
     EvaluationsModule,
     QuizzesModule,
-    UsersModule
+    UsersModule,
+    AuthModule
   ]
 })
 export class AppModule {}
