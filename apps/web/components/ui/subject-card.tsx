@@ -18,8 +18,8 @@ export function SubjectCard({
     <article
       className={
         isSubjectsView
-          ? "flex flex-col rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition hover:shadow-md"
-          : "rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"
+          ? "flex h-full flex-col rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition hover:shadow-md"
+          : "flex h-full flex-col rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"
       }
     >
       <div className="flex items-start justify-between">
@@ -57,7 +57,7 @@ export function SubjectCard({
           {subject.description}
         </p>
       )}
-      <div className={isSubjectsView ? "mt-auto pt-3" : "mt-3"}>
+      <div className="mt-auto pt-3">
         <div className="flex items-center justify-between text-xs text-slate-500">
           <span>{subject.materials} materiales</span>
           <span>{progressPercent}</span>

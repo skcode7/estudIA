@@ -27,7 +27,9 @@ export const ICON_GLYPHS = {
   streak: "fire-flame-curved",
   xp: "star",
   gems: "gem",
-  goal: "bullseye"
+  goal: "bullseye",
+  previous: "angle-left",
+  next: "angle-right"
 } as const;
 
 export type IconName = keyof typeof ICON_GLYPHS;

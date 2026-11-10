@@ -4,7 +4,7 @@ import { type Subject } from "../../lib/subjects";
 import { Notice } from "../ui/feedback";
 import { Icon } from "../ui/icon";
 import { EmptyPanel, ErrorPanel, LoadingPanel } from "../ui/state-panels";
-import { SubjectCard } from "../ui/subject-card";
+import { SubjectCarousel } from "../ui/subject-carousel";
 
 export function HomeView({
   notice,
@@ -34,8 +34,8 @@ export function HomeView({
         </p>
       </header>
 
-      <div className="mt-7 grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#8b6bff] to-[#5b3fe0] p-6 text-white shadow-sm sm:p-8 xl:col-start-1 xl:row-start-1">
+      <div className="mt-7 grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#8b6bff] to-[#5b3fe0] p-6 text-white shadow-sm sm:p-8 xl:col-span-2">
           <div className="relative z-10 max-w-md">
             <span className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-sm font-semibold">
               <Icon name="goal" />
@@ -66,7 +66,7 @@ export function HomeView({
 
         <section
           aria-labelledby="home-subjects-heading"
-          className="xl:col-start-1 xl:row-start-2"
+          className="flex min-h-0 min-w-0 flex-col xl:col-start-1 xl:row-start-2"
         >
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -102,15 +102,11 @@ export function HomeView({
               title="Sin materias"
             />
           ) : (
-            <div className="mt-4 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {subjects.map((subject) => (
-                <SubjectCard key={subject.id} subject={subject} />
-              ))}
-            </div>
+            <SubjectCarousel subjects={subjects} />
           )}
         </section>
 
-        <aside className="flex flex-col rounded-2xl border border-slate-100 bg-[#fef3e2] p-6 shadow-sm xl:col-start-2 xl:row-start-1">
+        <aside className="flex flex-col rounded-2xl border border-slate-100 bg-[#fef3e2] p-6 shadow-sm xl:col-start-2 xl:row-start-2">
           <h2 className="text-lg font-bold">¡No olvides!</h2>
           <p className="mt-2 text-sm leading-6 text-slate-600">
             Agrega el material que te mandan en la escuela para generar quizzes personalizados.
