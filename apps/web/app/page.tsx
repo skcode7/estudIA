@@ -13,6 +13,7 @@ import { MaterialsView } from "../components/views/materials-view";
 import { PlaceholderView } from "../components/views/placeholder-view";
 import { QuizView } from "../components/views/quiz-view";
 import { SubjectsView } from "../components/views/subjects-view";
+import { useLastPractice } from "../hooks/use-last-practice";
 import { useMaterials } from "../hooks/use-materials";
 import { useSubjects } from "../hooks/use-subjects";
 import { useUser } from "../hooks/use-user";
@@ -25,6 +26,7 @@ export default function HomePage() {
   const user = useUser();
   const subjects = useSubjects(setNotice, user.user !== null);
   const materials = useMaterials();
+  const lastPractice = useLastPractice(user.user !== null && activeView === "home");
 
   const openSubjects = useCallback(() => {
     setActiveView("subjects");
@@ -68,6 +70,7 @@ export default function HomePage() {
         {activeView === "home" ? (
           <HomeView
             isLoading={subjects.isLoading}
+            lastPractice={lastPractice}
             loadError={subjects.loadError}
             notice={notice}
             openMaterialDialog={materials.open}

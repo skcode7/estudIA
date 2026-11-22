@@ -1,8 +1,10 @@
 import Image from "next/image";
 
+import { type ApiLastPractice } from "../../lib/api";
 import { type Subject } from "../../lib/subjects";
 import { Notice } from "../ui/feedback";
 import { Icon } from "../ui/icon";
+import { PracticeBadge } from "../ui/practice-badge";
 import { EmptyPanel, ErrorPanel, LoadingPanel } from "../ui/state-panels";
 import { SubjectCarousel } from "../ui/subject-carousel";
 
@@ -12,6 +14,7 @@ export function HomeView({
   isLoading,
   loadError,
   userName,
+  lastPractice,
   openSubjectDialog,
   openMaterialDialog
 }: {
@@ -20,18 +23,22 @@ export function HomeView({
   isLoading: boolean;
   loadError: string;
   userName: string;
+  lastPractice: ApiLastPractice | null;
   openSubjectDialog: () => void;
   openMaterialDialog: () => void;
 }) {
   return (
     <>
-      <header>
-        <p className="text-2xl font-bold tracking-tight sm:text-3xl">
-          ¡Hola, {userName}!
-        </p>
-        <p className="mt-1 text-sm text-slate-500 sm:text-base">
-          Listo para aprender con tus propios materiales.
-        </p>
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-2xl font-bold tracking-tight sm:text-3xl">
+            ¡Hola, {userName}!
+          </p>
+          <p className="mt-1 text-sm text-slate-500 sm:text-base">
+            Listo para aprender con tus propios materiales.
+          </p>
+        </div>
+        {lastPractice && <PracticeBadge completedAt={lastPractice.completedAt} />}
       </header>
 
       <div className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">

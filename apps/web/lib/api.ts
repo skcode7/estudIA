@@ -527,6 +527,15 @@ export function listQuizzes(subjectId: string): Promise<ApiQuizSummary[]> {
   return request<ApiQuizSummary[]>(`/quizzes?subjectId=${encodeURIComponent(subjectId)}`);
 }
 
+/** Fin del último quiz completado en cualquier materia; null si nunca se respondió uno. */
+export interface ApiLastPractice {
+  completedAt: string | null;
+}
+
+export function getLastPractice(): Promise<ApiLastPractice> {
+  return request<ApiLastPractice>("/quizzes/last-practice");
+}
+
 export interface ApiQuizOptionReview {
   id: string;
   text: string;

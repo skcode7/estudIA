@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const API_URL = "http://localhost:3001/api/v1";
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 const SUBJECTS = Array.from({ length: 7 }, (_, index) => ({
   id: `subject-${index + 1}`,
@@ -37,6 +38,9 @@ async function mockApi(page: Page) {
   );
 
   await page.route(`${API_URL}/subjects`, (route) => route.fulfill({ json: SUBJECTS }));
+  await page.route(`${API_URL}/quizzes/last-practice`, (route) =>
+    route.fulfill({ json: { completedAt: new Date(Date.now() - 2 * DAY_MS).toISOString() } })
+  );
 }
 
 test.beforeEach(async ({ page }) => {
