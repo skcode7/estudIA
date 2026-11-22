@@ -12,7 +12,7 @@ export interface SubjectFormValues {
   icon?: string;
 }
 
-export function useSubjects(setNotice: (message: string) => void) {
+export function useSubjects(setNotice: (message: string) => void, enabled: boolean) {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -34,6 +34,7 @@ export function useSubjects(setNotice: (message: string) => void) {
   const [reloadSignal, setReloadSignal] = useState(0);
 
   useEffect(() => {
+    if (!enabled) return;
     let cancelled = false;
 
     async function load(): Promise<void> {
@@ -55,7 +56,7 @@ export function useSubjects(setNotice: (message: string) => void) {
     return () => {
       cancelled = true;
     };
-  }, [reloadSignal]);
+  }, [enabled, reloadSignal]);
 
   const filteredSubjects = useMemo(() => {
     const q = filter.trim().toLowerCase();

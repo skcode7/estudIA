@@ -23,7 +23,7 @@ export default function HomePage() {
   const [activeView, setActiveView] = useState<NavItemId>("home");
 
   const user = useUser();
-  const subjects = useSubjects(setNotice);
+  const subjects = useSubjects(setNotice, user.user !== null);
   const materials = useMaterials();
 
   const openSubjects = useCallback(() => {
