@@ -96,7 +96,7 @@ test("¡No olvides! comparte fila con el hero en escritorio", async ({ page }) =
   await page.goto("/");
 
   const tops = await page.evaluate(() => {
-    const grid = document.querySelector("body > main > div > section > div");
+    const grid = document.querySelector("body > main > div > div > section > div");
     const hero = grid?.querySelector(":scope > section:nth-of-type(1)");
     const aside = grid?.querySelector(":scope > aside");
     if (!hero || !aside) return null;
@@ -110,12 +110,32 @@ test("¡No olvides! comparte fila con el hero en escritorio", async ({ page }) =
   expect(tops?.aside).toBe(tops?.hero);
 });
 
+test("en escritorio el home cabe en el viewport sin scroll vertical", async ({ page }) => {
+  await page.route(`${API_URL}/subjects`, (route) => route.fulfill({ json: SUBJECTS.slice(0, 2) }));
+  await page.setViewportSize({ width: 1440, height: 745 });
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: "Salir" })).toBeVisible();
+
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollHeight - window.innerHeight
+  );
+  expect(overflow).toBeLessThanOrEqual(0);
+});
+
+test("el pie muestra la bandera de Ecuador con tooltip", async ({ page }) => {
+  await page.goto("/");
+
+  const flag = page.getByRole("img", { name: "Ecuador" });
+  await expect(flag).toBeVisible();
+  await expect(flag).toHaveAttribute("title", "Ecuador");
+});
+
 test("la grilla de materias comparte fila y altura con efemérides", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
 
   const boxes = await page.evaluate(() => {
-    const grid = document.querySelector("body > main > div > section > div");
+    const grid = document.querySelector("body > main > div > div > section > div");
     const subjects = grid?.querySelector(":scope > section[aria-labelledby='home-subjects-heading']");
     const ephemerides = grid?.querySelector(
       ":scope > section[aria-labelledby='home-ephemerides-heading']"

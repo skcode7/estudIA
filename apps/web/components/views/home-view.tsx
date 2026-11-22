@@ -34,7 +34,7 @@ export function HomeView({
         </p>
       </header>
 
-      <div className="mt-7 grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
         <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#8b6bff] to-[#5b3fe0] p-6 text-white shadow-sm sm:p-8 xl:col-start-1 xl:row-start-1">
           <div className="relative z-10 max-w-md">
             <span className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-sm font-semibold">

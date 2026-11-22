@@ -39,11 +39,11 @@ export function AppShell({
           openMaterialDialog={openMaterialDialog}
           userName={userName}
         />
-        <section className="min-w-0 flex-1 px-4 py-6 sm:px-7 lg:px-8 lg:py-9">
-          {children}
-        </section>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <section className="flex-1 px-4 py-6 sm:px-7 lg:px-8 lg:py-6">{children}</section>
+          <SiteFooter />
+        </div>
       </div>
-      <SiteFooter />
     </main>
   );
 }
