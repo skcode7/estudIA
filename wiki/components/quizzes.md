@@ -7,13 +7,16 @@ sources:
   - apps/api/src/modules/quizzes/application/ports/quiz.repository.ts
   - apps/api/src/modules/quizzes/application/use-cases/list-quizzes.use-case.ts
   - apps/api/src/modules/quizzes/application/use-cases/get-quiz-attempt.use-case.ts
+  - apps/api/src/modules/quizzes/application/use-cases/generate-quiz.use-case.ts
+  - apps/api/src/modules/quizzes/application/use-cases/get-quiz.use-case.ts
   - apps/api/src/modules/quizzes/application/use-cases/submit-quiz-attempt.use-case.ts
+  - apps/api/src/modules/quizzes/presentation/controllers/quizzes.controller.ts
   - apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts
   - apps/api/src/shared/text.utils.ts
   - apps/api/src/modules/quizzes/presentation/dto/quizzes.dto.ts
   - apps/api/src/modules/materials/infrastructure/prisma-material-question.repository.ts
   - apps/api/prisma/schema.prisma
-synced: 4b7f1f3
+synced: ee6e904
 related:
   - ../flows/generar-y-resolver-quiz.md
   - ../components/materiales.md
@@ -21,10 +24,11 @@ related:
 
 # Módulo de quizzes
 
-Cuatro casos de uso (`GenerateQuizUseCase`, `SubmitQuizAttemptUseCase`, `ListQuizzesUseCase` y
-`GetQuizAttemptUseCase`), un puerto y un repositorio Prisma: generar, corregir, listar y revisar un
-intento. Lo interesante no está en el código del módulo sino en lo que un `Quiz` significa respecto
-a las preguntas, que pertenecen a otro módulo.
+Cinco casos de uso (`GenerateQuizUseCase`, `SubmitQuizAttemptUseCase`, `ListQuizzesUseCase`,
+`GetQuizAttemptUseCase` y, desde `dcaa2c9`, `GetQuizUseCase`), un puerto y un repositorio Prisma:
+generar, corregir, listar, revisar un intento y recuperar un quiz para reanudarlo. Lo interesante
+no está en el código del módulo sino en lo que un `Quiz` significa respecto a las preguntas, que
+pertenecen a otro módulo.
 
 ## El quiz es una instantánea, no una copia
 
@@ -34,9 +38,14 @@ copian: se leen de la pregunta cada vez que hace falta — `findQuizForGrading` 
 `isCorrect` (`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:105`). Por eso
 dos quizzes distintos pueden compartir preguntas y por eso el quiz no se puede editar.
 
-La presentación se baraja al servir, no al guardar
-(`apps/api/src/modules/quizzes/presentation/controllers/quizzes.controller.ts:87`): el `order` de
-`QuizQuestion` es el orden de creación, no el que ve el estudiante.
+**La presentación ya no se baraja al servir.** Hasta `dcaa2c9` `toQuizDto` aplicaba `shuffle` a
+preguntas y opciones en cada petición; con la reanudación eso rompía el orden entre recargas, así
+que hoy sirve ambas listas tal cual se guardaron
+(`apps/api/src/modules/quizzes/presentation/controllers/quizzes.controller.ts:93`). La aleatoriedad
+queda en la selección del pool al generar, y el `order` de `QuizQuestion` es el orden que ve el
+estudiante. Para reanudar, `GET /quizzes/:id` usa `findQuizForPresentation`, que trae las opciones
+sin `isCorrect` (`apps/api/src/modules/quizzes/application/use-cases/get-quiz.use-case.ts:10`); el
+quiz no se puede editar, pero sí volver a abrirse.
 
 ## Cuántas preguntas entra: un porcentaje del pool, no un número fijo
 
@@ -63,11 +72,11 @@ del flujo de corrección, no llama a un proveedor externo.
 ## Corregir escribe progreso
 
 `saveAttempt` crea el intento con sus respuestas **y** recalcula `TopicProgress` en la misma
-transacción (`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:135`): una
+transacción (`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:185`): una
 fila por tema con intentos, aciertos, respuestas y `masteryScore` como media de aciertos
-(`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:301`). Como las preguntas
+(`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:351`). Como las preguntas
 pueden pertenecer a temas distintos en un quiz de toda la materia, el progreso se agrega por tema
-de cada pregunta, no por el tema del quiz (`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:274`).
+de cada pregunta, no por el tema del quiz (`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:324`).
 
 `TopicProgress` es el "progreso básico" del MVP y hoy es de solo escritura: ningún endpoint lo
 lee, y la vista no muestra nada acumulado. Es el lugar donde el progreso real ya se está
@@ -101,30 +110,31 @@ historial sigue sin decidir: está en `docs/ToDo/ciclo-vida-preguntas-material.m
 
 `GET /quizzes?subjectId=` (`listBySubject`) devuelve, por materia, cada quiz con su tema, cuántas
 preguntas tiene y el resultado del **último intento completado**
-(`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:165`). El agregado es
+(`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:215`). El agregado es
 deliberado y está escrito en el puerto: con varios intentos se lista el más reciente, no el mejor ni
 el promedio (`apps/api/src/modules/quizzes/application/ports/quiz.repository.ts:99`), y un quiz sin
 intento viaja con `score: null` y `attemptId: null` en vez de un `0%` que sería falso.
 
 `GET /quizzes/:id/attempts/:attemptId` (`findAttemptDetail`) devuelve el repaso pregunta a pregunta
 *con* `isCorrect` y el texto de las opciones
-(`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:201`). La asimetría con el
+(`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:251`). La asimetría con el
 listado es intencional: el listado es un resumen que no revela respuestas, y el detalle es la
 revisión de un intento ya enviado — la misma información que devuelve el `POST` de intentos. Es la
 frontera que `docs/ToDo/roles-tutor-alumno.md` quiere dejar explícita.
 
 Dos decisiones del repositorio se ven en los bordes. El detalle responde `null` —y el caso de uso un
 `404`— si el intento pertenece a otro quiz o si está incompleto (`attempt.quizId !== quizId`, con
-`score` o `completedAt` nulos, `apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:229`);
+`score` o `completedAt` nulos, `apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:279`);
 y las respuestas se ordenan por el `order` del `QuizQuestion`
-(`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:240`) para que el repaso
+(`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:290`) para que el repaso
 siga el orden que vio el estudiante, no el de inserción.
 
 ## Lo que el módulo no tiene
 
-No hay `GET /quizzes/:id` *pendiente*: se implementó para reanudar quizzes (ver `components/quizzes.md`). Lo que
-sí hay desde `6191d10` es el historial de intentos ya enviados. Tampoco hay deduplicación de intentos ni
-caducidad: cada envío crea un `QuizAttempt` nuevo.
+`GET /quizzes/:id` ya existe desde `dcaa2c9`, pero **solo para reanudar**: devuelve el quiz sin
+corrección y la web guarda el borrador en `localStorage`. No hay rejugar un quiz ya respondido ni
+deduplicación de intentos ni caducidad: cada envío crea un `QuizAttempt` nuevo. Lo que sí hay desde
+`6191d10` es el historial de intentos ya enviados.
 
 El contrato de entrada está en los DTOs: un intento exige `startedAt` y un array de respuestas
 validado elemento a elemento (`apps/api/src/modules/quizzes/presentation/dto/quizzes.dto.ts:89`),

@@ -44,7 +44,15 @@ go.sum
 # tests and test configuration (24 *.spec.ts alongside each use case / mapper)
 **/*.spec.ts
 **/*.test.ts
+**/*.test.tsx
 apps/web/playwright.config.ts
+apps/web/vitest.config.mts
+
+# Next.js metadata icons and brand assets: images, not behaviour
+apps/web/app/apple-icon.png
+apps/web/app/favicon.ico
+apps/web/app/icon.png
+docs/logo.jpeg
 
 # generated files and migrations (the schema is what matters, not ninety migrations)
 apps/api/prisma/migrations/**

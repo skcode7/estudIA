@@ -343,3 +343,41 @@ página nueva: el módulo de autenticación recién integrado.
   por `.wikipokeignore` (no son código documentable). `get-quiz.use-case.ts` se considera parte
   del módulo de quizzes ya cubierto.
 - `decisions/authentico.md` ya estaba reconciliado en el commit anterior.
+
+## 2026-11-22 · wikipoke-ingest
+
+Reconciliación de 4 commits desde `2fcbda4` (el checkpoint se había avanzado sin re-sellar las
+páginas): login con Authentico, fotos múltiples, paginación server-side de materiales, quiz
+reanudable, carrusel de materias y panel de efemérides.
+
+- `architecture.md`, `components/catalogo.md`, `components/web.md`,
+  `components/armazon-y-primitivas.md`, `components/vistas-de-catalogo.md` — el MVP ya tiene
+  login: `AuthModule` en `app.module.ts`, `X-Session-Id` en cada petición, `useUser` hace
+  find-or-create del `User` local por login (ya no toma el primero de la lista), `LoginDialog`
+  sustituye al onboarding y aparece el botón «Salir». `UserOnboardingDialog` quedó como código
+  muerto y se anota como tal. `index.md` y la tabla de `architecture.md` corrigen el título viejo
+  de `decisions/authentico.md`.
+- `components/armazon-y-primitivas.md` — se corrige una contradicción antigua: `Dialog` y el panel
+  móvil **sí** atrapan el foco, bloquean el scroll y restauran el foco, por `useModalBehavior`
+  (`623bf6f`). Nueva sección para ese hook, que ahora tiene página que lo reclama.
+- `components/materiales.md`, `flows/procesamiento-de-material.md`,
+  `components/persistencia.md`, `concepts/configuracion-por-entorno.md` — el alta sube hasta 10
+  fotos y crea una `MaterialImage` por cada una; `findByTopic` devuelve `{items, total}` con
+  `take`/`skip` y `count`; `.env.example` incorpora el bloque de Authentico, y `AuthModule` es la
+  única config con fail-fast al arrancar. Anotado sin arreglar: si una subida falla a mitad del
+  lote, las fotos ya subidas quedan huérfanas; y extraer figuras reemplaza también las fotos del alta.
+- `components/quizzes.md`, `flows/generar-y-resolver-quiz.md`, `components/persistencia.md` —
+  `toQuizDto` ya no baraja al servir (el orden debe ser estable para reanudar), existe
+  `GET /quizzes/:id` vía `GetQuizUseCase`/`findQuizForPresentation`, y la vista persiste el quiz en
+  curso en `localStorage` con «Continuar» en el historial. Corregidas las frases que daban por
+  perdido el quiz al recargar y por deshabilitada la fila sin intento.
+- `components/vistas-de-catalogo.md` — nueva sección para `SubjectCarousel` (ResizeObserver,
+  salto por bloque, huecos de relleno) y el layout de dos filas: hero + «¡No olvides!», carrusel +
+  «Efemérides». El panel de efemérides se documenta como placeholder sin API de Wikimedia.
+- `components/ia.md`, `concepts/puertos-y-adapters.md`, `flows/figuras-embebidas.md`,
+  `components/crud-de-catalogo.md` — solo citas re-apuntadas y `synced:` elevado.
+- Citas re-apuntadas en las 15 páginas stale y en la fresca `crud-de-catalogo.md`; `synced:`
+  elevado a `ee6e904` en todas las stale. `subject-carousel.tsx`, `get-quiz.use-case.ts` y
+  `use-modal-behavior.ts` pasan a tener dueño; se ignoran por `.wikipokeignore` los iconos de
+  Next, `docs/logo.jpeg`, `*.test.tsx` y `vitest.config.mts` (no son comportamiento de estudIA).
+- Sin páginas nuevas. Hallazgos anotados, código sin tocar.

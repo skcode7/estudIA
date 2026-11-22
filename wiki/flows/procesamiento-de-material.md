@@ -16,7 +16,7 @@ sources:
   - apps/api/src/modules/ai/application/ports/ai-provider.ts
   - apps/api/src/infrastructure/ai/deepseek/deepseek.prompts.ts
   - apps/web/components/views/materials-view.tsx
-synced: 4b7f1f3
+synced: ee6e904
 related:
   - ./figuras-embebidas.md
   - ../architecture.md
@@ -30,7 +30,7 @@ IA) y **procesar** (lento, con IA).
 
 En la web ya no lo son. Desde `4fe2f8a` confirmar el diálogo encadena el procesamiento y el popup
 cierra al guardar: el `POST /materials/:id/process` sigue en segundo plano
-(`apps/web/app/page.tsx:145`), porque puede tardar lo que tarde el proveedor. La página lo lanza
+(`apps/web/app/page.tsx:148`), porque puede tardar lo que tarde el proveedor. La página lo lanza
 con `void` y no espera, así que el usuario ve aparecer el material antes de que tenga preguntas.
 El botón "Procesar" de la lista sobrevive y sigue siendo la salida para reintentar un `PENDING` o un
 `FAILED`.
@@ -42,12 +42,14 @@ En cuanto se elige un archivo, el diálogo lanza la extracción sin persistir na
 `analyzeMaterialDraft` en `apps/web/components/dialogs/material-dialog.tsx:200`). También hay un
 botón «Extraer con IA» para el texto pegado.
 
-El diálogo acepta varias fotos en secuencia: la primera establece las sugerencias iniciales y cada
-foto adicional suma su texto extraído sin cambiar materia, tema ni título (`material-dialog.tsx:142`).
-Solo la primera imagen se envía y se conserva como binario del material; la interfaz advierte esta
-limitación (`apps/web/components/dialogs/material-dialog.tsx:386`).
+El diálogo acepta varias fotos en secuencia (hasta 10): la primera establece las sugerencias
+iniciales y el título, y cada foto adicional suma su texto extraído sin cambiar materia, tema ni
+título (`apps/web/components/dialogs/material-dialog.tsx:220`). Cada foto cuesta su propia llamada
+a `analyzeMaterialDraft`. Desde `a778b5e` **todas** se envían y se conservan como imágenes del
+material; el propio diálogo lo advierte
+(`apps/web/components/dialogs/material-dialog.tsx:386`). Antes solo se guardaba la primera.
 
-`POST /api/v1/materials/analyze` (`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:71`)
+`POST /api/v1/materials/analyze` (`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:73`)
 llega a `AnalyzeMaterialDraftUseCase`, que carga el catálogo real de materias y temas
 (`apps/api/src/modules/materials/application/use-cases/analyze-material-draft.use-case.ts:58`) y se
 lo pasa a la IA para que sugiera dónde encaja el material
@@ -68,32 +70,37 @@ usuario puede ajustar antes de guardar.
 
 ## 2 · Guardar: rápido y sin IA
 
-Al enviar el formulario hay dos caminos según haya archivo o solo texto
-(`apps/web/components/dialogs/material-dialog.tsx:277`). La fila nace `PENDING` y es la página la que
-dispara el procesamiento detrás, así que guardar y procesar son dos peticiones que el usuario nunca
-llega a ver separadas:
+Al enviar el formulario hay dos caminos según haya fotos (`pages.length > 0`) o solo texto
+(`apps/web/components/dialogs/material-dialog.tsx:277`, hoy con `files: pages`). La fila nace
+`PENDING` y es la página la que dispara el procesamiento detrás, así que guardar y procesar son dos
+peticiones que el usuario nunca llega a ver separadas:
 
 - **Texto** → `POST /api/v1/materials` → `CreateTextMaterialUseCase`, que solo valida que el tema
   exista y crea la fila.
-- **Archivo** → `POST /api/v1/materials/upload` (multipart, tope de 10 MB en
-  `apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:51`) →
-  `CreateTextMaterialUseCase` no interviene: `CreateFileMaterialUseCase` sube el binario al object
-  storage con clave `topics/<topicId>/materials/<uuid><ext>`
-  (`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:45`) y
-  guarda la fila con `storageKey`, `content` (si la transcripción ya vino del borrador),
-  `hasEmbeddedFigures` (`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:71`)
-  y `questionMode` (`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:72`).
+- **Fotos** → `POST /api/v1/materials/upload` (multipart, 10 MB por foto y 10 fotos como máximo en
+  `apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:52`) →
+  `CreateTextMaterialUseCase` no interviene: `CreateFileMaterialUseCase` sube **cada** foto al
+  object storage con clave `topics/<topicId>/materials/<uuid><ext>`
+  (`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:68`) y
+  guarda la fila con `storageKey` apuntando a la primera, `content` (si la transcripción ya vino del
+  borrador), `hasEmbeddedFigures`
+  (`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:98`)
+  y `questionMode` (`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:99`).
+  Acto seguido crea una `MaterialImage` por foto con el nombre original y el orden de subida
+  (`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:103`),
+  así que el material recién creado ya responde tantas imágenes como fotos se eligieron.
 
-Si el storage falla, la petición falla con `503` y **no queda fila creada**
-(`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:62`). Antes de
-devolver el mismo error genérico, el caso de uso registra el error original junto a la key y el bucket
-(`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:55`). El
-material nace con `processingStatus: PENDING` y `questionCount: 0` (e `imageCount: 0`).
+Si una subida falla, la petición falla con `503` y **no queda fila creada**
+(`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:85`), pero
+las fotos que sí llegaron al storage en ese intento quedan huérfanas. Antes de devolver el mismo
+error genérico, el caso de uso registra el error original junto a la key y el bucket
+(`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:79`). El
+material nace con `processingStatus: PENDING` y `questionCount: 0`.
 
 ## 3 · Procesar: el estado y las fases
 
 `POST /api/v1/materials/:id/process` dispara `ProcessMaterialUseCase`
-(`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:188`). El estado
+(`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:202`). El estado
 avanza por `PENDING → PROCESSING → COMPLETED`, y cualquier error cae a `FAILED` con un mensaje
 legible: `fail()` marca el estado y devuelve `questionCount` e `imageCount` en 0
 (`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:321`).
@@ -165,9 +172,9 @@ proveedor de IA, y la web lo lanza sin esperarlo desde el popup. Reprocesar un m
 vuelve a generar sus preguntas desde cero.
 
 En segundo plano la fila nace en `PENDING` y la lista la enseña con el botón "Procesar" ya
-deshabilitado y el texto "Procesando…" (`apps/web/components/views/materials-view.tsx:302`), porque
+deshabilitado y el texto "Procesando…" (`apps/web/components/views/materials-view.tsx:325`), porque
 `useMaterials` lleva los ids en vuelo y la vista los suma a su propio estado de proceso manual
-(`apps/web/components/views/materials-view.tsx:266`). Ese estado vive en el hook y no en la vista, así
+(`apps/web/components/views/materials-view.tsx:289`). Ese estado vive en el hook y no en la vista, así
 que sobrevive a que el usuario salga de Materiales y vuelva. Al terminar, `startProcessing` refresca el
 listado sin importar si nadie lo está mirando
 (`apps/web/hooks/use-materials.ts:46`).

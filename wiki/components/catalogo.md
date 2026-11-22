@@ -8,8 +8,9 @@ sources:
   - apps/api/src/modules/users/presentation/controllers/users.controller.ts
   - apps/api/src/modules/materials/application/use-cases/create-text-material.use-case.ts
   - apps/web/hooks/use-user.ts
+  - apps/web/components/dialogs/login-dialog.tsx
   - apps/api/prisma/schema.prisma
-synced: 4b7f1f3
+synced: ee6e904
 related:
   - ../components/materiales.md
   - ../components/crud-de-catalogo.md
@@ -53,18 +54,20 @@ código no señala:
   perderán los materiales, pero el número real no se consulta antes de borrar. Ambos problemas
   están registrados en `docs/ToDo/borrado-en-cascada-con-confirmacion-y-limpieza.md`.
 
-## El usuario es un nombre, y el primero manda
+## El usuario es un perfil local que el login busca por nombre
 
-`User` (`apps/api/prisma/schema.prisma:252`) es solo `name` + fechas: sin contraseña, sin sesión,
-sin rol. La web decide cuál es "el usuario" con una convención, no con una regla: carga la lista y
-se queda con el primero (`apps/web/hooks/use-user.ts:21`); si la lista está vacía — o si la
-consulta falla — abre el diálogo de onboarding para crearlo
-(`apps/web/hooks/use-user.ts:24`).
+`User` (`apps/api/prisma/schema.prisma:252`) sigue siendo solo `name` + fechas: sin contraseña,
+sin sesión, sin rol. Lo que cambió con el login de Authentico (`c627736`) es quién decide cuál es
+"el usuario": ya no es el primero de la lista. `useUser` lee la sesión guardada
+(`apps/web/hooks/use-user.ts:28`), hace find-or-create del `User` local por `login`
+(`apps/web/hooks/use-user.ts:16`) y, si no hay sesión, abre el diálogo de login
+(`apps/web/hooks/use-user.ts:31`). Un fallo de la API al resolver ese perfil no se confunde con
+un usuario nuevo: se muestra «Sin conexión» con reintento
+(`apps/web/hooks/use-user.ts:38`, `apps/web/components/dialogs/login-dialog.tsx:36`).
 
-Eso significa que en un despliegue con varios navegadores cualquiera que cree un usuario ve el
-mismo perfil: el MVP es de un solo usuario y la API no lo impone en ninguna parte. La frontera
-para poner aquí una identidad real está prevista y documentada en
-[Authentico más tarde](../decisions/authentico.md).
+El `SessionId` es opaco y lo emite Authentico; la API todavía no valida la sesión, así que los
+endpoints siguen siendo públicos y el `User` local no es una identidad. Roles, guards y
+multiusuario están diferidos en [Login con Authentico (etapa 2)](../decisions/authentico.md).
 
 ## Lo que estos módulos dejan fuera
 

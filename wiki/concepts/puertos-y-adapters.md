@@ -9,7 +9,7 @@ sources:
   - apps/api/src/modules/ai/application/ports/ai-provider.ts
   - apps/api/src/modules/materials/materials.module.ts
   - apps/api/src/modules/ai/ai.module.ts
-synced: 4b7f1f3
+synced: ee6e904
 related:
   - ../components/ia.md
   - ../components/materiales.md
@@ -60,7 +60,7 @@ sustituyen por mocks del mismo tipo.
 
 Nada es perfecto y hay dos excepciones visibles. Los DTOs de la capa `presentation` son
 class-validator y se conocen en el controller, que es donde se traducen a tipos del dominio
-(`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:213`). Y la
+(`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:227`). Y la
 configuración no pasa por puertos: se inyecta como token propio de cada módulo (ver
 [Configuración por entorno](./configuracion-por-entorno.md)).
 

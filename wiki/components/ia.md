@@ -18,7 +18,7 @@ sources:
   - apps/api/src/infrastructure/ai/openrouter/openrouter.prompts.ts
   - apps/api/src/infrastructure/ai/openrouter/openrouter.schemas.ts
   - apps/web/components/dialogs/material-dialog.tsx
-synced: 7c7585a
+synced: ee6e904
 related:
   - ../flows/figuras-embebidas.md
   - ../flows/procesamiento-de-material.md

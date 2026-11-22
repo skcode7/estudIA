@@ -20,14 +20,16 @@ sources:
   - pnpm-workspace.yaml
   - docker-compose.yml
   - .env.example
-synced: 4b7f1f3
+synced: ee6e904
 ---
 
 # Arquitectura de estudIA
 
 estudIA convierte materiales escolares (apuntes, textos, PDFs) en una experiencia de estudio:
-temas, quizzes generados con IA y progreso. El MVP es de un solo usuario, sin autenticación, y
-todo el procesamiento de IA es on-demand: no hay colas ni workers.
+temas, quizzes generados con IA y progreso. El MVP sigue siendo de un solo usuario, pero el login
+ya está integrado: desde `437f82b` (API) y `c627736` (web) la identidad entra por Authentico
+(ver [Autenticación](./components/auth.md)). Roles, guards y multiusuario siguen diferidos. Todo
+el procesamiento de IA es on-demand: no hay colas ni workers.
 
 ## El mapa
 
@@ -65,11 +67,12 @@ application/    use cases + ports (interfaces)             ← lógica de negoci
 infrastructure/ adaptadores (Prisma, S3, DeepSeek, sharp)  ← los proveedores concretos
 ```
 
-`apps/api/src/app.module.ts:14` es la raíz: importa la infraestructura compartida (`PrismaModule`,
+`apps/api/src/app.module.ts:15` es la raíz: importa la infraestructura compartida (`PrismaModule`,
 `ObjectStorageModule`, `AIModule`) y los módulos de dominio (`HealthModule`, `SubjectsModule`,
-`TopicsModule`, `MaterialsModule`, `EvaluationsModule`, `QuizzesModule`, `UsersModule`) en `apps/api/src/app.module.ts:15`. Los
-puertos viven dentro de cada módulo, en `application/ports/`, de modo que un caso de uso depende
-de una interfaz y no de Prisma ni de ningún SDK.
+`TopicsModule`, `MaterialsModule`, `EvaluationsModule`, `QuizzesModule`, `UsersModule`,
+`AuthModule`) en `apps/api/src/app.module.ts:16`. Los puertos viven dentro de cada módulo, en
+`application/ports/`, de modo que un caso de uso depende de una interfaz y no de Prisma ni de
+ningún SDK.
 
 ## Puntos de entrada
 
@@ -82,10 +85,12 @@ El `.env` se carga a mano desde `apps/api/.env` (`apps/api/src/main.ts:10`): el 
 arranca desde `dist/`, así que `process.env` no se rellena solo.
 
 **Web.** No hay router de páginas: una única página client-side, `apps/web/app/page.tsx:21`, decide
-qué vista renderiza según la navegación (`apps/web/app/page.tsx:65`) y monta los diálogos globales.
+qué vista renderiza según la navegación (`apps/web/app/page.tsx:68`) y monta los diálogos globales.
 El layout fija el idioma de la interfaz en español (`apps/web/app/layout.tsx:14`). La web habla solo
-con `NEXT_PUBLIC_API_URL` (`apps/web/lib/api.ts:83`, declarada en `.env.example:6`), sin cookies ni
-sesión. El diseño no usa librería de componentes: Tailwind con clases escritas a mano y tres colores
+con `NEXT_PUBLIC_API_URL` (`apps/web/lib/api.ts:85`, declarada en `.env.example:6`), y desde el
+login adjunta el `X-Session-Id` opaco de Authentico a cada petición
+(`apps/web/lib/api.ts:104`); la sesión la guarda la web, no la API. El diseño no usa librería de
+componentes: Tailwind con clases escritas a mano y tres colores
 base en `apps/web/app/globals.css:3` (fondo `#f8f7fc`, texto `#1e1b2e` y el morado `#6d4aff` que se
 repite literalmente en cada archivo, sin token de Tailwind). Los iconos sí comparten una familia
 externa UIcons Rounded, cuya hoja se carga desde el layout (`apps/web/app/layout.tsx:4`) y cuya
@@ -107,7 +112,7 @@ modo que producción cambia de proveedor sin tocar código.
 
 | Carpeta | Dueña de |
 | --- | --- |
-| `apps/api/src/modules/*` | los casos de dominio: materias, temas, materiales, evaluaciones, quizzes, usuarios, health |
+| `apps/api/src/modules/*` | los casos de dominio: materias, temas, materiales, evaluaciones, quizzes, usuarios, auth, health |
 | `apps/api/src/infrastructure/ai` | los adaptadores de IA: cliente DeepSeek, cliente OpenRouter y el registro de proveedor |
 | `apps/api/src/infrastructure/database`, `object-storage`, `images` | Prisma, S3 y el recorte de figuras con sharp |
 | `apps/web/components`, `hooks`, `lib` | la interfaz: armazón, vistas, diálogos, primitivas, hooks de datos y el cliente HTTP |
@@ -137,4 +142,4 @@ modo que producción cambia de proveedor sin tocar código.
 | [Configuración por entorno](./concepts/configuracion-por-entorno.md) | qué se lee al arrancar y qué al llamar |
 | [DeepSeek y el modelo de visión](./decisions/proveedor-ia.md) | por qué un puerto y dos proveedores |
 | [Storage S3 con MinIO](./decisions/storage-s3-minio.md) | por qué object storage y no disco ni Postgres |
-| [Sin identidad en el MVP](./decisions/authentico.md) | por qué no hay login y dónde entra Authentico |
+| [Login con Authentico (etapa 2)](./decisions/authentico.md) | por qué el login usa el SDK y qué sigue diferido a roles |

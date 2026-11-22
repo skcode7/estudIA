@@ -13,9 +13,11 @@ sources:
   - apps/web/components/ui/material-status-badge.tsx
   - apps/web/components/ui/icon.tsx
   - apps/web/components/layout/site-footer.tsx
+  - apps/web/components/dialogs/login-dialog.tsx
+  - apps/web/hooks/use-modal-behavior.ts
   - apps/web/lib/icons.ts
   - apps/web/lib/navigation.ts
-synced: 4b7f1f3
+synced: ee6e904
 related:
   - ./web.md
   - ./vistas-de-catalogo.md
@@ -32,14 +34,14 @@ reciben datos y funciones ya cerrados.
 `AppShell` (`apps/web/components/layout/app-shell.tsx:10`) es la única pieza que decide la
 estructura: fondo `#f8f7fc`, cabecera móvil, columna de contenido, las dos navegaciones y el footer. No conoce
 las vistas —recibe `children`— y solo reenvía `activeView`, `onNavigate`, `openMaterialDialog` y
-`userName`. Desde `6d3cfec` es una columna (`apps/web/components/layout/app-shell.tsx:24`) y no una
+`userName`. Desde `6d3cfec` es una columna (`apps/web/components/layout/app-shell.tsx:26`) y no una
 fila con hueco inferior: la cabecera del menú móvil va encima, y el `pb-24` que reservaba sitio para
 la barra de abajo se fue con ella.
 
 Las dos navegaciones son **la misma lista**, `navItems` (`apps/web/lib/navigation.ts:1`), ahora con
 identificadores semánticos de icono en vez de glifos; `NavLinks` los resuelve mediante `Icon`
 (`apps/web/components/layout/nav-shared.tsx:44`). Desde `6d3cfec` también **las mismas piezas**:
-`Sidebar` (`apps/web/components/layout/sidebar.tsx:16`) y
+`Sidebar` (`apps/web/components/layout/sidebar.tsx:18`) y
 `MobileMenu` (`apps/web/components/layout/mobile-menu.tsx:10`) componen `NavLinks`, `BrandLockup`
 (`apps/web/components/layout/nav-shared.tsx:9`), `AddMaterialButton`
 (`apps/web/components/layout/nav-shared.tsx:72`) y `UserCard`
@@ -55,31 +57,36 @@ cosa; hoy el panel muestra las siete igual que la barra lateral, y el orden de l
 ser solo una decisión de producto (los que aún no tienen pantalla —Progreso e Insignias— siguen al
 final). `ba4dd59` movió Evaluaciones delante de Quiz.
 
-Navegar cierra el panel (`apps/web/components/layout/mobile-menu.tsx:23`), y lo mismo hacen el fondo
-y el botón de cierre (`apps/web/components/layout/mobile-menu.tsx:28`); Escape lo cierra
-(`apps/web/components/layout/mobile-menu.tsx:72`) y el fondo deja de desplazarse mientras está
-abierto (`apps/web/components/layout/mobile-menu.tsx:72`). Lo que **no** tiene —igual que el
-`Dialog`— es foco atrapado.
+Navegar cierra el panel (`apps/web/components/layout/mobile-menu.tsx:25`), y lo mismo hacen el fondo
+y el botón de cierre (`apps/web/components/layout/mobile-menu.tsx:30`); Escape lo cierra
+(`apps/web/components/layout/mobile-menu.tsx:77`) y el fondo deja de desplazarse mientras está
+abierto. Todo eso se lo da `useModalBehavior`, compartido con el `Dialog`, que además **sí** atrapa
+el foco y lo devuelve al cerrar (ver [El hook que comparten todos los modales](#el-hook-que-comparten-todos-los-modales)).
 
 Solo hay una acción global: **Agregar material**. En escritorio es un botón más de la barra lateral
-(`apps/web/components/layout/sidebar.tsx:22`) y en móvil un ítem del panel
-(`apps/web/components/layout/mobile-menu.tsx:28`), que además cierra el panel antes de abrirlo. Es
+(`apps/web/components/layout/sidebar.tsx:24`) y en móvil un ítem del panel
+(`apps/web/components/layout/mobile-menu.tsx:30`), que además cierra el panel antes de abrirlo. Es
 la misma función entrando por dos puertas, y las dos se desactivan por `lg`, así que nunca
-coexisten.
+coexisten. Con el login de Authentico (`c627736`) apareció una segunda, **Salir**, que viaja como
+`onLogout` desde `AppShell` y se pinta bajo `UserCard` solo si hay sesión y nombre: en la barra
+lateral (`apps/web/components/layout/sidebar.tsx:27`) y en el panel móvil
+(`apps/web/components/layout/mobile-menu.tsx:119`).
 
-`SiteFooter` se monta debajo del contenido compartido (`apps/web/components/layout/app-shell.tsx:42`)
+`SiteFooter` se monta debajo del contenido compartido (`apps/web/components/layout/app-shell.tsx:46`)
 y presenta la bandera de Ecuador junto a la atribución «Uicons by Flaticon» enlazada al sitio del
 proveedor (`apps/web/components/layout/site-footer.tsx:5`).
 
 ## El diálogo base
 
-`Dialog` (`apps/web/components/dialogs/dialog.tsx:5`) es un overlay sin portal de React, sin foco
-atrapado y sin tecla Escape: solo un `role="dialog"` y un fondo que cubre la pantalla. Cerrar es
-responsabilidad de quien lo usa, siempre con el mismo botón de cierre de la esquina; el glifo sale
-del mapa UIcons compartido.
+`Dialog` (`apps/web/components/dialogs/dialog.tsx:5`) es un overlay sin portal de React. La
+descripción vieja decía que no tenía foco atrapado ni tecla Escape; desde `623bf6f` es al revés:
+delega ambos, el cierre por fondo y el bloqueo de scroll en `useModalBehavior`
+(`apps/web/components/dialogs/dialog.tsx:26`). El contenedor lleva `role="dialog"`,
+`aria-modal="true"`, `tabIndex={-1}` y un botón de cierre en la esquina; quien lo usa decide
+`onClose`.
 
 Tiene dos anchos, y esa es toda su API: `max-w-lg` por defecto y `max-w-2xl` con scroll propio
-cuando `wide` está activo (`apps/web/components/dialogs/dialog.tsx:68`). El ancho grande existe
+cuando `wide` está activo (`apps/web/components/dialogs/dialog.tsx:43`). El ancho grande existe
 porque la pantalla de edición de material no cabe en el estrecho: sin él, las pestañas y la galería
 quedan apretadas.
 
@@ -87,6 +94,17 @@ quedan apretadas.
 diálogos con formulario: cancelar a la izquierda, confirmar a la derecha, el confirm siempre con
 `type="submit"`. Aparece dentro de un `<form>`, no envuelve uno, para que cada diálogo decida
 cuándo valida.
+
+## El hook que comparten todos los modales
+
+`useModalBehavior` (`apps/web/hooks/use-modal-behavior.ts:60`) es la pieza que usan el `Dialog`, el
+panel móvil, `LoginDialog` y el antiguo `UserOnboardingDialog`: enfoca el primer accionable al
+abrir (`apps/web/hooks/use-modal-behavior.ts:75`), atrapa el Tab dentro del contenedor
+(`apps/web/hooks/use-modal-behavior.ts:90`), bloquea el scroll del `body`
+(`apps/web/hooks/use-modal-behavior.ts:79`) y devuelve el foco al elemento que abrió el modal al
+cerrar (`apps/web/hooks/use-modal-behavior.ts:82`). Cada llamada puede desactivar Escape, el cierre
+por fondo o la restauración del foco; el login usa `closeOnEscape: false` para que no se pueda
+cerrar sin sesión (`apps/web/components/dialogs/login-dialog.tsx:26`).
 
 ## Los tres estados de una lista
 

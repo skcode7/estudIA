@@ -7,12 +7,14 @@ sources:
   - apps/web/components/views/subjects-view.tsx
   - apps/web/components/views/placeholder-view.tsx
   - apps/web/components/ui/subject-card.tsx
+  - apps/web/components/ui/subject-carousel.tsx
   - apps/web/components/dialogs/subject-dialog.tsx
   - apps/web/components/dialogs/delete-subject-dialog.tsx
   - apps/web/components/dialogs/user-onboarding-dialog.tsx
+  - apps/web/components/dialogs/login-dialog.tsx
   - apps/web/hooks/use-subjects.ts
   - apps/web/lib/icons.ts
-synced: 4b7f1f3
+synced: ee6e904
 related:
   - ./web.md
   - ./armazon-y-primitivas.md
@@ -29,11 +31,12 @@ tres diálogos de materia viven en la página, no aquí.
 
 `SubjectCard` (`apps/web/components/ui/subject-card.tsx:4`) se usa en las dos vistas y cambia de
 forma según se le pasen o no los manejadores: sin ellos es una tarjeta de lectura, con ellos
-aparecen los botones de editar y borrar y crece para llenar la celda
-(`apps/web/components/ui/subject-card.tsx:13`). La distinción se llama `isSubjectsView` y controla
-tres cosas a la vez —las acciones, el alto de la celda del icono y si la barra se empuja al fondo
-con `mt-auto`— para que la rejilla de Mis materias alinee las barras entre tarjetas de distinta
-descripción.
+aparecen los botones de editar y borrar (`apps/web/components/ui/subject-card.tsx:13`). Desde
+`35f2d1b` **las dos variantes son `flex h-full flex-col`** (`apps/web/components/ui/subject-card.tsx:21`)
+**y empujan la barra al fondo con `mt-auto`**
+(`apps/web/components/ui/subject-card.tsx:60`): el carrusel necesita que la tarjeta
+llene la altura del carril, y la rejilla de Mis materias sigue alineando las barras entre tarjetas
+de distinta descripción. `isSubjectsView` ya solo decide las acciones y el hover.
 
 **La tarjeta muestra datos reales.** El conteo de materiales y la barra de progreso ya no se inventan:
 vienen de la API. `decorateSubject` (`apps/web/lib/subjects.ts:64`) resuelve el color y el ícono de
@@ -41,6 +44,19 @@ la materia (con fallback a los valores por defecto si no trae alguno) y deja `ma
 `progress` tal cual llegan del backend; el contador de materiales se actualiza en caliente porque
 `useSubjects` expone `reload` y el diálogo de material lo invoca tras crear. La barra refleja el
 progreso real de los quizzes de la materia.
+
+## El carrusel de Inicio
+
+Desde `35f2d1b` Inicio no dibuja una rejilla que crece hacia abajo: monta `SubjectCarousel`
+(`apps/web/components/ui/subject-carousel.tsx:19`), un carril horizontal con paginación lateral.
+El ancho de cada tarjeta es una fracción exacta del carril (1 en móvil, 1/2 en `sm`, 1/3 en `lg`,
+1/4 en `xl`, `apps/web/components/ui/subject-carousel.tsx:87`), así que cada página ocupa justo lo
+visible; un `ResizeObserver` mide cuántas caben y recalcula el número de páginas
+(`apps/web/components/ui/subject-carousel.tsx:56`). Los botones Anterior/Siguiente saltan de un
+bloque al siguiente con `scrollTo` (`apps/web/components/ui/subject-carousel.tsx:65`) y el propio
+scroll del carril actualiza el número de página. Si la última página queda a medias, se rellena
+con huecos invisibles para que el salto no se desalinee
+(`apps/web/components/ui/subject-carousel.tsx:98`). En móvil se ve una sola tarjeta por página.
 
 ## El hook que sostiene todo
 
@@ -77,12 +93,13 @@ recibe la materia como `Subject` sino lo que necesita para nombrarla. Avisa de q
 deshacer, pero no de lo que arrastra el borrado en cascada — están los temas, los materiales y los
 quizzes; está documentado en `docs/ToDo/borrado-en-cascada-con-confirmacion-y-limpieza.md`.
 
-`UserOnboardingDialog` (`apps/web/components/dialogs/user-onboarding-dialog.tsx:8`) es la excepción
-al patrón: no usa `Dialog` sino un overlay propio, porque no se cierra —no hay `×` ni cancelar— y
-aparece incluso mientras carga la lista. La página lo muestra cuando `isUserLoading` **o** el
-diálogo está abierto (`apps/web/app/page.tsx:50`), de modo que bloquea la app entera mientras
-resuelve quién es el usuario. Solo pide un nombre, y ese nombre es el único perfil que existe en
-el MVP (ver [Sin identidad en el MVP](../decisions/authentico.md)).
+El onboarding por nombre **ya no se monta**. Con el login de Authentico (`c627736`) la página
+muestra `LoginDialog` cuando no hay sesión (`apps/web/app/page.tsx:51`), que pide login y contraseña
+y no se cierra; si la API no responde, el mismo diálogo cambia a «Sin conexión» con un botón de
+reintento (`apps/web/components/dialogs/login-dialog.tsx:36`). `UserOnboardingDialog`
+(`apps/web/components/dialogs/user-onboarding-dialog.tsx:8`) sigue en el repositorio con su overlay
+propio y esa misma pantalla de error, pero nada lo importa ya: es código muerto. El `User` local lo
+resuelve `useUser` por login (ver [Autenticación](../components/auth.md)).
 
 ## Inicio y el placeholder
 
@@ -92,9 +109,15 @@ solo la rejilla de materias y los avisos vienen de la API. La marca (`/brand/est
 usa como marca de agua al 20 % en el hero, con `next/image`, y el resto de la pantalla sigue el
 vocabulario de iconos UIcons del mapa común, no emojis.
 
-En desktop el hero y «¡No olvides!» comparten fila (`xl:grid-cols-[minmax(0,1fr)_320px]`) y la
-tarjeta estira a la altura del hero (`xl:row-start-1`); «Mis materias» va en la fila siguiente,
-en la columna izquierda, y en móvil el orden se mantiene: hero, materias y recordatorio al final.
+En desktop el grid tiene dos columnas (`xl:grid-cols-[minmax(0,1fr)_320px]`) y dos filas: el hero
+y «¡No olvides!» comparten la primera (`xl:row-start-1` en
+`apps/web/components/views/home-view.tsx:38` y
+`apps/web/components/views/home-view.tsx:109`), y el carrusel de «Mis materias» comparte
+la segunda con el panel «Efemérides» (`apps/web/components/views/home-view.tsx:125`). `35f2d1b`
+había puesto el hero a ancho completo y bajado el recordatorio junto a la grilla; `ee6e904` volvió
+a la disposición anterior y añadió «Efemérides» como **placeholder genérico** —texto fijo, sin
+llamadas a la API de Wikimedia— para reservar el hueco derecho de esa fila. En móvil todo se
+apila: hero, materias, recordatorio y efemérides.
 
 `PlaceholderView` (`apps/web/components/views/placeholder-view.tsx:3`) es lo que se renderiza para
 Progreso e Insignias: un recuadro con el nombre de la sección. La página decide entre

@@ -6,11 +6,12 @@ sources:
   - apps/api/src/shared/env.utils.ts
   - apps/api/src/modules/materials/materials.module.ts
   - apps/api/src/modules/quizzes/quizzes.module.ts
+  - apps/api/src/modules/auth/auth.module.ts
   - apps/api/src/main.ts
   - apps/api/src/infrastructure/ai/deepseek/deepseek.client.ts
   - apps/api/src/infrastructure/object-storage/s3.object-storage.ts
   - .env.example
-synced: 7c7585a
+synced: ee6e904
 related:
   - ../components/ia.md
 ---
@@ -57,6 +58,12 @@ defecto** — que conviene no romper al añadir variables nuevas.
 
 ## Lo que la configuración no cubre todavía
 
-No hay validación de entorno al arrancar: una API sin `DEEPSEEK_API_KEY` levanta sana y solo falla
-al procesar el primer material. Y `.env.example` no es aún la lista completa de lo que el código
-lee, así que descubrir una variable exige mirar el código.
+Casi nada se valida al arrancar: una API sin `DEEPSEEK_API_KEY` levanta sana y solo falla al
+procesar el primer material. La excepción es el login: `AuthModule.readConfig` exige
+`AUTHENTICO_BASE_URL`, `AUTHENTICO_APPLICATION` y `AUTHENTICO_ACCOUNT` y tumba el arranque si
+falta alguno (`apps/api/src/modules/auth/auth.module.ts:16`), porque el adaptador del SDK se
+construye una sola vez. El bloque de Authentico en `.env.example` (añadido en `437f82b`) documenta
+además las cuatro variables y los tres valores de URL según el entorno —WSL, contenedor,
+producción—, de modo que el ejemplo reúne hoy las variables de configuración de la app: IA,
+storage, API y Authentico. Las variables que solo usan los scripts de CI y los tests siguen sin
+aparecer en él.

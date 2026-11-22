@@ -13,7 +13,7 @@ sources:
   - apps/api/src/infrastructure/ai/openrouter/openrouter.image-extractor.ts
   - apps/api/src/infrastructure/images/sharp.image-cropper.ts
   - apps/api/src/modules/materials/presentation/controllers/materials.controller.ts
-synced: 4b7f1f3
+synced: ee6e904
 related:
   - ./procesamiento-de-material.md
   - ../decisions/proveedor-ia.md
@@ -103,5 +103,5 @@ al `id` real de la fila `MaterialImage`
 modelo inventa un índice que no existe, la pregunta se guarda sin imagen en vez de fallar.
 
 Para mostrarla, la web pide `GET /materials/:id/images/:imageId`
-(`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:174`), que
+(`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:188`), que
 devuelve el binario con caché privada de un día. Nunca hay URL pública del bucket.

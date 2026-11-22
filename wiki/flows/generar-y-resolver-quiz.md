@@ -16,7 +16,7 @@ sources:
   - apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts
   - apps/api/src/modules/quizzes/quizzes.module.ts
   - apps/api/src/shared/random.utils.ts
-synced: a859db8
+synced: ee6e904
 related:
   - ./procesamiento-de-material.md
   - ../components/quizzes.md
@@ -32,10 +32,10 @@ quiz se genera en milisegundos y el coste de IA ya se pagó al procesar.
 ## 1 · Generar: selección aleatoria
 
 La vista pide materia, tema y duración
-(`apps/web/components/views/quiz-view.tsx:222`); el botón «Generar quiz» está en el encabezado
-(`apps/web/components/views/quiz-view.tsx:209`) y al pulsarlo llama a
-`POST /api/v1/quizzes/generate` (`apps/web/components/views/quiz-view.tsx:124`) y guarda el
-instante de inicio del intento (`apps/web/components/views/quiz-view.tsx:130`), que es lo que
+(`apps/web/components/views/quiz-view.tsx:337`); el botón «Generar quiz» está en el encabezado
+(`apps/web/components/views/quiz-view.tsx:324`) y al pulsarlo llama a
+`POST /api/v1/quizzes/generate` (`apps/web/components/views/quiz-view.tsx:210`) y guarda el
+instante de inicio del intento (`apps/web/components/views/quiz-view.tsx:216`), que es lo que
 después permite medir cuánto tardó el estudiante.
 
 `GenerateQuizUseCase` decide de dónde salen las preguntas:
@@ -57,28 +57,30 @@ defecto) que hoy ya no existe. El quiz se guarda con esos ids
 `topicId: null` significa "quiz de toda la materia".
 
 La duración se elige en un tercer select junto a Materia y Tema
-(`apps/web/components/views/quiz-view.tsx:263`), etiquetado Corta / Media / Larga y en `MEDIUM` por
+(`apps/web/components/views/quiz-view.tsx:378`), etiquetado Corta / Media / Larga y en `MEDIUM` por
 defecto, que es justo lo que la API aplica cuando `size` no viene. La web no muestra el porcentaje
 porque depende de cuántas preguntas hay en el alcance, y eso no se sabe antes de generar.
 
-## 2 · Presentar: el orden lo pone el DTO
+## 2 · Presentar: el orden es estable
 
-El mismo `shuffle` compartido (`apps/api/src/shared/random.utils.ts:1`) se aplica dos veces al
-montar la respuesta: a las preguntas y a las opciones de cada pregunta
-(`apps/api/src/modules/quizzes/presentation/controllers/quizzes.controller.ts:87`). Ninguno de los
-dos órdenes se guarda: cada petición puede presentar el mismo quiz de forma distinta, y el
-estudiante no puede memorizar "la b es la buena".
+Hasta `dcaa2c9` el `shuffle` compartido (`apps/api/src/shared/random.utils.ts:1`) se aplicaba dos
+veces al montar la respuesta, a preguntas y a opciones, y ninguno de esos órdenes se guardaba. Con
+la reanudación eso dejó de ser posible: si cada petición reordena el quiz, un borrador guardado a
+medias ya no corresponde a lo que se vuelve a mostrar. Hoy `toQuizDto` sirve ambas listas en el
+orden guardado (`apps/api/src/modules/quizzes/presentation/controllers/quizzes.controller.ts:93`) y
+la aleatoriedad queda solo en la selección del pool del paso 1. El mismo DTO vale para generar y
+para reanudar, así que `GET /quizzes/:id` no revela `isCorrect`.
 
 Las preguntas con imagen llevan una URL relativa construida con el material o evaluación de origen
-(`apps/api/src/modules/quizzes/presentation/controllers/quizzes.controller.ts:97`); la web la
+(`apps/api/src/modules/quizzes/presentation/controllers/quizzes.controller.ts:103`); la web la
 resuelve contra la API con `assetUrl` y la pinta con un `<img>` plano
-(`apps/web/components/views/quiz-view.tsx:326`), sin optimizador de Next.
+(`apps/web/components/views/quiz-view.tsx:442`), sin optimizador de Next.
 
 ## 3 · Responder: la web exige completitud, la API la revalida
 
 La vista solo habilita "Enviar respuestas" cuando **todas** las preguntas tienen opción elegida
-(`apps/web/components/views/quiz-view.tsx:140`) y vuelve a comprobarlo antes de enviar
-(`apps/web/components/views/quiz-view.tsx:146`). La API no confía en eso:
+(`apps/web/components/views/quiz-view.tsx:226`) y vuelve a comprobarlo antes de enviar
+(`apps/web/components/views/quiz-view.tsx:232`). La API no confía en eso:
 `SubmitQuizAttemptUseCase` exige al menos una respuesta y exactamente una por pregunta
 (`apps/api/src/modules/quizzes/application/use-cases/submit-quiz-attempt.use-case.ts:46`), rechaza
 preguntas ajenas al quiz (`:56`) o repetidas (`:59`), y opciones que no pertenecen a su pregunta
@@ -94,9 +96,9 @@ intento se guarda con sus respuestas y su `startedAt`
 (`apps/api/src/modules/quizzes/application/use-cases/submit-quiz-attempt.use-case.ts:92`).
 
 En la misma transacción que guarda el intento se recalcula el **progreso por tema**
-(`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:153`): una fila
+(`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:203`): una fila
 `TopicProgress` por tema con `attempts`, `correctAnswers`, `totalAnswers` y un `masteryScore` que
-es la media de aciertos (`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:301`).
+es la media de aciertos (`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:351`).
 Es el "progreso básico" del MVP, y hoy es de escritura: ningún endpoint lo lee ni lo muestra.
 
 La respuesta trae un *feedback* por pregunta — la correcta, la elegida y la explicación que generó
@@ -111,29 +113,42 @@ igual en los dos sitios.
 
 Desde `6191d10` la vista mantiene, además del formulario, un listado de los quizzes de la materia
 activa. Lo carga al cambiar de materia y lo vuelve a pedir tras cada envío correcto: la señal es un
-contador de estado, `historyVersion` (`apps/web/components/views/quiz-view.tsx:96`), que reusa el
+contador de estado, `historyVersion` (`apps/web/components/views/quiz-view.tsx:135`), que reusa el
 mismo efecto de carga en vez de un segundo `fetch` escrito a mano. El listado es
 `GET /quizzes?subjectId=` y lo pinta `QuizHistoryPanel`: cada fila lleva el título, el tema, el
-número de preguntas y la fecha, y a la derecha el porcentaje del último intento o un badge "Sin
-responder" (`apps/web/components/views/quiz-history-panel.tsx:75`). La fila de un quiz sin intento
-queda `disabled`: no hay nada que revisar, y rejugar está fuera de alcance. El cliente corta la lista
-en páginas de diez (`apps/web/components/views/quiz-history-panel.tsx:6`) y muestra navegación con
-el rango y el número de página; no vuelve a consultar el backend al cambiar de página. «Generar
-quiz» vive en el encabezado y, si el historial está vacío, el panel conserva el CTA secundario.
+número de preguntas y la fecha, y a la derecha el porcentaje del último intento o, desde `f24fc51`,
+un badge **«Continuar»** (`apps/web/components/views/quiz-history-panel.tsx:77`). La fila de un quiz
+sin intento ya no está deshabilitada: pulsarla recupera el quiz y sus respuestas guardadas. El
+cliente corta la lista en páginas de diez (`apps/web/components/views/quiz-history-panel.tsx:6`) y
+muestra navegación con el rango y el número de página; no vuelve a consultar el backend al cambiar
+de página. «Generar quiz» vive en el encabezado y, si el historial está vacío, el panel conserva el
+CTA secundario.
 
-Elegir una fila con intento abre `QuizAttemptDetailDialog`, que pide
-`GET /quizzes/:id/attempts/:attemptId` (`apps/web/components/views/quiz-view.tsx:177`) y repinta el
+Elegir una fila **con** intento abre `QuizAttemptDetailDialog`, que pide
+`GET /quizzes/:id/attempts/:attemptId` (`apps/web/components/views/quiz-view.tsx:292`) y repinta el
 intento con el mismo `QuizQuestionReview` del resultado
 (`apps/web/components/dialogs/quiz-attempt-detail-dialog.tsx:44`). El popup deriva la opción correcta
 de `options.find((option) => option.isCorrect)`
 (`apps/web/components/dialogs/quiz-attempt-detail-dialog.tsx:46`) porque su DTO trae las opciones con
-`isCorrect` en vez de un `correctOptionId` aparte: el detalle no tiene el quiz en memoria, ya que no
-existe `GET /quizzes/:id`.
+`isCorrect` en vez de un `correctOptionId` aparte.
+
+## 6 · Reanudar un quiz a medias
+
+Desde `23f8359` la vista persiste en `localStorage` el id del quiz en curso (`quiz.current`) y, por
+cada quiz, un borrador con `startedAt` y las respuestas (`quiz.draft.<id>`,
+`apps/web/components/views/quiz-view.tsx:26`). Al montar, si hay un quiz actual, pide
+`GET /quizzes/:id` y restaura solo las respuestas cuyas preguntas y opciones siguen existiendo
+(`apps/web/components/views/quiz-view.tsx:143`); un fallo al recuperarlo borra el borrador. El mismo
+camino lo usa «Continuar» del historial (`apps/web/components/views/quiz-view.tsx:265`). Enviar el
+intento o generar uno nuevo limpia las claves (`apps/web/components/views/quiz-view.tsx:248`), así
+que un quiz respondido no vuelve a ofrecerse como pendiente. Si `localStorage` está lleno o
+bloqueado, el quiz sigue funcionando en memoria: la persistencia es una mejora, no un requisito.
 
 ## Lo que este flujo deja fuera
 
-No hay reintentos de un mismo quiz: cada "Generar quiz" crea un registro nuevo y los intentos se
-acumulan sin más. La corrección no acepta respuestas parciales. El historial de intentos ya enviados
-sí es visible (listado y repaso), pero el progreso por tema sigue acumulándose en la base de datos
-sin salir a ninguna parte, no hay forma de comparar dos intentos del mismo quiz, y un quiz en curso
-no sobrevive a recargar la página.
+No hay rejugar un quiz ya respondido: cada "Generar quiz" crea un registro nuevo y los intentos se
+acumulan sin más; lo que sí se puede es **continuar** el que quedó a medias. La corrección no acepta
+respuestas parciales, aunque el borrador en `localStorage` sí guarda un quiz incompleto. El
+historial de intentos ya enviados es visible (listado y repaso), pero el progreso por tema sigue
+acumulándose en la base de datos sin salir a ninguna parte y no hay forma de comparar dos intentos
+del mismo quiz.

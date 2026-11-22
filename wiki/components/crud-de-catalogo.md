@@ -88,7 +88,7 @@ agregados del listado, `materialsCount` y `progress`, **no** vienen del DTO: los
 
 - **`PATCH` vacío.** En materias y temas un `PATCH` sin campos devuelve el registro sin cambios; en
   materiales es un `400` que exige al menos `title` o `content`
-  (`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:199`). La regla
+  (`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:213`). La regla
   no es uniforme y la web no lo nota porque siempre envía algo.
 - **Usuarios es mitad de módulo.** Solo `GET /users` y `POST /users`: no hay update, no hay delete
   y el puerto no los declara (`apps/api/src/modules/users/application/ports/user.repository.ts:12`).

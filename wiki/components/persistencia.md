@@ -7,10 +7,11 @@ sources:
   - apps/api/src/infrastructure/database/prisma.service.ts
   - apps/api/src/modules/materials/infrastructure/prisma-material.repository.ts
   - apps/api/src/modules/materials/infrastructure/prisma-material-image.repository.ts
+  - apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts
   - apps/api/src/modules/subjects/infrastructure/prisma-subject.repository.ts
   - apps/api/src/modules/topics/infrastructure/prisma-topic.repository.ts
   - apps/api/src/modules/users/infrastructure/prisma-user.repository.ts
-synced: 4b7f1f3
+synced: ee6e904
 related:
   - ../concepts/puertos-y-adapters.md
   - ../components/materiales.md
@@ -41,12 +42,15 @@ Cinco convenciones que la API da por supuestas y ningún tipo declara:
 
 - **El orden es parte del contrato.** Materias y temas se listan por nombre
   (`apps/api/src/modules/subjects/infrastructure/prisma-subject.repository.ts:43`), materiales por
-  fecha descendente (`apps/api/src/modules/materials/infrastructure/prisma-material.repository.ts:34`),
+  fecha descendente (`apps/api/src/modules/materials/infrastructure/prisma-material.repository.ts:39`),
   usuarios por fecha ascendente (`apps/api/src/modules/users/infrastructure/prisma-user.repository.ts:11`)
   y figuras por su `order` (`apps/api/src/modules/materials/infrastructure/prisma-material-image.repository.ts:17`).
-  Cambiar cualquiera de estos cambia lo que ve el usuario sin romper nada.
+  Cambiar cualquiera de estos cambia lo que ve el usuario sin romper nada. Desde `587fe61`
+  `findByTopic` ya no devuelve un array sino `{ items, total }`: `orderBy` convive con `take`/`skip`
+  y un `count` en paralelo (`apps/api/src/modules/materials/infrastructure/prisma-material.repository.ts:31`),
+  así que la paginación se decide en el repositorio, no en el caso de uso.
 - **Las updates parciales solo escriben lo que llega.** `updateFields` y `update` extienden el
-  `data` solo con los campos definidos (`apps/api/src/modules/materials/infrastructure/prisma-material.repository.ts:57`),
+  `data` solo con los campos definidos (`apps/api/src/modules/materials/infrastructure/prisma-material.repository.ts:67`),
   de modo que un `PATCH` no puede vaciar un campo a `null` salvo que el puerto lo declare.
 - **Reemplazar es borrar y crear en una transacción.** Tanto figuras
   (`apps/api/src/modules/materials/infrastructure/prisma-material-image.repository.ts:25`) como
@@ -57,7 +61,7 @@ Cinco convenciones que la API da por supuestas y ningún tipo declara:
   aunque el esquema ya tenga el default (`apps/api/src/modules/materials/infrastructure/prisma-material.repository.ts:26`):
   el repositorio es la única verdad sobre cómo nace un material.
 - **Borrar es borrar.** No hay borrado lógico ni columnas `deletedAt`: `delete` lanza el `DELETE`
-  real (`apps/api/src/modules/materials/infrastructure/prisma-material.repository.ts:67`) y las
+  real (`apps/api/src/modules/materials/infrastructure/prisma-material.repository.ts:77`) y las
   cascadas del esquema hacen el resto. Los métodos devuelven `void` y descartan la fila que Prisma
   devuelve.
 
@@ -71,4 +75,8 @@ tocar el esquema.
 
 Y una ausencia deliberada: no hay transacciones que crucen puertos. Cuando hace falta — corregir un
 intento y recalcular el progreso — la transacción vive dentro de un repositorio
-(`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:135`), no en el caso de uso.
+(`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:185`), no en el caso de uso.
+El mismo repositorio ganó en `dcaa2c9` un segundo lector, `findQuizForPresentation`
+(`apps/api/src/modules/quizzes/infrastructure/prisma-quiz.repository.ts:134`), que trae el quiz con
+sus opciones **sin** `isCorrect` para poder reanudarlo sin revelar la corrección (ver
+[Generar y resolver un quiz](../flows/generar-y-resolver-quiz.md)).

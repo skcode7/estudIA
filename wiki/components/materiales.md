@@ -22,7 +22,7 @@ sources:
   - apps/api/src/modules/materials/infrastructure/prisma-material.repository.ts
   - apps/api/src/modules/materials/infrastructure/prisma-material-image.repository.ts
   - apps/api/prisma/schema.prisma
-synced: 4b7f1f3
+synced: ee6e904
 related:
   - ../flows/procesamiento-de-material.md
   - ../flows/figuras-embebidas.md
@@ -57,7 +57,7 @@ materia—: dos materiales de una misma materia pueden tener modos distintos (ve
 `questionMode` (`BASED_ON_MATERIAL` por defecto) se elige al crear el material y se persiste con él
 en la misma fila (`apps/api/src/modules/materials/infrastructure/prisma-material.repository.ts:25`):
 vive en el DTO de creación, validado con `@IsEnum`, y el controller lo pasa al caso de uso
-(`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:95`). Solo tiene
+(`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:97`). Solo tiene
 dos valores cerrados, no un prompt libre:
 
 - **`BASED_ON_MATERIAL`**: las preguntas se hacen sobre el contenido cargado, como antes. Es el
@@ -85,16 +85,23 @@ caso de uso.
 
 Un material procesado deja tres rastros que se mantienen juntos y se limpian juntos:
 
-1. **El binario original**, con clave `topics/<topicId>/materials/<uuid><ext>`
-   (`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:45`). Si
-   `ObjectStorage.upload` falla, el caso de uso registra el error original junto a `key` y `bucket`
-   antes de responder con el mismo `503` genérico (`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:55`).
+1. **Los binarios originales**, con clave `topics/<topicId>/materials/<uuid><ext>`
+   (`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:68`).
+   Desde `a778b5e` el alta acepta hasta 10 fotos: el caso de uso sube cada una en un bucle y crea
+   una fila `MaterialImage` por foto **ya al guardar**, con el nombre original como `label` y el
+   índice como `order` (`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:103`).
+   Si `ObjectStorage.upload` falla, registra el error original junto a `key` y `bucket` antes de
+   responder con el mismo `503` genérico (`apps/api/src/modules/materials/application/use-cases/create-file-material.use-case.ts:79`);
+   la fila del material no se crea, pero las fotos ya subidas en ese intento quedan huérfanas.
 2. **Las figuras** (`MaterialImage`), cada una con su `storageKey`, un `label` descriptivo y un
    `order` estable que las preguntas usan para referenciarlas
    (`apps/api/src/modules/materials/application/ports/material-image.repository.ts:17`). El puerto
    `replaceForMaterial` sustituye el conjunto entero
    (`apps/api/src/modules/materials/application/ports/material-image.repository.ts:20`): reprocesar
-   no acumula.
+   no acumula. Ojo con la consecuencia: si el procesamiento extrae figuras, ese mismo
+   `replaceForMaterial` sustituye **también** las fotos subidas en el alta por los recortes
+   (`apps/api/src/modules/materials/application/use-cases/process-material.use-case.ts:248`); si no
+   hay extracción, las fotos del alta se conservan.
 3. **Las preguntas** (`Question` + `QuestionOption`), que pertenecen al tema pero recuerdan su
    material de origen. También se reemplazan en bloque
    (`apps/api/src/modules/materials/application/ports/material-question.repository.ts:43`).
@@ -128,23 +135,30 @@ URL firmada ni acceso directo al bucket.
 
 ## Límites y detalles que importan
 
-- El tope de subida es 10 MB y vive en el controller
-  (`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:51`); un
-  archivo mayor lo corta Multer antes de llegar al caso de uso.
+- El tope de subida es 10 MB por foto y el máximo son 10 fotos, ambos en el controller
+  (`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:52`); un
+  archivo mayor lo corta Multer antes de llegar al caso de uso. El endpoint `POST /materials/upload`
+  usa `FilesInterceptor("files", …)` y exige al menos una foto en el campo `files`
+  (`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:103`).
 - Solo se procesan imágenes (JPG, PNG, GIF, WebP). Un PDF o un `.doc` se puede guardar como
   material, pero su procesamiento falla con un mensaje que dice qué tipos se aceptan.
 - `questionCount` no es un campo del material: se calcula contando preguntas por material
   (`apps/api/src/modules/materials/application/ports/material-question.repository.ts:40`), y por eso
-  un material recién creado responde `0` sin importar su estado. Lo mismo vale para `imageCount`: se
-  cuenta desde `MaterialImage` con el mismo patrón `groupBy` por `materialId`
+  un material recién creado responde `0`. `imageCount` se cuenta desde `MaterialImage` con el mismo
+  patrón `groupBy` por `materialId`
   (`apps/api/src/modules/materials/application/ports/material-image.repository.ts:32`), así que el
-  listado puede mostrar cuántas figuras tiene cada material sin abrirlo.
+  listado muestra cuántas figuras tiene cada material sin abrirlo; en el alta el controller lo
+  devuelve directamente como el número de fotos subidas
+  (`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:127`).
 
 ## Leer y editar sin tocar el procesamiento
 
 Los casos de uso de lectura devuelven el material **con** sus dos conteos —preguntas e imágenes—, y
-ambos se resuelven en la misma consulta para toda la lista
-(`apps/api/src/modules/materials/application/use-cases/list-materials.use-case.ts:19`); el detalle de
+desde `587fe61` el listado es una página, no la lista entera: `findByTopic` acepta `limit`/`offset`
+y devuelve `{ items, total }`, y los conteos se resuelven en una sola pasada para los `items` de esa
+página (`apps/api/src/modules/materials/application/use-cases/list-materials.use-case.ts:22`). El
+controller expone ambos como query params
+(`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:131`). El detalle de
 uno solo hace lo propio (`apps/api/src/modules/materials/application/use-cases/get-material.use-case.ts:21`).
 Editar es `PATCH` de título y/o contenido y devuelve de nuevo los conteos recalculados
 (`apps/api/src/modules/materials/application/use-cases/update-material.use-case.ts:26`). El tipo que
@@ -181,7 +195,7 @@ Guardar borra y recrea las opciones dentro de una transacción
 ilustra.
 
 Las figuras se listan como metadatos (`id`, `label`, `order`) sin su binario
-(`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:168`): el peso de
+(`apps/api/src/modules/materials/presentation/controllers/materials.controller.ts:182`): el peso de
 las imágenes sigue saliendo por la ruta de una en una. Borrar una pregunta **sí** arrastra sus
 `QuizQuestion` y `Answer` por la misma cascada que reprocesar, y esto no tiene todavía arreglo
 documentado — ver [Módulo de quizzes](../components/quizzes.md).

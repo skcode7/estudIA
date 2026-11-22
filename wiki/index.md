@@ -22,9 +22,9 @@
 - [La forma del CRUD de catálogo](./components/crud-de-catalogo.md) — Cómo están construidos los módulos de materias, temas y usuarios — un caso de uso por operación, validación en el DTO y bindings repetidos — y las asimetrías entre ellos.
 - [Módulos de materias, temas y usuarios](./components/catalogo.md) — Dueños de la jerarquía de catálogo (materia → tema) y del registro mínimo de usuario, con las reglas de borrado que arrastran todo lo demás.
 - [Aplicación web (Next.js)](./components/web.md) — Dueño de la interfaz: una sola página client-side que compone vistas y diálogos, sus hooks de estado y el cliente HTTP contra la API.
-- [Armazón y primitivas de la interfaz](./components/armazon-y-primitivas.md) — Dueño del esqueleto que rodea a todas las vistas: el armazón, las dos navegaciones, el diálogo base y el vocabulario visual compartido.
+- [Armazón y primitivas de la interfaz](./components/armazon-y-primitivas.md) — Dueño del esqueleto que rodea a todas las vistas —el armazón, las dos navegaciones, el diálogo base y las primitivas de estado y realimentación— y del vocabulario visual que comparte toda la app.
 - [Autenticación (Authentico)](./components/auth.md) — Frontera de identidad materializada: login con Authentico vía SDK, adaptador y controller HTTP.
-- [Vistas de catálogo (Inicio y Mis materias)](./components/vistas-de-catalogo.md) — Dueño de las dos pantallas que muestran y gestionan materias, la tarjeta que comparten y el hook que sostiene su estado.
+- [Vistas de catálogo (Inicio y Mis materias)](./components/vistas-de-catalogo.md) — Dueño de las dos pantallas que muestran y gestionan materias —el tablero de Inicio y el listado de Mis materias— y del hook que mantiene el estado de Subjects, incluidos sus tres diálogos de alta, edición y borrado.
 
 ## concept
 
@@ -35,7 +35,7 @@
 
 - [DeepSeek detrás de un puerto, con un modelo de visión aparte](./decisions/proveedor-ia.md) — Por qué la IA se usa siempre a través de AIProvider, por qué DeepSeek es el primer proveedor y por qué las figuras van a un segundo proveedor en OpenRouter.
 - [Object Storage S3-compatible con MinIO en local](./decisions/storage-s3-minio.md) — Por qué los archivos de los materiales viven en un object storage S3-compatible y por qué el entorno local corre MinIO en vez de guardar binarios en disco o en Postgres.
-- [Sin identidad en el MVP, con frontera para Authentico](./decisions/authentico.md) — Por qué el MVP no tiene login ni sesiones, qué es hoy "el usuario" y dónde entra Authentico cuando toque.
+- [Login con Authentico (etapa 2), frontera para roles](./decisions/authentico.md) — Cómo se integró el login con Authentico (SDK + adapter), qué queda diferido (roles/guards) y cómo convive con el User local.
 
 ## Otros archivos
 
