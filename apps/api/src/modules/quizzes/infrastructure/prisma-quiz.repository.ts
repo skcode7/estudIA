@@ -317,6 +317,15 @@ export class PrismaQuizRepository implements QuizRepository {
     };
   }
 
+  async findLastCompletedAttemptAt(): Promise<Date | null> {
+    const attempt = await this.prisma.quizAttempt.findFirst({
+      where: { completedAt: { not: null }, score: { not: null } },
+      orderBy: { completedAt: "desc" },
+      select: { completedAt: true }
+    });
+    return attempt?.completedAt ?? null;
+  }
+
   private async updateTopicProgress(
     tx: Prisma.TransactionClient,
     input: SaveAttemptInput

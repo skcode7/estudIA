@@ -145,4 +145,6 @@ export abstract class QuizRepository {
     quizId: string,
     attemptId: string
   ): Promise<QuizAttemptDetailRecord | null>;
+  /** Fin del intento completado más reciente de cualquier materia. Null si nunca se respondió un quiz. */
+  abstract findLastCompletedAttemptAt(): Promise<Date | null>;
 }

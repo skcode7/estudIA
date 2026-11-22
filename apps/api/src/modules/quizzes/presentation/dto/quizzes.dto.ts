@@ -285,6 +285,13 @@ export class QuizListItemDto {
   createdAt!: string;
 }
 
+export class LastPracticeDto {
+  @ApiPropertyOptional({ example: "2026-11-20T15:00:00.000Z", description: "Fin del intento completado más reciente de cualquier materia (null si nunca se respondió un quiz)", nullable: true })
+  @IsOptional()
+  @IsDateString()
+  completedAt!: string | null;
+}
+
 export class QuizOptionReviewDto {
   @ApiProperty({ example: "e5f6a7b8-c9d0-1123-ef0a-123456789014", description: "UUID de la opción" })
   @IsUUID()

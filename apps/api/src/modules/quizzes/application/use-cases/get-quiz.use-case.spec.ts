@@ -11,7 +11,8 @@ function quizRepositoryMock(): QuizRepository {
     findQuizForPresentation: vi.fn(),
     saveAttempt: vi.fn(),
     listBySubject: vi.fn(),
-    findAttemptDetail: vi.fn()
+    findAttemptDetail: vi.fn(),
+    findLastCompletedAttemptAt: vi.fn()
   };
 }
 

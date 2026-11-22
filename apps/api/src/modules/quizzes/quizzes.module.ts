@@ -7,6 +7,7 @@ import { PrismaTopicRepository } from "../topics/infrastructure/prisma-topic.rep
 import { QuizRepository } from "./application/ports/quiz.repository";
 import { GenerateQuizUseCase } from "./application/use-cases/generate-quiz.use-case";
 import { GetQuizUseCase } from "./application/use-cases/get-quiz.use-case";
+import { GetLastPracticeUseCase } from "./application/use-cases/get-last-practice.use-case";
 import { GetQuizAttemptUseCase } from "./application/use-cases/get-quiz-attempt.use-case";
 import { ListQuizzesUseCase } from "./application/use-cases/list-quizzes.use-case";
 import { SubmitQuizAttemptUseCase } from "./application/use-cases/submit-quiz-attempt.use-case";
@@ -21,6 +22,7 @@ import { QuizzesController } from "./presentation/controllers/quizzes.controller
     SubmitQuizAttemptUseCase,
     ListQuizzesUseCase,
     GetQuizAttemptUseCase,
+    GetLastPracticeUseCase,
     { provide: SubjectRepository, useClass: PrismaSubjectRepository },
     { provide: TopicRepository, useClass: PrismaTopicRepository },
     { provide: QuizRepository, useClass: PrismaQuizRepository }

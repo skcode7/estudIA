@@ -1,6 +1,7 @@
 import { BadRequestException, Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
 
 import { GenerateQuizUseCase } from "../../application/use-cases/generate-quiz.use-case";
+import { GetLastPracticeUseCase } from "../../application/use-cases/get-last-practice.use-case";
 import { GetQuizUseCase } from "../../application/use-cases/get-quiz.use-case";
 import { GetQuizAttemptUseCase } from "../../application/use-cases/get-quiz-attempt.use-case";
 import { ListQuizzesUseCase } from "../../application/use-cases/list-quizzes.use-case";
@@ -12,6 +13,7 @@ import {
 } from "../../application/ports/quiz.repository";
 import {
   GenerateQuizDto,
+  LastPracticeDto,
   QuizAttemptDetailDto,
   QuizAttemptResultDto,
   QuizDto,
@@ -28,7 +30,8 @@ export class QuizzesController {
     private readonly getQuizUseCase: GetQuizUseCase,
     private readonly submitQuizAttemptUseCase: SubmitQuizAttemptUseCase,
     private readonly listQuizzesUseCase: ListQuizzesUseCase,
-    private readonly getQuizAttemptUseCase: GetQuizAttemptUseCase
+    private readonly getQuizAttemptUseCase: GetQuizAttemptUseCase,
+    private readonly getLastPracticeUseCase: GetLastPracticeUseCase
   ) {}
 
   @Post("generate")
@@ -64,6 +67,12 @@ export class QuizzesController {
     }
     const quizzes = await this.listQuizzesUseCase.execute(subjectId);
     return quizzes.map(toQuizListItemDto);
+  }
+
+  @Get("last-practice")
+  async findLastPractice(): Promise<LastPracticeDto> {
+    const completedAt = await this.getLastPracticeUseCase.execute();
+    return { completedAt: completedAt?.toISOString() ?? null };
   }
 
   @Get(":id")
