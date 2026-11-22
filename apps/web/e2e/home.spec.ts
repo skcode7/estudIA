@@ -91,22 +91,47 @@ test("en móvil la grilla muestra una sola tarjeta por página", async ({ page }
   expect(visible).toBe(1);
 });
 
-test("la grilla de materias alcanza la misma altura que el panel lateral", async ({ page }) => {
+test("¡No olvides! comparte fila con el hero en escritorio", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
 
-  const heights = await page.evaluate(() => {
+  const tops = await page.evaluate(() => {
     const grid = document.querySelector("body > main > div > section > div");
-    if (!grid) return null;
-    const aside = grid.querySelector(":scope > aside");
-    const subjects = grid.querySelector(":scope > section:nth-of-type(2)");
-    if (!aside || !subjects) return null;
+    const hero = grid?.querySelector(":scope > section:nth-of-type(1)");
+    const aside = grid?.querySelector(":scope > aside");
+    if (!hero || !aside) return null;
     return {
-      aside: Math.round(aside.getBoundingClientRect().height),
-      subjects: Math.round(subjects.getBoundingClientRect().height)
+      hero: Math.round(hero.getBoundingClientRect().top),
+      aside: Math.round(aside.getBoundingClientRect().top)
     };
   });
 
-  expect(heights).not.toBeNull();
-  expect(heights?.subjects).toBe(heights?.aside);
+  expect(tops).not.toBeNull();
+  expect(tops?.aside).toBe(tops?.hero);
+});
+
+test("la grilla de materias comparte fila y altura con efemérides", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+
+  const boxes = await page.evaluate(() => {
+    const grid = document.querySelector("body > main > div > section > div");
+    const subjects = grid?.querySelector(":scope > section[aria-labelledby='home-subjects-heading']");
+    const ephemerides = grid?.querySelector(
+      ":scope > section[aria-labelledby='home-ephemerides-heading']"
+    );
+    if (!subjects || !ephemerides) return null;
+    const subjectsRect = subjects.getBoundingClientRect();
+    const ephemeridesRect = ephemerides.getBoundingClientRect();
+    return {
+      subjectsTop: Math.round(subjectsRect.top),
+      ephemeridesTop: Math.round(ephemeridesRect.top),
+      subjectsHeight: Math.round(subjectsRect.height),
+      ephemeridesHeight: Math.round(ephemeridesRect.height)
+    };
+  });
+
+  expect(boxes).not.toBeNull();
+  expect(boxes?.ephemeridesTop).toBe(boxes?.subjectsTop);
+  expect(boxes?.ephemeridesHeight).toBe(boxes?.subjectsHeight);
 });

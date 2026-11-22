@@ -35,7 +35,7 @@ export function HomeView({
       </header>
 
       <div className="mt-7 grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#8b6bff] to-[#5b3fe0] p-6 text-white shadow-sm sm:p-8 xl:col-span-2">
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#8b6bff] to-[#5b3fe0] p-6 text-white shadow-sm sm:p-8 xl:col-start-1 xl:row-start-1">
           <div className="relative z-10 max-w-md">
             <span className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-sm font-semibold">
               <Icon name="goal" />
@@ -106,7 +106,7 @@ export function HomeView({
           )}
         </section>
 
-        <aside className="flex flex-col rounded-2xl border border-slate-100 bg-[#fef3e2] p-6 shadow-sm xl:col-start-2 xl:row-start-2">
+        <aside className="flex flex-col rounded-2xl border border-slate-100 bg-[#fef3e2] p-6 shadow-sm xl:col-start-2 xl:row-start-1">
           <h2 className="text-lg font-bold">¡No olvides!</h2>
           <p className="mt-2 text-sm leading-6 text-slate-600">
             Agrega el material que te mandan en la escuela para generar quizzes personalizados.
@@ -121,6 +121,18 @@ export function HomeView({
             </button>
           </div>
         </aside>
+
+        <section
+          aria-labelledby="home-ephemerides-heading"
+          className="flex min-h-0 min-w-0 flex-col rounded-2xl border border-slate-100 bg-white p-6 shadow-sm xl:col-start-2 xl:row-start-2"
+        >
+          <h2 className="text-lg font-bold" id="home-ephemerides-heading">
+            Efemérides
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">
+            Pronto verás aquí hechos ocurridos un día como hoy.
+          </p>
+        </section>
       </div>
     </>
   );
