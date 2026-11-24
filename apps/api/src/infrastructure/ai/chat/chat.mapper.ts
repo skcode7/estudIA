@@ -9,7 +9,7 @@ import {
   ExtractedEvaluationQuestionsPayload,
   GeneratedQuestionsPayload,
   MaterialAnalysisPayload
-} from "./deepseek.schemas";
+} from "./chat.schemas";
 
 const TRUE_LABEL = "Verdadero";
 const FALSE_LABEL = "Falso";

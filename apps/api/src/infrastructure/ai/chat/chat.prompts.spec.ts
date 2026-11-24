@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   generateQuestionsMessages,
   generateQuestionsSystemPrompt
-} from "./deepseek.prompts";
+} from "./chat.prompts";
 
 describe("generateQuestionsSystemPrompt", () => {
   it("shares the common rules across modes", () => {

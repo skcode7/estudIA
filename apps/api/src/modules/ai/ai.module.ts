@@ -8,6 +8,7 @@ import { DeepSeekProvider } from "../../infrastructure/ai/deepseek/deepseek.prov
 import { NoopMaterialImageExtractor } from "../../infrastructure/ai/noop.image-extractor";
 import { OpenRouterClient } from "../../infrastructure/ai/openrouter/openrouter.client";
 import { OpenRouterImageExtractor } from "../../infrastructure/ai/openrouter/openrouter.image-extractor";
+import { OpenRouterProvider } from "../../infrastructure/ai/openrouter/openrouter.provider";
 
 @Global()
 @Module({
@@ -15,6 +16,7 @@ import { OpenRouterImageExtractor } from "../../infrastructure/ai/openrouter/ope
     DeepSeekClient,
     DeepSeekProvider,
     OpenRouterClient,
+    OpenRouterProvider,
     { provide: AIProviderRegistry, useClass: CommonAIProviderRegistry },
     {
       provide: AIProvider,

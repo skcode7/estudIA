@@ -15,13 +15,14 @@ import {
   Hint,
   MaterialAnalysis
 } from "../../../modules/ai/application/ports/ai-provider";
+import { parseModelJson } from "../model-output";
 import { DeepSeekClient } from "./deepseek.client";
 import {
   toEvaluationDraft,
   toExtractedEvaluationQuestions,
   toGeneratedQuestions,
   toMaterialAnalysis
-} from "./deepseek.mapper";
+} from "../chat/chat.mapper";
 import {
   analyzeEvaluationDraftMessages,
   analyzeMessages,
@@ -29,14 +30,13 @@ import {
   explainMessages,
   generateQuestionsMessages,
   hintMessages
-} from "./deepseek.prompts";
+} from "../chat/chat.prompts";
 import {
   evaluationDraftSchema,
   extractedEvaluationQuestionsSchema,
   generatedQuestionsSchema,
   materialAnalysisSchema
-} from "./deepseek.schemas";
-import { parseModelJson } from "../model-output";
+} from "../chat/chat.schemas";
 
 @Injectable()
 export class DeepSeekProvider implements AIProvider {

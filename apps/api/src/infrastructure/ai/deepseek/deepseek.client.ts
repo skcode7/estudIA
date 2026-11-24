@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 
-import { ChatMessage } from "./deepseek.prompts";
+import { ChatMessage } from "../chat.types";
 
 export class DeepSeekClientError extends Error {
   readonly status: number;

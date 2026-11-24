@@ -1,7 +1,7 @@
 import { Inject } from "@nestjs/common";
 
 import { AuthProvider } from "../ports/auth-provider";
-import { AuthRejectedError, AuthUnavailableError } from "../../auth.errors";
+import { AuthRejectedError } from "../../auth.errors";
 
 export interface SignInCommand {
   login: string;

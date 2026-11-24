@@ -6,13 +6,13 @@ import {
   toExtractedEvaluationQuestions,
   toGeneratedQuestions,
   toMaterialAnalysis
-} from "./deepseek.mapper";
+} from "./chat.mapper";
 import {
   evaluationDraftSchema,
   extractedEvaluationQuestionsSchema,
   generatedQuestionsSchema,
   materialAnalysisSchema
-} from "./deepseek.schemas";
+} from "./chat.schemas";
 
 const ANALYSIS_FIXTURE = {
   suggestedTitle: "Cloro y desinfección",
@@ -48,7 +48,7 @@ const QUESTIONS_FIXTURE = {
   ]
 };
 
-describe("deepseek.mapper", () => {
+describe("chat.mapper", () => {
   describe("toMaterialAnalysis", () => {
     it("maps a valid analysis payload", () => {
       const result = toMaterialAnalysis(materialAnalysisSchema.parse(ANALYSIS_FIXTURE));
@@ -119,7 +119,7 @@ describe("deepseek.mapper", () => {
       expect(second?.difficulty).toBe("medium");
       expect(second?.explanation).toBeUndefined();
       expect(first?.options).toHaveLength(4);
-      expect(first?.options.filter((o) => o.isCorrect)).toHaveLength(1);
+      expect(first?.options.filter((o: { isCorrect: boolean }) => o.isCorrect)).toHaveLength(1);
     });
 
     it("drops questions that do not have exactly one correct option", () => {
@@ -239,14 +239,14 @@ describe("deepseek.mapper", () => {
       expect(result).toHaveLength(3);
       expect(first?.type).toBe("MULTIPLE_CHOICE");
       expect(first?.options).toHaveLength(2);
-      expect(first?.options.filter((option) => option.isCorrect)).toHaveLength(1);
+      expect(first?.options.filter((option: { isCorrect: boolean }) => option.isCorrect)).toHaveLength(1);
       expect(second?.type).toBe("TRUE_FALSE");
       expect(second?.options).toHaveLength(2);
-      const trueOption = second?.options.find((option) => option.text === "Verdadero");
+      const trueOption = second?.options.find((option: { text: string; isCorrect: boolean }) => option.text === "Verdadero");
       expect(trueOption?.isCorrect).toBe(true);
       expect(third?.type).toBe("FILL_BLANK");
       expect(third?.options).toHaveLength(2);
-      expect(third?.options.every((option) => option.isCorrect)).toBe(true);
+      expect(third?.options.every((option: { isCorrect: boolean }) => option.isCorrect)).toBe(true);
     });
 
     it("drops a fill-blank that dedupes to no options", () => {

@@ -1,4 +1,4 @@
-export type AIProviderId = "deepseek";
+export type AIProviderId = "deepseek" | "openrouter";
 
 export interface MaterialCatalogTopic {
   id: string;

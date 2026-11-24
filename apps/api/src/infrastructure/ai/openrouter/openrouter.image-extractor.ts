@@ -20,7 +20,9 @@ export class OpenRouterImageExtractor implements MaterialImageExtractor {
   }
 
   async extractRegions(input: ExtractImageRegionsInput): Promise<ExtractedImageRegion[]> {
-    const raw = await this.client.chat(extractRegionsMessages(input));
+    const raw = await this.client.chat(extractRegionsMessages(input), {
+      model: process.env.IMAGE_EXTRACTION_MODEL
+    });
     const payload = parseModelJson(extractedRegionsSchema, raw);
     return toExtractedImageRegions(payload, input.maxRegions);
   }
